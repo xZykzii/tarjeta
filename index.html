@@ -202,6 +202,7 @@
         <span>Tarjeta activa:</span>
         <select id="tarjetaActiva"></select>
         <button id="addTarjetaBtn">Añadir tarjeta</button>
+        <button id="delTarjetaBtn" class="danger-btn">Eliminar tarjeta</button>
       </div>
       <small style="color:#9ca3af;">Cada ítem nuevo se guarda en la tarjeta activa.</small>
     </div>
@@ -212,15 +213,16 @@
         <div class="inline-group">
           <select id="personaSelect"></select>
           <button id="addPersonaBtn">+ persona</button>
+          <button id="delPersonaBtn" class="danger-btn">- persona</button>
         </div>
       </div>
       <div>
         <label>Ítem</label>
-        <input id="item" placeholder="Silla, Compu, etc." />
+        <input id="item" placeholder="Ej: Producto X" />
       </div>
       <div>
         <label>Monto base</label>
-        <input id="monto" type="number" min="0" step="1" placeholder="Ej: 14165" />
+        <input id="monto" type="number" min="0" step="1" placeholder="Ej: 10000" />
       </div>
       <div>
         <label>Cuotas pagadas</label>
@@ -274,6 +276,17 @@
   </div>
 
   <script>
+    const PASSWORD = "170399";
+
+    function solicitarPassword(motivo = "eliminar") {
+      const ingreso = prompt("Ingresa la contraseña para " + motivo + " (6 dígitos):");
+      if (ingreso !== PASSWORD) {
+        alert("Contraseña incorrecta.");
+        return false;
+      }
+      return true;
+    }
+
     function formatCLP(num) {
       return num.toLocaleString("es-CL");
     }
@@ -342,7 +355,7 @@
       }
 
       if (!Array.isArray(tarjetas) || tarjetas.length === 0) {
-        tarjetas = ["Tarjeta papa", "Tarjeta mía"];
+        tarjetas = ["Tarjeta 1", "Tarjeta 2"];
       }
 
       // Tarjetas usadas en items que no estén en la lista
@@ -370,7 +383,7 @@
       }
 
       if (!Array.isArray(personas) || personas.length === 0) {
-        personas = ["Ale", "Yo", "Vicente", "Pablo", "Pancha", "Tia flor", "Mama"];
+        personas = ["Persona 1", "Persona 2"];
       }
 
       // Personas usadas en items que no estén en la lista
@@ -610,6 +623,7 @@
     }
 
     function borrarFila(idx) {
+      if (!solicitarPassword("eliminar este ítem")) return;
       if (!confirm("¿Borrar este ítem?")) return;
       items.splice(idx, 1);
       guardarEnStorage();
@@ -617,14 +631,15 @@
     }
 
     function limpiarTodo() {
-      if (!confirm("¿Seguro que quieres borrar TODO?")) return;
+      if (!solicitarPassword("borrar todo")) return;
+      if (!confirm("¿Seguro que quieres borrar TODOS los ítems? Esto no se puede deshacer.")) return;
       items = [];
       guardarEnStorage();
       renderTabla();
     }
 
     function añadirTarjeta() {
-      const nombre = prompt("Nombre de la nueva tarjeta (ej: Tarjeta banco X):");
+      const nombre = prompt("Nombre de la nueva tarjeta (ej: Tarjeta 3):");
       if (!nombre) return;
       const n = nombre.trim();
       if (!n) return;
@@ -639,8 +654,30 @@
       renderTabla();
     }
 
+    function eliminarTarjeta() {
+      if (!tarjetaActiva) return;
+      if (!solicitarPassword("eliminar esta tarjeta")) return;
+      if (tarjetas.length <= 1) {
+        alert("Debe quedar al menos una tarjeta.");
+        return;
+      }
+      const msg = "Se eliminará la tarjeta \"" + tarjetaActiva +
+                  "\" y TODOS los ítems asociados.\n¿Quieres continuar?";
+      if (!confirm(msg)) return;
+
+      items = items.filter(it => it.tarjeta !== tarjetaActiva);
+      tarjetas = tarjetas.filter(t => t !== tarjetaActiva);
+      if (tarjetas.length === 0) {
+        tarjetas = ["Tarjeta 1"];
+      }
+      tarjetaActiva = tarjetas[0];
+      guardarEnStorage();
+      renderTarjetasSelect();
+      renderTabla();
+    }
+
     function añadirPersona() {
-      const nombre = prompt("Nombre de la nueva persona (ej: Ale, Yo, etc.):");
+      const nombre = prompt("Nombre de la nueva persona:");
       if (!nombre) return;
       const n = nombre.trim();
       if (!n) return;
@@ -654,10 +691,32 @@
       renderPersonasSelect();
     }
 
+    function eliminarPersona() {
+      if (!personaSeleccionada) return;
+      if (!solicitarPassword("eliminar esta persona")) return;
+      if (personas.length <= 1) {
+        alert("Debe quedar al menos una persona en la lista.");
+        return;
+      }
+      const msg = "Se eliminará la persona \"" + personaSeleccionada +
+                  "\" de la lista (los ítems existentes seguirán mostrando ese nombre).\n¿Quieres continuar?";
+      if (!confirm(msg)) return;
+
+      personas = personas.filter(p => p !== personaSeleccionada);
+      if (personas.length === 0) {
+        personas = ["Persona 1"];
+      }
+      personaSeleccionada = personas[0];
+      guardarEnStorage();
+      renderPersonasSelect();
+    }
+
     document.getElementById("addBtn").addEventListener("click", agregarItemDesdeFormulario);
     document.getElementById("clearBtn").addEventListener("click", limpiarTodo);
     document.getElementById("addTarjetaBtn").addEventListener("click", añadirTarjeta);
+    document.getElementById("delTarjetaBtn").addEventListener("click", eliminarTarjeta);
     document.getElementById("addPersonaBtn").addEventListener("click", añadirPersona);
+    document.getElementById("delPersonaBtn").addEventListener("click", eliminarPersona);
 
     document.getElementById("monto").addEventListener("keypress", e => {
       if (e.key === "Enter") agregarItemDesdeFormulario();
