@@ -892,48 +892,90 @@
     }
 
     function importarBackupDesdeArchivo(file) {
-      if (!requireLogin()) return;
-      const reader = new FileReader();
-      reader.onload = async e => {
-        try {
-          const data = JSON.parse(e.target.result);
-          if (!data || !Array.isArray(data.items) || !Array.isArray(data.tarjetas) || !Array.isArray(data.personas)) {
-            alert("Archivo de backup inválido.");
-            return;
-          }
-          if (!confirm("Esto reemplazará todas las tarjetas, personas e ítems actuales de ESTA cuenta. ¿Continuar?")) {
-            return;
-          }
+  if (!requireLogin()) return;
 
-          items        = data.items        || [];
-          tarjetas     = data.tarjetas     || [];
-          personas     = data.personas     || [];
-          tarjetaActiva = data.tarjetaActiva || (tarjetas[0] || "");
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const text = e.target.result;
 
-          items.forEach(it => {
-            if (it.pagadas === undefined) it.pagadas = 0;
-            if (it.totales === undefined || it.totales <= 0) it.totales = 1;
-            if (it.monto === undefined) it.monto = 0;
-            it.factor = calcularFactor(it.pagadas, it.totales);
-            it.total  = it.monto * it.factor;
-          });
+      // 1) Intentar parsear JSON
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error("Error parseando JSON:", parseError);
+        alert("El archivo no es un JSON válido.");
+        return;
+      }
 
-          if (!Array.isArray(tarjetas) || tarjetas.length === 0) tarjetas = ["Tarjeta 1"];
-          if (!Array.isArray(personas) || personas.length === 0) personas = ["Persona 1"];
+      // 2) Detectar formato del backup (soporta varios)
+      let importedItems        = [];
+      let importedTarjetas     = [];
+      let importedPersonas     = [];
+      let importedTarjetaActiva = "";
 
-          await saveUserData();
-          renderTarjetasSelect();
-          renderPersonasSelect();
-          renderTabla();
+      if (Array.isArray(data)) {
+        // Formato ultra simple: [ {item,...}, {item,...} ]
+        importedItems = data;
+        importedTarjetas = ["Tarjeta 1"];
+        importedPersonas = ["Persona 1"];
+      } else if (data && Array.isArray(data.items)) {
+        // Formato "nuevo" o "medio nuevo"
+        importedItems    = data.items;
+        importedTarjetas = Array.isArray(data.tarjetas) ? data.tarjetas : ["Tarjeta 1"];
+        importedPersonas = Array.isArray(data.personas) ? data.personas : ["Persona 1"];
+        importedTarjetaActiva = data.tarjetaActiva || "";
+      } else {
+        console.error("Estructura de backup no reconocida:", data);
+        alert("Archivo de backup inválido o con estructura desconocida.");
+        return;
+      }
 
-          alert("Backup importado correctamente.");
-        } catch (err) {
-          console.error(err);
-          alert("Error leyendo el archivo de backup.");
-        }
-      };
-      reader.readAsText(file);
+      if (!confirm("Esto reemplazará todas las tarjetas, personas e ítems actuales de ESTA cuenta. ¿Continuar?")) {
+        return;
+      }
+
+      // 3) Normalizar items
+      items = importedItems.map(it => {
+        const obj = {
+          persona: it.persona || "Persona 1",
+          tarjeta: it.tarjeta || (importedTarjetas[0] || "Tarjeta 1"),
+          item:    it.item    || "-",
+          monto:   Number(it.monto) || 0,
+          pagadas: Number(it.pagadas) || 0,
+          totales: Number(it.totales) || 1
+        };
+        if (obj.totales <= 0) obj.totales = 1;
+        if (obj.pagadas < 0) obj.pagadas = 0;
+        if (obj.pagadas > obj.totales) obj.pagadas = obj.totales;
+        obj.factor = calcularFactor(obj.pagadas, obj.totales);
+        obj.total  = obj.monto * obj.factor;
+        return obj;
+      });
+
+      tarjetas = importedTarjetas && importedTarjetas.length ? importedTarjetas : ["Tarjeta 1"];
+      personas = importedPersonas && importedPersonas.length ? importedPersonas : ["Persona 1"];
+
+      tarjetaActiva = importedTarjetaActiva && tarjetas.includes(importedTarjetaActiva)
+        ? importedTarjetaActiva
+        : tarjetas[0];
+
+      await saveUserData();
+      renderTarjetasSelect();
+      renderPersonasSelect();
+      renderTabla();
+
+      alert("Backup importado correctamente.");
+    } catch (err) {
+      console.error("Error general importando backup:", err);
+      alert("Error leyendo el archivo de backup.");
     }
+  };
+
+  reader.readAsText(file);
+}
+
 
     // Eventos de UI
     document.getElementById("addBtn").addEventListener("click", agregarItemDesdeFormulario);
