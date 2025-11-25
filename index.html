@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Control de cuotas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #000000; /* Fondo negro */
+      color: #e5e7eb;
+      margin: 0;
+      padding: 16px;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .card {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: #000000; /* Card negra */
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+      border: 1px solid #27272a;
+    }
+    .top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .top-bar-left {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    select {
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 14px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px,1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    label {
+      font-size: 12px;
+      color: #9ca3af;
+      display: block;
+      margin-bottom: 2px;
+    }
+    input {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    input:focus {
+      outline: none;
+      border-color: #22c55e;
+      box-shadow: 0 0 0 1px #22c55e55;
+    }
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 13px;
+      cursor: pointer;
+      background: #22c55e;
+      color: #0b1120;
+      font-weight: 600;
+      transition: transform 0.05s ease, box-shadow 0.05s ease, background 0.1s;
+      white-space: nowrap;
+    }
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(34,197,94,0.35);
+      background: #16a34a;
+    }
+    button:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+    .danger-btn {
+      background: #ef4444;
+      color: #fee2e2;
+    }
+    .danger-btn:hover {
+      background: #dc2626;
+      box-shadow: 0 8px 16px rgba(248,113,113,0.35);
+    }
+    .warning-btn {
+      background: #facc15;      /* Amarillo */
+      color: #1a1a1a;
+    }
+    .warning-btn:hover {
+      background: #eab308;
+      box-shadow: 0 8px 16px rgba(250, 204, 21, 0.35);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #27272a;
+      text-align: left;
+      white-space: nowrap;
+    }
+    th {
+      background: #020617;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    tbody tr:nth-child(even) td {
+      background: #050505;
+    }
+    tbody tr:nth-child(odd) td {
+      background: #000000;
+    }
+    .right { text-align: right; }
+    .actions {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .summary {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+      gap: 12px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #1d4ed8;
+      font-size: 11px;
+    }
+    .totals-card {
+      border-radius: 10px;
+      border: 1px solid #27272a;
+      padding: 10px;
+      background: #020617;
+      font-size: 13px;
+    }
+    .totals-card h2 {
+      margin: 0 0 6px;
+      font-size: 14px;
+    }
+    .person-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 3px;
+    }
+    .inline-group {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    @media (max-width: 700px) {
+      .summary {
+        grid-template-columns: 1fr;
+      }
+      table {
+        font-size: 12px;
+      }
+      th, td {
+        padding: 4px 6px;
+      }
+      .actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Control de cuotas 💳</h1>
+
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <span>Tarjeta activa:</span>
+        <select id="tarjetaActiva"></select>
+        <button id="addTarjetaBtn">Añadir tarjeta</button>
+      </div>
+      <small style="color:#9ca3af;">Cada ítem nuevo se guarda en la tarjeta activa.</small>
+    </div>
+
+    <div class="form-grid">
+      <div>
+        <label>Persona</label>
+        <div class="inline-group">
+          <select id="personaSelect"></select>
+          <button id="addPersonaBtn">+ persona</button>
+        </div>
+      </div>
+      <div>
+        <label>Ítem</label>
+        <input id="item" placeholder="Silla, Compu, etc." />
+      </div>
+      <div>
+        <label>Monto base</label>
+        <input id="monto" type="number" min="0" step="1" placeholder="Ej: 14165" />
+      </div>
+      <div>
+        <label>Cuotas pagadas</label>
+        <input id="cuotasPagadas" type="number" min="0" step="1" placeholder="Ej: 3" />
+      </div>
+      <div>
+        <label>Cuotas totales</label>
+        <input id="cuotasTotales" type="number" min="1" step="1" placeholder="Ej: 12" />
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap;">
+        <button id="addBtn">Agregar ítem</button>
+        <button id="clearBtn" class="danger-btn">Borrar todo</button>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Persona</th>
+          <th>Tarjeta</th>
+          <th>Ítem</th>
+          <th class="right">Monto base</th>
+          <th>Cuotas</th>
+          <th class="right">Factor</th>
+          <th class="right">Total</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-body"></tbody>
+    </table>
+
+    <div class="summary">
+      <div class="totals-card">
+        <h2>Total tarjeta activa</h2>
+        <div style="font-size:22px;font-weight:700;">
+          $<span id="total-general">0</span>
+        </div>
+        <small class="badge">Solo ítems de la tarjeta seleccionada</small>
+      </div>
+
+      <div class="totals-card">
+        <h2>Totales por persona (tarjeta activa)</h2>
+        <div id="totales-persona"></div>
+      </div>
+
+      <div class="totals-card">
+        <h2>Totales por tarjeta (todas)</h2>
+        <div id="totales-tarjeta"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function formatCLP(num) {
+      return num.toLocaleString("es-CL");
+    }
+
+    function calcularFactor(pagadas, totales) {
+      const p = Number(pagadas) || 0;
+      const t = Number(totales) || 0;
+      if (t <= 0) return 0;
+      const f = t - p;
+      return f > 0 ? f : 0;
+    }
+
+    const STORAGE_ITEMS = "cuotas_items_v6";
+    const STORAGE_TARJETAS = "cuotas_tarjetas_v1";
+    const STORAGE_TARJETA_ACTIVA = "cuotas_tarjeta_activa";
+    const STORAGE_PERSONAS = "cuotas_personas_v1";
+
+    let items = [];
+    let tarjetas = [];
+    let personas = [];
+    let tarjetaActiva = "";
+    let personaSeleccionada = "";
+
+    function guardarEnStorage() {
+      localStorage.setItem(STORAGE_ITEMS, JSON.stringify(items));
+      localStorage.setItem(STORAGE_TARJETAS, JSON.stringify(tarjetas));
+      localStorage.setItem(STORAGE_TARJETA_ACTIVA, tarjetaActiva);
+      localStorage.setItem(STORAGE_PERSONAS, JSON.stringify(personas));
+    }
+
+    function cargarDeStorage() {
+      try {
+        const dataItems = localStorage.getItem(STORAGE_ITEMS);
+        if (dataItems) {
+          items = JSON.parse(dataItems) || [];
+        }
+      } catch (e) {
+        console.error("Error cargando items", e);
+        items = [];
+      }
+
+      // migración si venías de versión con it.cuotas
+      items.forEach(it => {
+        if (it.pagadas === undefined && typeof it.cuotas === "string") {
+          const m = it.cuotas.match(/^\s*(\d+)\s*\/\s*(\d+)\s*$/);
+          if (m) {
+            it.pagadas = parseInt(m[1], 10);
+            it.totales = parseInt(m[2], 10);
+          }
+        }
+        if (it.pagadas === undefined) it.pagadas = 0;
+        if (it.totales === undefined) it.totales = 1;
+        it.factor = calcularFactor(it.pagadas, it.totales);
+        it.total = it.monto * it.factor;
+        delete it.cuotas;
+      });
+
+      try {
+        const dataTarjetas = localStorage.getItem(STORAGE_TARJETAS);
+        if (dataTarjetas) {
+          tarjetas = JSON.parse(dataTarjetas) || [];
+        }
+      } catch (e) {
+        console.error("Error cargando tarjetas", e);
+        tarjetas = [];
+      }
+
+      if (!Array.isArray(tarjetas) || tarjetas.length === 0) {
+        tarjetas = ["Tarjeta papa", "Tarjeta mía"];
+      }
+
+      // Tarjetas usadas en items que no estén en la lista
+      items.forEach(it => {
+        if (it.tarjeta && !tarjetas.includes(it.tarjeta)) {
+          tarjetas.push(it.tarjeta);
+        }
+      });
+
+      const storedActiva = localStorage.getItem(STORAGE_TARJETA_ACTIVA);
+      if (storedActiva && tarjetas.includes(storedActiva)) {
+        tarjetaActiva = storedActiva;
+      } else {
+        tarjetaActiva = tarjetas[0];
+      }
+
+      try {
+        const dataPersonas = localStorage.getItem(STORAGE_PERSONAS);
+        if (dataPersonas) {
+          personas = JSON.parse(dataPersonas) || [];
+        }
+      } catch (e) {
+        console.error("Error cargando personas", e);
+        personas = [];
+      }
+
+      if (!Array.isArray(personas) || personas.length === 0) {
+        personas = ["Ale", "Yo", "Vicente", "Pablo", "Pancha", "Tia flor", "Mama"];
+      }
+
+      // Personas usadas en items que no estén en la lista
+      items.forEach(it => {
+        if (it.persona && !personas.includes(it.persona)) {
+          personas.push(it.persona);
+        }
+      });
+
+      personaSeleccionada = personas[0];
+    }
+
+    function renderTarjetasSelect() {
+      const select = document.getElementById("tarjetaActiva");
+      select.innerHTML = "";
+      tarjetas.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = t;
+        if (t === tarjetaActiva) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function renderPersonasSelect() {
+      const select = document.getElementById("personaSelect");
+      select.innerHTML = "";
+      personas.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p;
+        select.appendChild(opt);
+      });
+      if (personas.includes(personaSeleccionada)) {
+        select.value = personaSeleccionada;
+      } else {
+        personaSeleccionada = personas[0];
+        select.value = personaSeleccionada;
+      }
+    }
+
+    function renderTabla() {
+      const tbody = document.getElementById("tabla-body");
+      tbody.innerHTML = "";
+
+      let totalGeneral = 0;
+      const porPersona = {};
+      const porTarjeta = {};
+
+      const activos = items.filter(it => it.tarjeta === tarjetaActiva);
+
+      activos.forEach(it => {
+        const idx = items.indexOf(it);
+
+        const tr = document.createElement("tr");
+
+        const tdPersona = document.createElement("td");
+        tdPersona.textContent = it.persona;
+        tr.appendChild(tdPersona);
+
+        const tdTarjeta = document.createElement("td");
+        tdTarjeta.textContent = it.tarjeta || "-";
+        tr.appendChild(tdTarjeta);
+
+        const tdItem = document.createElement("td");
+        tdItem.textContent = it.item;
+        tr.appendChild(tdItem);
+
+        const tdMonto = document.createElement("td");
+        tdMonto.className = "right";
+        tdMonto.textContent = "$" + formatCLP(it.monto);
+        tr.appendChild(tdMonto);
+
+        const tdCuotas = document.createElement("td");
+        tdCuotas.textContent = `${it.pagadas}/${it.totales}`;
+        tr.appendChild(tdCuotas);
+
+        const tdFactor = document.createElement("td");
+        tdFactor.className = "right";
+        tdFactor.textContent = it.factor;
+        tr.appendChild(tdFactor);
+
+        const tdTotal = document.createElement("td");
+        tdTotal.className = "right";
+        tdTotal.textContent = "$" + formatCLP(it.total);
+        tr.appendChild(tdTotal);
+
+        const tdAcciones = document.createElement("td");
+        const actionsDiv = document.createElement("div");
+        actionsDiv.className = "actions";
+
+        const pagarBtn = document.createElement("button");
+        pagarBtn.textContent = "Pagar cuota";
+        pagarBtn.addEventListener("click", () => pagarCuota(idx));
+
+        const deshacerBtn = document.createElement("button");
+        deshacerBtn.textContent = "Deshacer cuota";
+        deshacerBtn.className = "warning-btn";
+        deshacerBtn.addEventListener("click", () => deshacerCuota(idx));
+
+        const borrarBtn = document.createElement("button");
+        borrarBtn.textContent = "Borrar";
+        borrarBtn.className = "danger-btn";
+        borrarBtn.addEventListener("click", () => borrarFila(idx));
+
+        if (it.pagadas >= it.totales) {
+          pagarBtn.disabled = true;
+          pagarBtn.style.opacity = 0.5;
+          pagarBtn.style.cursor = "default";
+        }
+
+        if (it.pagadas <= 0) {
+          deshacerBtn.disabled = true;
+          deshacerBtn.style.opacity = 0.5;
+          deshacerBtn.style.cursor = "default";
+        }
+
+        actionsDiv.appendChild(pagarBtn);
+        actionsDiv.appendChild(deshacerBtn);
+        actionsDiv.appendChild(borrarBtn);
+        tdAcciones.appendChild(actionsDiv);
+        tr.appendChild(tdAcciones);
+
+        totalGeneral += it.total;
+        porPersona[it.persona] = (porPersona[it.persona] || 0) + it.total;
+
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("total-general").textContent = formatCLP(totalGeneral);
+
+      const contPers = document.getElementById("totales-persona");
+      contPers.innerHTML = "";
+      const personasTot = Object.entries(porPersona);
+      if (personasTot.length === 0) {
+        contPers.textContent = "Sin datos todavía.";
+      } else {
+        personasTot.forEach(([persona, total]) => {
+          const row = document.createElement("div");
+          row.className = "person-row";
+          row.innerHTML = `<span>${persona}</span><span>$${formatCLP(total)}</span>`;
+          contPers.appendChild(row);
+        });
+      }
+
+      const contTarjeta = document.getElementById("totales-tarjeta");
+      contTarjeta.innerHTML = "";
+      items.forEach(it => {
+        const key = it.tarjeta || "Sin tarjeta";
+        porTarjeta[key] = (porTarjeta[key] || 0) + it.total;
+      });
+      const tarjetasTotals = Object.entries(porTarjeta);
+      if (tarjetasTotals.length === 0) {
+        contTarjeta.textContent = "Sin datos todavía.";
+      } else {
+        tarjetasTotals.forEach(([tarj, total]) => {
+          const row = document.createElement("div");
+          row.className = "person-row";
+          row.innerHTML = `<span>${tarj}</span><span>$${formatCLP(total)}</span>`;
+          contTarjeta.appendChild(row);
+        });
+      }
+    }
+
+    function agregarItemDesdeFormulario() {
+      const personaSel = document.getElementById("personaSelect");
+      const itemInput = document.getElementById("item");
+      const montoInput = document.getElementById("monto");
+      const pagadasInput = document.getElementById("cuotasPagadas");
+      const totalesInput = document.getElementById("cuotasTotales");
+
+      const persona = personaSel.value || personas[0];
+      const item = itemInput.value.trim() || "-";
+      const monto = parseInt(montoInput.value, 10);
+      const pagadas = parseInt(pagadasInput.value, 10) || 0;
+      const totales = parseInt(totalesInput.value, 10) || 0;
+
+      if (isNaN(monto) || monto <= 0) {
+        alert("Pon un monto válido (mayor que 0).");
+        return;
+      }
+      if (totales <= 0) {
+        alert("Pon un número de cuotas totales mayor que 0.");
+        return;
+      }
+      if (pagadas < 0 || pagadas > totales) {
+        alert("Las cuotas pagadas deben estar entre 0 y el total.");
+        return;
+      }
+      if (!tarjetaActiva) {
+        alert("Primero crea o selecciona una tarjeta.");
+        return;
+      }
+
+      const nuevo = {
+        persona,
+        tarjeta: tarjetaActiva,
+        item,
+        monto,
+        pagadas,
+        totales,
+        factor: 0,
+        total: 0
+      };
+      nuevo.factor = calcularFactor(nuevo.pagadas, nuevo.totales);
+      nuevo.total = nuevo.monto * nuevo.factor;
+
+      items.push(nuevo);
+      guardarEnStorage();
+      renderTabla();
+
+      itemInput.value = "";
+      montoInput.value = "";
+      pagadasInput.value = "";
+      totalesInput.value = "";
+      itemInput.focus();
+    }
+
+    function pagarCuota(idx) {
+      const it = items[idx];
+      if (it.pagadas >= it.totales) return;
+      it.pagadas += 1;
+      it.factor = calcularFactor(it.pagadas, it.totales);
+      it.total = it.monto * it.factor;
+      guardarEnStorage();
+      renderTabla();
+    }
+
+    function deshacerCuota(idx) {
+      const it = items[idx];
+      if (it.pagadas <= 0) return;
+      it.pagadas -= 1;
+      it.factor = calcularFactor(it.pagadas, it.totales);
+      it.total = it.monto * it.factor;
+      guardarEnStorage();
+      renderTabla();
+    }
+
+    function borrarFila(idx) {
+      if (!confirm("¿Borrar este ítem?")) return;
+      items.splice(idx, 1);
+      guardarEnStorage();
+      renderTabla();
+    }
+
+    function limpiarTodo() {
+      if (!confirm("¿Seguro que quieres borrar TODO?")) return;
+      items = [];
+      guardarEnStorage();
+      renderTabla();
+    }
+
+    function añadirTarjeta() {
+      const nombre = prompt("Nombre de la nueva tarjeta (ej: Tarjeta banco X):");
+      if (!nombre) return;
+      const n = nombre.trim();
+      if (!n) return;
+      if (tarjetas.includes(n)) {
+        alert("Esa tarjeta ya existe.");
+        return;
+      }
+      tarjetas.push(n);
+      tarjetaActiva = n;
+      guardarEnStorage();
+      renderTarjetasSelect();
+      renderTabla();
+    }
+
+    function añadirPersona() {
+      const nombre = prompt("Nombre de la nueva persona (ej: Ale, Yo, etc.):");
+      if (!nombre) return;
+      const n = nombre.trim();
+      if (!n) return;
+      if (personas.includes(n)) {
+        alert("Esa persona ya existe.");
+        return;
+      }
+      personas.push(n);
+      personaSeleccionada = n;
+      guardarEnStorage();
+      renderPersonasSelect();
+    }
+
+    document.getElementById("addBtn").addEventListener("click", agregarItemDesdeFormulario);
+    document.getElementById("clearBtn").addEventListener("click", limpiarTodo);
+    document.getElementById("addTarjetaBtn").addEventListener("click", añadirTarjeta);
+    document.getElementById("addPersonaBtn").addEventListener("click", añadirPersona);
+
+    document.getElementById("monto").addEventListener("keypress", e => {
+      if (e.key === "Enter") agregarItemDesdeFormulario();
+    });
+    document.getElementById("cuotasTotales").addEventListener("keypress", e => {
+      if (e.key === "Enter") agregarItemDesdeFormulario();
+    });
+
+    document.getElementById("tarjetaActiva").addEventListener("change", e => {
+      tarjetaActiva = e.target.value;
+      guardarEnStorage();
+      renderTabla();
+    });
+
+    document.getElementById("personaSelect").addEventListener("change", e => {
+      personaSeleccionada = e.target.value;
+    });
+
+    // Inicializar
+    cargarDeStorage();
+    renderTarjetasSelect();
+    renderPersonasSelect();
+    renderTabla();
+  </script>
+</body>
+</html>
