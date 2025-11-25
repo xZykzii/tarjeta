@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <title>Control de cuotas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Script de Google Identity -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -178,13 +176,13 @@
     }
     .hidden { display: none !important; }
 
-    #google-login {
+    #login-box {
       text-align: center;
       margin-bottom: 16px;
       padding-bottom: 12px;
       border-bottom: 1px solid #27272a;
     }
-    #google-login p {
+    #login-box p {
       margin-bottom: 8px;
       color: #e5e7eb;
     }
@@ -224,24 +222,11 @@
   <div class="card">
     <h1>Control de cuotas 💳</h1>
 
-    <!-- LOGIN CON GOOGLE -->
-    <div id="google-login">
-      <p>Inicia sesión con Google para usar la app.</p>
-      <div
-        id="g_id_onload"
-        data-client_id="847044346112-o2911ht7mt4a4lmf0k37tg7riuritciv.apps.googleusercontent.com"
-        data-callback="handleCredentialResponse"
-        data-auto_prompt="false">
-      </div>
-      <div
-        class="g_id_signin"
-        data-type="standard"
-        data-size="large"
-        data-theme="outline"
-        data-text="signin_with"
-        data-shape="rect"
-        data-logo_alignment="left">
-      </div>
+    <!-- LOGIN CON FIREBASE GOOGLE -->
+    <div id="login-box">
+      <p id="login-texto">Inicia sesión con Google para usar la app.</p>
+      <button id="loginBtn">Iniciar sesión con Google</button>
+      <button id="logoutBtn" class="warning-btn hidden">Cerrar sesión</button>
       <p id="login-info" style="font-size:12px;color:#9ca3af;margin-top:6px;"></p>
     </div>
 
@@ -255,7 +240,6 @@
           <button id="delTarjetaBtn" class="danger-btn">Eliminar tarjeta</button>
         </div>
         <div class="top-bar-right">
-          <button id="logoutBtn" class="warning-btn">Cerrar sesión</button>
           <button id="exportBtn">Exportar backup</button>
           <button id="importBtn">Importar backup</button>
           <input id="importFile" type="file" accept="application/json" style="display:none" />
@@ -263,7 +247,7 @@
       </div>
 
       <div style="margin-bottom:8px;color:#9ca3af;font-size:12px;">
-        Cada ítem nuevo se guarda en la tarjeta activa. Haz backup periódicamente para no perder nada.
+        Cada ítem nuevo se guarda en la tarjeta activa. Tus datos se sincronizan en la nube (Firebase) por cuenta de Google.
       </div>
 
       <div class="form-grid">
@@ -359,30 +343,55 @@
     </div>
   </div>
 
-  <script>
-    // ---------- CLAVES BASE (se separan por correo de Google) ----------
-    const BASE_ITEMS_KEY          = "cuotas_items_google_v1";
-    const BASE_TARJETAS_KEY       = "cuotas_tarjetas_google_v1";
-    const BASE_TARJETA_ACTIVA_KEY = "cuotas_tarjeta_activa_google_v1";
-    const BASE_PERSONAS_KEY       = "cuotas_personas_google_v1";
-    const STORAGE_GOOGLE_EMAIL    = "cuotas_google_email_last_v1";
+  <!-- JS: Firebase + lógica -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+    // 1) PON AQUÍ TU CONFIG DE FIREBASE
+    const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_PROJECT_ID.firebaseapp.com",
+  projectId: "TU_PROJECT_ID",
+  storageBucket: "TU_PROJECT_ID.appspot.com",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "TU_APP_ID"
+};
+
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+    const db = getFirestore(app);
+
+    // Estado
     let items = [];
     let tarjetas = [];
     let personas = [];
     let tarjetaActiva = "";
     let personaSeleccionada = "";
-    let loggedIn = false;
-    let googleEmail = null;
+    let currentUser = null; // user de Firebase
 
-    // Sufijo por usuario (correo)
-    function userSuffix() {
-      return googleEmail ? "::" + googleEmail : "::anon";
-    }
-    function keyItems()         { return BASE_ITEMS_KEY          + userSuffix(); }
-    function keyTarjetas()      { return BASE_TARJETAS_KEY       + userSuffix(); }
-    function keyTarjetaActiva() { return BASE_TARJETA_ACTIVA_KEY + userSuffix(); }
-    function keyPersonas()      { return BASE_PERSONAS_KEY       + userSuffix(); }
+    // Helpers UI
+    const contenido   = document.getElementById("contenido");
+    const loginTexto  = document.getElementById("login-texto");
+    const loginInfo   = document.getElementById("login-info");
+    const loginBtn    = document.getElementById("loginBtn");
+    const logoutBtn   = document.getElementById("logoutBtn");
+    const tablaBody   = document.getElementById("tabla-body");
+    const filtroInput = document.getElementById("filtro");
 
     function formatCLP(num) {
       return num.toLocaleString("es-CL");
@@ -396,22 +405,53 @@
       return f > 0 ? f : 0;
     }
 
-    function guardarDatosUsuario() {
-      if (!googleEmail) return;
-      localStorage.setItem(keyItems(), JSON.stringify(items));
-      localStorage.setItem(keyTarjetas(), JSON.stringify(tarjetas));
-      localStorage.setItem(keyTarjetaActiva(), tarjetaActiva);
-      localStorage.setItem(keyPersonas(), JSON.stringify(personas));
-      localStorage.setItem(STORAGE_GOOGLE_EMAIL, googleEmail);
+    async function saveUserData() {
+      if (!currentUser) return;
+      const uid = currentUser.uid;
+
+      const cleanedItems = items.map(it => ({
+        persona: it.persona,
+        tarjeta: it.tarjeta,
+        item:    it.item,
+        monto:   it.monto,
+        pagadas: it.pagadas,
+        totales: it.totales
+      }));
+
+      await setDoc(
+        doc(db, "users", uid),
+        {
+          items: cleanedItems,
+          tarjetas,
+          personas,
+          tarjetaActiva
+        },
+        { merge: true }
+      );
     }
 
-    function cargarDatosUsuario() {
-      // Items
-      try {
-        const dataItems = localStorage.getItem(keyItems());
-        items = dataItems ? JSON.parse(dataItems) || [] : [];
-      } catch { items = []; }
+    async function loadUserData() {
+      if (!currentUser) return;
+      const uid = currentUser.uid;
 
+      const ref = doc(db, "users", uid);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        const data = snap.data();
+        items        = data.items        || [];
+        tarjetas     = data.tarjetas     || [];
+        personas     = data.personas     || [];
+        tarjetaActiva = data.tarjetaActiva || (tarjetas[0] || "");
+      } else {
+        // Primer uso para este usuario
+        items    = [];
+        tarjetas = ["Tarjeta 1", "Tarjeta 2"];
+        personas = ["Persona 1", "Persona 2"];
+        tarjetaActiva = tarjetas[0];
+        await saveUserData();
+      }
+
+      // Normalizar items
       items.forEach(it => {
         if (it.pagadas === undefined) it.pagadas = 0;
         if (it.totales === undefined || it.totales <= 0) it.totales = 1;
@@ -420,39 +460,15 @@
         it.total  = it.monto * it.factor;
       });
 
-      // Tarjetas
-      try {
-        const dataTarjetas = localStorage.getItem(keyTarjetas());
-        tarjetas = dataTarjetas ? JSON.parse(dataTarjetas) || [] : [];
-      } catch { tarjetas = []; }
       if (!Array.isArray(tarjetas) || tarjetas.length === 0) {
         tarjetas = ["Tarjeta 1", "Tarjeta 2"];
       }
-      items.forEach(it => {
-        if (it.tarjeta && !tarjetas.includes(it.tarjeta)) tarjetas.push(it.tarjeta);
-      });
-
-      // Tarjeta activa
-      try {
-        const storedActiva = localStorage.getItem(keyTarjetaActiva());
-        if (storedActiva && tarjetas.includes(storedActiva)) {
-          tarjetaActiva = storedActiva;
-        } else {
-          tarjetaActiva = tarjetas[0];
-        }
-      } catch { tarjetaActiva = tarjetas[0]; }
-
-      // Personas
-      try {
-        const dataPersonas = localStorage.getItem(keyPersonas());
-        personas = dataPersonas ? JSON.parse(dataPersonas) || [] : [];
-      } catch { personas = []; }
+      if (!tarjetaActiva || !tarjetas.includes(tarjetaActiva)) {
+        tarjetaActiva = tarjetas[0];
+      }
       if (!Array.isArray(personas) || personas.length === 0) {
         personas = ["Persona 1", "Persona 2"];
       }
-      items.forEach(it => {
-        if (it.persona && !personas.includes(it.persona)) personas.push(it.persona);
-      });
       personaSeleccionada = personas[0];
 
       renderTarjetasSelect();
@@ -460,54 +476,15 @@
       renderTabla();
     }
 
-    // ---------- Login UI ----------
-    function updateLoginUI() {
-      const loginDiv  = document.getElementById("google-login");
-      const contenido = document.getElementById("contenido");
-      const info      = document.getElementById("login-info");
-
-      if (loggedIn) {
-        loginDiv.classList.add("hidden");
-        contenido.classList.remove("hidden");
-        info.textContent = "Sesión iniciada como " + (googleEmail || "");
-      } else {
-        loginDiv.classList.remove("hidden");
-        contenido.classList.add("hidden");
-        info.textContent = "";
-      }
-    }
-
-    // callback de Google
-    window.handleCredentialResponse = function (response) {
-      try {
-        const payload = JSON.parse(atob(response.credential.split(".")[1]));
-        googleEmail = payload.email || "";
-        loggedIn = true;
-        localStorage.setItem(STORAGE_GOOGLE_EMAIL, googleEmail);
-        cargarDatosUsuario();
-        updateLoginUI();
-        alert("Sesión iniciada como " + googleEmail);
-      } catch (e) {
-        console.error(e);
-        alert("No se pudo iniciar sesión con Google.");
-      }
-    };
-
     function requireLogin() {
-      if (!loggedIn || !googleEmail) {
+      if (!currentUser) {
         alert("Primero inicia sesión con Google.");
         return false;
       }
       return true;
     }
 
-    function cerrarSesion() {
-      loggedIn = false;
-      googleEmail = null;
-      updateLoginUI();
-    }
-
-    // ---------- selects ----------
+    // Selects
     function renderTarjetasSelect() {
       const select = document.getElementById("tarjetaActiva");
       select.innerHTML = "";
@@ -537,9 +514,9 @@
       }
     }
 
-    // ---------- tabla / resumen ----------
+    // Tabla + resumen
     function getFilteredItems() {
-      const filtro = document.getElementById("filtro").value.toLowerCase().trim();
+      const filtro = filtroInput.value.toLowerCase().trim();
       let activos = items.filter(it => it.tarjeta === tarjetaActiva);
       if (filtro) {
         activos = activos.filter(it => {
@@ -551,18 +528,17 @@
     }
 
     function renderTabla() {
-      const tbody = document.getElementById("tabla-body");
-      tbody.innerHTML = "";
-
+      tablaBody.innerHTML = "";
       const activos = getFilteredItems();
 
-      let totalContratoTarjeta   = 0;
-      let totalPagadoTarjeta     = 0;
-      let totalPendienteTarjeta  = 0;
-      let cuotaMensualGlobal     = 0;
-      const porPersonaPendiente  = {};
-      const porTarjetaPendiente  = {};
-      const mensualPorPersona    = {}; // NUEVO: cuota mensual por persona (tarjeta activa)
+      let totalContratoTarjeta  = 0;
+      let totalPagadoTarjeta    = 0;
+      let totalPendienteTarjeta = 0;
+      let cuotaMensualGlobal    = 0;
+
+      const porPersonaPendiente = {};
+      const porTarjetaPendiente = {};
+      const mensualPorPersona   = {};
 
       activos.forEach(it => {
         const idx = items.indexOf(it);
@@ -625,17 +601,26 @@
 
         const pagarBtn = document.createElement("button");
         pagarBtn.textContent = "Pagar cuota";
-        pagarBtn.addEventListener("click", () => { if (requireLogin()) pagarCuota(idx); });
+        pagarBtn.addEventListener("click", async () => {
+          if (!requireLogin()) return;
+          await pagarCuota(idx);
+        });
 
         const deshacerBtn = document.createElement("button");
         deshacerBtn.textContent = "Deshacer cuota";
         deshacerBtn.className = "warning-btn";
-        deshacerBtn.addEventListener("click", () => { if (requireLogin()) deshacerCuota(idx); });
+        deshacerBtn.addEventListener("click", async () => {
+          if (!requireLogin()) return;
+          await deshacerCuota(idx);
+        });
 
         const borrarBtn = document.createElement("button");
         borrarBtn.textContent = "Borrar";
         borrarBtn.className = "danger-btn";
-        borrarBtn.addEventListener("click", () => { if (requireLogin()) borrarFila(idx); });
+        borrarBtn.addEventListener("click", async () => {
+          if (!requireLogin()) return;
+          await borrarFila(idx);
+        });
 
         if (it.pagadas >= it.totales) {
           pagarBtn.disabled = true;
@@ -654,7 +639,7 @@
         tdAcciones.appendChild(actionsDiv);
         tr.appendChild(tdAcciones);
 
-        tbody.appendChild(tr);
+        tablaBody.appendChild(tr);
       });
 
       // Resumen tarjeta activa
@@ -697,7 +682,7 @@
         });
       }
 
-      // NUEVO: Cuota mensual por persona (tarjeta activa)
+      // Cuota mensual por persona (tarjeta activa)
       const contMensualPersona = document.getElementById("totales-mensual-persona");
       contMensualPersona.innerHTML = "";
       const mensualTot = Object.entries(mensualPorPersona);
@@ -713,8 +698,8 @@
       }
     }
 
-    // ---------- acciones ----------
-    function agregarItemDesdeFormulario() {
+    // Acciones
+    async function agregarItemDesdeFormulario() {
       if (!requireLogin()) return;
 
       const personaSel   = document.getElementById("personaSelect");
@@ -760,7 +745,7 @@
       nuevo.total  = nuevo.monto * nuevo.factor;
 
       items.push(nuevo);
-      guardarDatosUsuario();
+      await saveUserData();
       renderTabla();
 
       itemInput.value    = "";
@@ -770,43 +755,42 @@
       itemInput.focus();
     }
 
-    function pagarCuota(idx) {
+    async function pagarCuota(idx) {
       const it = items[idx];
       if (it.pagadas >= it.totales) return;
       it.pagadas += 1;
       it.factor   = calcularFactor(it.pagadas, it.totales);
       it.total    = it.monto * it.factor;
-      guardarDatosUsuario();
+      await saveUserData();
       renderTabla();
     }
 
-    function deshacerCuota(idx) {
+    async function deshacerCuota(idx) {
       const it = items[idx];
       if (it.pagadas <= 0) return;
       it.pagadas -= 1;
       it.factor   = calcularFactor(it.pagadas, it.totales);
       it.total    = it.monto * it.factor;
-      guardarDatosUsuario();
+      await saveUserData();
       renderTabla();
     }
 
-    function borrarFila(idx) {
-      if (!requireLogin()) return;
+    async function borrarFila(idx) {
       if (!confirm("¿Borrar este ítem?")) return;
       items.splice(idx, 1);
-      guardarDatosUsuario();
+      await saveUserData();
       renderTabla();
     }
 
-    function limpiarTodo() {
+    async function limpiarTodo() {
       if (!requireLogin()) return;
       if (!confirm("¿Seguro que quieres borrar TODOS los ítems de esta cuenta?")) return;
       items = [];
-      guardarDatosUsuario();
+      await saveUserData();
       renderTabla();
     }
 
-    function añadirTarjeta() {
+    async function añadirTarjeta() {
       if (!requireLogin()) return;
       const nombre = prompt("Nombre de la nueva tarjeta (ej: Tarjeta 3):");
       if (!nombre) return;
@@ -818,12 +802,12 @@
       }
       tarjetas.push(n);
       tarjetaActiva = n;
-      guardarDatosUsuario();
+      await saveUserData();
       renderTarjetasSelect();
       renderTabla();
     }
 
-    function eliminarTarjeta() {
+    async function eliminarTarjeta() {
       if (!requireLogin()) return;
       if (!tarjetaActiva) return;
       if (tarjetas.length <= 1) {
@@ -840,12 +824,12 @@
         tarjetas = ["Tarjeta 1"];
       }
       tarjetaActiva = tarjetas[0];
-      guardarDatosUsuario();
+      await saveUserData();
       renderTarjetasSelect();
       renderTabla();
     }
 
-    function añadirPersona() {
+    async function añadirPersona() {
       if (!requireLogin()) return;
       const nombre = prompt("Nombre de la nueva persona:");
       if (!nombre) return;
@@ -857,11 +841,11 @@
       }
       personas.push(n);
       personaSeleccionada = n;
-      guardarDatosUsuario();
+      await saveUserData();
       renderPersonasSelect();
     }
 
-    function eliminarPersona() {
+    async function eliminarPersona() {
       if (!requireLogin()) return;
       if (!personaSeleccionada) return;
       if (personas.length <= 1) {
@@ -876,18 +860,20 @@
         personas = ["Persona 1"];
       }
       personaSeleccionada = personas[0];
-      guardarDatosUsuario();
+      await saveUserData();
       renderPersonasSelect();
     }
 
     function exportarBackup() {
       if (!requireLogin()) return;
       const data = {
-        version: 2,
-        email: googleEmail,
+        version: 3,
+        uid: currentUser.uid,
+        email: currentUser.email,
         items,
         tarjetas,
-        personas
+        personas,
+        tarjetaActiva
       };
       const blob = new Blob([JSON.stringify(data, null, 2)], {
         type: "application/json"
@@ -906,7 +892,7 @@
     function importarBackupDesdeArchivo(file) {
       if (!requireLogin()) return;
       const reader = new FileReader();
-      reader.onload = e => {
+      reader.onload = async e => {
         try {
           const data = JSON.parse(e.target.result);
           if (!data || !Array.isArray(data.items) || !Array.isArray(data.tarjetas) || !Array.isArray(data.personas)) {
@@ -917,9 +903,10 @@
             return;
           }
 
-          items    = data.items    || [];
-          tarjetas = data.tarjetas || [];
-          personas = data.personas || [];
+          items        = data.items        || [];
+          tarjetas     = data.tarjetas     || [];
+          personas     = data.personas     || [];
+          tarjetaActiva = data.tarjetaActiva || (tarjetas[0] || "");
 
           items.forEach(it => {
             if (it.pagadas === undefined) it.pagadas = 0;
@@ -932,10 +919,7 @@
           if (!Array.isArray(tarjetas) || tarjetas.length === 0) tarjetas = ["Tarjeta 1"];
           if (!Array.isArray(personas) || personas.length === 0) personas = ["Persona 1"];
 
-          tarjetaActiva      = tarjetas[0];
-          personaSeleccionada = personas[0];
-
-          guardarDatosUsuario();
+          await saveUserData();
           renderTarjetasSelect();
           renderPersonasSelect();
           renderTabla();
@@ -949,7 +933,7 @@
       reader.readAsText(file);
     }
 
-    // ---------- eventos ----------
+    // Eventos de UI
     document.getElementById("addBtn").addEventListener("click", agregarItemDesdeFormulario);
     document.getElementById("clearBtn").addEventListener("click", limpiarTodo);
     document.getElementById("addTarjetaBtn").addEventListener("click", añadirTarjeta);
@@ -971,22 +955,52 @@
     document.getElementById("cuotasTotales").addEventListener("keypress", e => {
       if (e.key === "Enter") agregarItemDesdeFormulario();
     });
-    document.getElementById("tarjetaActiva").addEventListener("change", e => {
+    document.getElementById("tarjetaActiva").addEventListener("change", async e => {
       tarjetaActiva = e.target.value;
-      guardarDatosUsuario();
+      await saveUserData();
       renderTabla();
     });
     document.getElementById("personaSelect").addEventListener("change", e => {
       personaSeleccionada = e.target.value;
     });
-    document.getElementById("logoutBtn").addEventListener("click", cerrarSesion);
-    document.getElementById("filtro").addEventListener("input", renderTabla);
+    filtroInput.addEventListener("input", renderTabla);
 
-    // ---------- iniciar ----------
-    renderTarjetasSelect();
-    renderPersonasSelect();
-    renderTabla();
-    updateLoginUI();
+    // Login / Logout
+    loginBtn.addEventListener("click", async () => {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (err) {
+        console.error(err);
+        alert("Error al iniciar sesión.");
+      }
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+      } catch (err) {
+        console.error(err);
+      }
+    });
+
+    // Escuchar cambios de auth
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+      if (user) {
+        loginBtn.classList.add("hidden");
+        logoutBtn.classList.remove("hidden");
+        contenido.classList.remove("hidden");
+        loginTexto.textContent = "Sesión iniciada.";
+        loginInfo.textContent = "Sesión iniciada como " + (user.email || "");
+        await loadUserData();
+      } else {
+        loginBtn.classList.remove("hidden");
+        logoutBtn.classList.add("hidden");
+        contenido.classList.add("hidden");
+        loginTexto.textContent = "Inicia sesión con Google para usar la app.";
+        loginInfo.textContent = "";
+      }
+    });
   </script>
 </body>
 </html>
