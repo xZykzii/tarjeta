@@ -355,12 +355,12 @@
   </div>
 
   <script>
-    // --- almacenamiento / estado ---
-    const STORAGE_ITEMS = "cuotas_items_google_v1";
-    const STORAGE_TARJETAS = "cuotas_tarjetas_google_v1";
-    const STORAGE_TARJETA_ACTIVA = "cuotas_tarjeta_activa_google_v1";
-    const STORAGE_PERSONAS = "cuotas_personas_google_v1";
-    const STORAGE_GOOGLE_EMAIL = "cuotas_google_email_v1";
+    // ---------- CLAVES BASE (ahora se separan por correo) ----------
+    const BASE_ITEMS_KEY        = "cuotas_items_google_v1";
+    const BASE_TARJETAS_KEY     = "cuotas_tarjetas_google_v1";
+    const BASE_TARJETA_ACTIVA_KEY = "cuotas_tarjeta_activa_google_v1";
+    const BASE_PERSONAS_KEY     = "cuotas_personas_google_v1";
+    const STORAGE_GOOGLE_EMAIL  = "cuotas_google_email_last_v1";
 
     let items = [];
     let tarjetas = [];
@@ -369,6 +369,15 @@
     let personaSeleccionada = "";
     let loggedIn = false;
     let googleEmail = null;
+
+    // Cada usuario tiene sus propias keys en localStorage
+    function userSuffix() {
+      return googleEmail ? "::" + googleEmail : "::anon";
+    }
+    function keyItems()        { return BASE_ITEMS_KEY        + userSuffix(); }
+    function keyTarjetas()     { return BASE_TARJETAS_KEY     + userSuffix(); }
+    function keyTarjetaActiva(){ return BASE_TARJETA_ACTIVA_KEY + userSuffix(); }
+    function keyPersonas()     { return BASE_PERSONAS_KEY     + userSuffix(); }
 
     function formatCLP(num) {
       return num.toLocaleString("es-CL");
@@ -382,20 +391,20 @@
       return f > 0 ? f : 0;
     }
 
-    function guardarEnStorage() {
-      localStorage.setItem(STORAGE_ITEMS, JSON.stringify(items));
-      localStorage.setItem(STORAGE_TARJETAS, JSON.stringify(tarjetas));
-      localStorage.setItem(STORAGE_TARJETA_ACTIVA, tarjetaActiva);
-      localStorage.setItem(STORAGE_PERSONAS, JSON.stringify(personas));
-      if (googleEmail) {
-        localStorage.setItem(STORAGE_GOOGLE_EMAIL, googleEmail);
-      }
+    function guardarDatosUsuario() {
+      if (!googleEmail) return; // por seguridad
+      localStorage.setItem(keyItems(), JSON.stringify(items));
+      localStorage.setItem(keyTarjetas(), JSON.stringify(tarjetas));
+      localStorage.setItem(keyTarjetaActiva(), tarjetaActiva);
+      localStorage.setItem(keyPersonas(), JSON.stringify(personas));
+      localStorage.setItem(STORAGE_GOOGLE_EMAIL, googleEmail); // solo para info
     }
 
-    function cargarDeStorage() {
+    function cargarDatosUsuario() {
+      // Cargar items
       try {
-        const dataItems = localStorage.getItem(STORAGE_ITEMS);
-        if (dataItems) items = JSON.parse(dataItems) || [];
+        const dataItems = localStorage.getItem(keyItems());
+        items = dataItems ? JSON.parse(dataItems) || [] : [];
       } catch { items = []; }
 
       items.forEach(it => {
@@ -406,9 +415,10 @@
         it.total = it.monto * it.factor;
       });
 
+      // Tarjetas
       try {
-        const dataTarjetas = localStorage.getItem(STORAGE_TARJETAS);
-        if (dataTarjetas) tarjetas = JSON.parse(dataTarjetas) || [];
+        const dataTarjetas = localStorage.getItem(keyTarjetas());
+        tarjetas = dataTarjetas ? JSON.parse(dataTarjetas) || [] : [];
       } catch { tarjetas = []; }
       if (!Array.isArray(tarjetas) || tarjetas.length === 0) {
         tarjetas = ["Tarjeta 1", "Tarjeta 2"];
@@ -417,8 +427,9 @@
         if (it.tarjeta && !tarjetas.includes(it.tarjeta)) tarjetas.push(it.tarjeta);
       });
 
+      // Tarjeta activa
       try {
-        const storedActiva = localStorage.getItem(STORAGE_TARJETA_ACTIVA);
+        const storedActiva = localStorage.getItem(keyTarjetaActiva());
         if (storedActiva && tarjetas.includes(storedActiva)) {
           tarjetaActiva = storedActiva;
         } else {
@@ -426,9 +437,10 @@
         }
       } catch { tarjetaActiva = tarjetas[0]; }
 
+      // Personas
       try {
-        const dataPersonas = localStorage.getItem(STORAGE_PERSONAS);
-        if (dataPersonas) personas = JSON.parse(dataPersonas) || [];
+        const dataPersonas = localStorage.getItem(keyPersonas());
+        personas = dataPersonas ? JSON.parse(dataPersonas) || [] : [];
       } catch { personas = []; }
       if (!Array.isArray(personas) || personas.length === 0) {
         personas = ["Persona 1", "Persona 2"];
@@ -438,18 +450,12 @@
       });
       personaSeleccionada = personas[0];
 
-      // estado de login
-      const email = localStorage.getItem(STORAGE_GOOGLE_EMAIL);
-      if (email) {
-        loggedIn = true;
-        googleEmail = email;
-      } else {
-        loggedIn = false;
-        googleEmail = null;
-      }
+      renderTarjetasSelect();
+      renderPersonasSelect();
+      renderTabla();
     }
 
-    // --- UI de login ---
+    // ---------- Login UI ----------
     function updateLoginUI() {
       const loginDiv = document.getElementById("google-login");
       const contenido = document.getElementById("contenido");
@@ -466,13 +472,14 @@
       }
     }
 
-    // callback de Google (tiene que ser global)
+    // callback de Google
     window.handleCredentialResponse = function(response) {
       try {
         const payload = JSON.parse(atob(response.credential.split(".")[1]));
         googleEmail = payload.email || "";
         loggedIn = true;
         localStorage.setItem(STORAGE_GOOGLE_EMAIL, googleEmail);
+        cargarDatosUsuario();    // <- carga datos SOLO de esa cuenta
         updateLoginUI();
         alert("Sesión iniciada como " + googleEmail);
       } catch (e) {
@@ -482,7 +489,7 @@
     };
 
     function requireLogin() {
-      if (!loggedIn) {
+      if (!loggedIn || !googleEmail) {
         alert("Primero inicia sesión con Google.");
         return false;
       }
@@ -492,11 +499,10 @@
     function cerrarSesion() {
       loggedIn = false;
       googleEmail = null;
-      localStorage.removeItem(STORAGE_GOOGLE_EMAIL);
       updateLoginUI();
     }
 
-    // --- selects ---
+    // ---------- selects ----------
     function renderTarjetasSelect() {
       const select = document.getElementById("tarjetaActiva");
       select.innerHTML = "";
@@ -526,7 +532,7 @@
       }
     }
 
-    // --- tabla / resumen ---
+    // ---------- tabla / resumen ----------
     function getFilteredItems() {
       const filtro = document.getElementById("filtro").value.toLowerCase().trim();
       let activos = items.filter(it => it.tarjeta === tarjetaActiva);
@@ -678,7 +684,7 @@
       }
     }
 
-    // --- acciones ---
+    // ---------- acciones ----------
     function agregarItemDesdeFormulario() {
       if (!requireLogin()) return;
 
@@ -725,7 +731,7 @@
       nuevo.total = nuevo.monto * nuevo.factor;
 
       items.push(nuevo);
-      guardarEnStorage();
+      guardarDatosUsuario();
       renderTabla();
 
       itemInput.value = "";
@@ -741,7 +747,7 @@
       it.pagadas += 1;
       it.factor = calcularFactor(it.pagadas, it.totales);
       it.total = it.monto * it.factor;
-      guardarEnStorage();
+      guardarDatosUsuario();
       renderTabla();
     }
 
@@ -751,14 +757,15 @@
       it.pagadas -= 1;
       it.factor = calcularFactor(it.pagadas, it.totales);
       it.total = it.monto * it.factor;
-      guardarEnStorage();
+      guardarDatosUsuario();
       renderTabla();
     }
 
     function borrarFila(idx) {
+      if (!requireLogin()) return;
       if (!confirm("¿Borrar este ítem?")) return;
       items.splice(idx, 1);
-      guardarEnStorage();
+      guardarDatosUsuario();
       renderTabla();
     }
 
@@ -766,7 +773,7 @@
       if (!requireLogin()) return;
       if (!confirm("¿Seguro que quieres borrar TODOS los ítems? Esto no se puede deshacer.")) return;
       items = [];
-      guardarEnStorage();
+      guardarDatosUsuario();
       renderTabla();
     }
 
@@ -782,7 +789,7 @@
       }
       tarjetas.push(n);
       tarjetaActiva = n;
-      guardarEnStorage();
+      guardarDatosUsuario();
       renderTarjetasSelect();
       renderTabla();
     }
@@ -804,7 +811,7 @@
         tarjetas = ["Tarjeta 1"];
       }
       tarjetaActiva = tarjetas[0];
-      guardarEnStorage();
+      guardarDatosUsuario();
       renderTarjetasSelect();
       renderTabla();
     }
@@ -821,7 +828,7 @@
       }
       personas.push(n);
       personaSeleccionada = n;
-      guardarEnStorage();
+      guardarDatosUsuario();
       renderPersonasSelect();
     }
 
@@ -840,14 +847,15 @@
         personas = ["Persona 1"];
       }
       personaSeleccionada = personas[0];
-      guardarEnStorage();
+      guardarDatosUsuario();
       renderPersonasSelect();
     }
 
     function exportarBackup() {
       if (!requireLogin()) return;
       const data = {
-        version: 1,
+        version: 2,
+        email: googleEmail,
         items,
         tarjetas,
         personas
@@ -876,7 +884,7 @@
             alert("Archivo de backup inválido.");
             return;
           }
-          if (!confirm("Esto reemplazará todas las tarjetas, personas e ítems actuales. ¿Continuar?")) {
+          if (!confirm("Esto reemplazará todas las tarjetas, personas e ítems actuales de ESTA cuenta. ¿Continuar?")) {
             return;
           }
 
@@ -898,7 +906,7 @@
           tarjetaActiva = tarjetas[0];
           personaSeleccionada = personas[0];
 
-          guardarEnStorage();
+          guardarDatosUsuario();
           renderTarjetasSelect();
           renderPersonasSelect();
           renderTabla();
@@ -912,7 +920,7 @@
       reader.readAsText(file);
     }
 
-    // --- eventos ---
+    // ---------- eventos ----------
     document.getElementById("addBtn").addEventListener("click", agregarItemDesdeFormulario);
     document.getElementById("clearBtn").addEventListener("click", limpiarTodo);
     document.getElementById("addTarjetaBtn").addEventListener("click", añadirTarjeta);
@@ -936,7 +944,7 @@
     });
     document.getElementById("tarjetaActiva").addEventListener("change", e => {
       tarjetaActiva = e.target.value;
-      guardarEnStorage();
+      guardarDatosUsuario();
       renderTabla();
     });
     document.getElementById("personaSelect").addEventListener("change", e => {
@@ -945,8 +953,8 @@
     document.getElementById("logoutBtn").addEventListener("click", cerrarSesion);
     document.getElementById("filtro").addEventListener("input", renderTabla);
 
-    // --- iniciar ---
-    cargarDeStorage();
+    // ---------- iniciar ----------
+    // De inicio no cargamos nada hasta que Google nos diga quién eres.
     renderTarjetasSelect();
     renderPersonasSelect();
     renderTabla();
