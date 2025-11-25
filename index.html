@@ -342,25 +342,30 @@
         </div>
 
         <div class="totals-card">
-          <h2>Totales por persona (pendiente)</h2>
+          <h2>Pendiente por persona</h2>
           <div id="totales-persona"></div>
         </div>
 
         <div class="totals-card">
-          <h2>Totales por tarjeta (pendiente)</h2>
+          <h2>Pendiente por tarjeta</h2>
           <div id="totales-tarjeta"></div>
+        </div>
+
+        <div class="totals-card">
+          <h2>Cuota mensual por persona<br><small>(tarjeta activa)</small></h2>
+          <div id="totales-mensual-persona"></div>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    // ---------- CLAVES BASE (ahora se separan por correo) ----------
-    const BASE_ITEMS_KEY        = "cuotas_items_google_v1";
-    const BASE_TARJETAS_KEY     = "cuotas_tarjetas_google_v1";
+    // ---------- CLAVES BASE (se separan por correo de Google) ----------
+    const BASE_ITEMS_KEY          = "cuotas_items_google_v1";
+    const BASE_TARJETAS_KEY       = "cuotas_tarjetas_google_v1";
     const BASE_TARJETA_ACTIVA_KEY = "cuotas_tarjeta_activa_google_v1";
-    const BASE_PERSONAS_KEY     = "cuotas_personas_google_v1";
-    const STORAGE_GOOGLE_EMAIL  = "cuotas_google_email_last_v1";
+    const BASE_PERSONAS_KEY       = "cuotas_personas_google_v1";
+    const STORAGE_GOOGLE_EMAIL    = "cuotas_google_email_last_v1";
 
     let items = [];
     let tarjetas = [];
@@ -370,14 +375,14 @@
     let loggedIn = false;
     let googleEmail = null;
 
-    // Cada usuario tiene sus propias keys en localStorage
+    // Sufijo por usuario (correo)
     function userSuffix() {
       return googleEmail ? "::" + googleEmail : "::anon";
     }
-    function keyItems()        { return BASE_ITEMS_KEY        + userSuffix(); }
-    function keyTarjetas()     { return BASE_TARJETAS_KEY     + userSuffix(); }
-    function keyTarjetaActiva(){ return BASE_TARJETA_ACTIVA_KEY + userSuffix(); }
-    function keyPersonas()     { return BASE_PERSONAS_KEY     + userSuffix(); }
+    function keyItems()         { return BASE_ITEMS_KEY          + userSuffix(); }
+    function keyTarjetas()      { return BASE_TARJETAS_KEY       + userSuffix(); }
+    function keyTarjetaActiva() { return BASE_TARJETA_ACTIVA_KEY + userSuffix(); }
+    function keyPersonas()      { return BASE_PERSONAS_KEY       + userSuffix(); }
 
     function formatCLP(num) {
       return num.toLocaleString("es-CL");
@@ -392,16 +397,16 @@
     }
 
     function guardarDatosUsuario() {
-      if (!googleEmail) return; // por seguridad
+      if (!googleEmail) return;
       localStorage.setItem(keyItems(), JSON.stringify(items));
       localStorage.setItem(keyTarjetas(), JSON.stringify(tarjetas));
       localStorage.setItem(keyTarjetaActiva(), tarjetaActiva);
       localStorage.setItem(keyPersonas(), JSON.stringify(personas));
-      localStorage.setItem(STORAGE_GOOGLE_EMAIL, googleEmail); // solo para info
+      localStorage.setItem(STORAGE_GOOGLE_EMAIL, googleEmail);
     }
 
     function cargarDatosUsuario() {
-      // Cargar items
+      // Items
       try {
         const dataItems = localStorage.getItem(keyItems());
         items = dataItems ? JSON.parse(dataItems) || [] : [];
@@ -412,7 +417,7 @@
         if (it.totales === undefined || it.totales <= 0) it.totales = 1;
         if (it.monto === undefined) it.monto = 0;
         it.factor = calcularFactor(it.pagadas, it.totales);
-        it.total = it.monto * it.factor;
+        it.total  = it.monto * it.factor;
       });
 
       // Tarjetas
@@ -457,9 +462,9 @@
 
     // ---------- Login UI ----------
     function updateLoginUI() {
-      const loginDiv = document.getElementById("google-login");
+      const loginDiv  = document.getElementById("google-login");
       const contenido = document.getElementById("contenido");
-      const info = document.getElementById("login-info");
+      const info      = document.getElementById("login-info");
 
       if (loggedIn) {
         loginDiv.classList.add("hidden");
@@ -473,13 +478,13 @@
     }
 
     // callback de Google
-    window.handleCredentialResponse = function(response) {
+    window.handleCredentialResponse = function (response) {
       try {
         const payload = JSON.parse(atob(response.credential.split(".")[1]));
         googleEmail = payload.email || "";
         loggedIn = true;
         localStorage.setItem(STORAGE_GOOGLE_EMAIL, googleEmail);
-        cargarDatosUsuario();    // <- carga datos SOLO de esa cuenta
+        cargarDatosUsuario();
         updateLoginUI();
         alert("Sesión iniciada como " + googleEmail);
       } catch (e) {
@@ -551,26 +556,32 @@
 
       const activos = getFilteredItems();
 
-      let totalContratoTarjeta = 0;
-      let totalPagadoTarjeta = 0;
-      let totalPendienteTarjeta = 0;
-      let cuotaMensual = 0;
-      const porPersona = {};
-      const porTarjeta = {};
+      let totalContratoTarjeta   = 0;
+      let totalPagadoTarjeta     = 0;
+      let totalPendienteTarjeta  = 0;
+      let cuotaMensualGlobal     = 0;
+      const porPersonaPendiente  = {};
+      const porTarjetaPendiente  = {};
+      const mensualPorPersona    = {}; // NUEVO: cuota mensual por persona (tarjeta activa)
 
       activos.forEach(it => {
         const idx = items.indexOf(it);
-        const tr = document.createElement("tr");
+        const tr  = document.createElement("tr");
 
         const totalContrato = it.monto * it.totales;
-        const pagado = it.monto * it.pagadas;
-        const pendiente = it.total;
+        const pagado        = it.monto * it.pagadas;
+        const pendiente     = it.total;
 
-        totalContratoTarjeta += totalContrato;
-        totalPagadoTarjeta += pagado;
+        totalContratoTarjeta  += totalContrato;
+        totalPagadoTarjeta    += pagado;
         totalPendienteTarjeta += pendiente;
-        if (it.pagadas < it.totales) cuotaMensual += it.monto;
-        porPersona[it.persona] = (porPersona[it.persona] || 0) + pendiente;
+
+        if (it.pagadas < it.totales) {
+          cuotaMensualGlobal += it.monto;
+          mensualPorPersona[it.persona] = (mensualPorPersona[it.persona] || 0) + it.monto;
+        }
+
+        porPersonaPendiente[it.persona] = (porPersonaPendiente[it.persona] || 0) + pendiente;
 
         const tdPersona = document.createElement("td");
         tdPersona.textContent = it.persona;
@@ -614,17 +625,17 @@
 
         const pagarBtn = document.createElement("button");
         pagarBtn.textContent = "Pagar cuota";
-        pagarBtn.addEventListener("click", () => { if(requireLogin()) pagarCuota(idx); });
+        pagarBtn.addEventListener("click", () => { if (requireLogin()) pagarCuota(idx); });
 
         const deshacerBtn = document.createElement("button");
         deshacerBtn.textContent = "Deshacer cuota";
         deshacerBtn.className = "warning-btn";
-        deshacerBtn.addEventListener("click", () => { if(requireLogin()) deshacerCuota(idx); });
+        deshacerBtn.addEventListener("click", () => { if (requireLogin()) deshacerCuota(idx); });
 
         const borrarBtn = document.createElement("button");
         borrarBtn.textContent = "Borrar";
         borrarBtn.className = "danger-btn";
-        borrarBtn.addEventListener("click", () => { if(requireLogin()) borrarFila(idx); });
+        borrarBtn.addEventListener("click", () => { if (requireLogin()) borrarFila(idx); });
 
         if (it.pagadas >= it.totales) {
           pagarBtn.disabled = true;
@@ -646,14 +657,16 @@
         tbody.appendChild(tr);
       });
 
-      document.getElementById("res-total-contrato").textContent = formatCLP(totalContratoTarjeta);
-      document.getElementById("res-total-pagado").textContent = formatCLP(totalPagadoTarjeta);
+      // Resumen tarjeta activa
+      document.getElementById("res-total-contrato").textContent  = formatCLP(totalContratoTarjeta);
+      document.getElementById("res-total-pagado").textContent    = formatCLP(totalPagadoTarjeta);
       document.getElementById("res-total-pendiente").textContent = formatCLP(totalPendienteTarjeta);
-      document.getElementById("res-cuota-mensual").textContent = formatCLP(cuotaMensual);
+      document.getElementById("res-cuota-mensual").textContent   = formatCLP(cuotaMensualGlobal);
 
+      // Pendiente por persona
       const contPers = document.getElementById("totales-persona");
       contPers.innerHTML = "";
-      const personasTot = Object.entries(porPersona);
+      const personasTot = Object.entries(porPersonaPendiente);
       if (personasTot.length === 0) {
         contPers.textContent = "Sin datos todavía.";
       } else {
@@ -665,13 +678,14 @@
         });
       }
 
+      // Pendiente por tarjeta
       const contTarjeta = document.getElementById("totales-tarjeta");
       contTarjeta.innerHTML = "";
       items.forEach(it => {
         const key = it.tarjeta || "Sin tarjeta";
-        porTarjeta[key] = (porTarjeta[key] || 0) + it.total;
+        porTarjetaPendiente[key] = (porTarjetaPendiente[key] || 0) + it.total;
       });
-      const tarjetasTotals = Object.entries(porTarjeta);
+      const tarjetasTotals = Object.entries(porTarjetaPendiente);
       if (tarjetasTotals.length === 0) {
         contTarjeta.textContent = "Sin datos todavía.";
       } else {
@@ -682,21 +696,36 @@
           contTarjeta.appendChild(row);
         });
       }
+
+      // NUEVO: Cuota mensual por persona (tarjeta activa)
+      const contMensualPersona = document.getElementById("totales-mensual-persona");
+      contMensualPersona.innerHTML = "";
+      const mensualTot = Object.entries(mensualPorPersona);
+      if (mensualTot.length === 0) {
+        contMensualPersona.textContent = "Sin cuotas pendientes en esta tarjeta.";
+      } else {
+        mensualTot.forEach(([persona, total]) => {
+          const row = document.createElement("div");
+          row.className = "person-row";
+          row.innerHTML = `<span>${persona}</span><span>$${formatCLP(total)}</span>`;
+          contMensualPersona.appendChild(row);
+        });
+      }
     }
 
     // ---------- acciones ----------
     function agregarItemDesdeFormulario() {
       if (!requireLogin()) return;
 
-      const personaSel = document.getElementById("personaSelect");
-      const itemInput = document.getElementById("item");
-      const montoInput = document.getElementById("monto");
+      const personaSel   = document.getElementById("personaSelect");
+      const itemInput    = document.getElementById("item");
+      const montoInput   = document.getElementById("monto");
       const pagadasInput = document.getElementById("cuotasPagadas");
       const totalesInput = document.getElementById("cuotasTotales");
 
       const persona = personaSel.value || personas[0];
-      const item = itemInput.value.trim() || "-";
-      const monto = parseInt(montoInput.value, 10);
+      const item    = itemInput.value.trim() || "-";
+      const monto   = parseInt(montoInput.value, 10);
       const pagadas = parseInt(pagadasInput.value, 10) || 0;
       const totales = parseInt(totalesInput.value, 10) || 0;
 
@@ -728,14 +757,14 @@
         total: 0
       };
       nuevo.factor = calcularFactor(nuevo.pagadas, nuevo.totales);
-      nuevo.total = nuevo.monto * nuevo.factor;
+      nuevo.total  = nuevo.monto * nuevo.factor;
 
       items.push(nuevo);
       guardarDatosUsuario();
       renderTabla();
 
-      itemInput.value = "";
-      montoInput.value = "";
+      itemInput.value    = "";
+      montoInput.value   = "";
       pagadasInput.value = "";
       totalesInput.value = "";
       itemInput.focus();
@@ -745,8 +774,8 @@
       const it = items[idx];
       if (it.pagadas >= it.totales) return;
       it.pagadas += 1;
-      it.factor = calcularFactor(it.pagadas, it.totales);
-      it.total = it.monto * it.factor;
+      it.factor   = calcularFactor(it.pagadas, it.totales);
+      it.total    = it.monto * it.factor;
       guardarDatosUsuario();
       renderTabla();
     }
@@ -755,8 +784,8 @@
       const it = items[idx];
       if (it.pagadas <= 0) return;
       it.pagadas -= 1;
-      it.factor = calcularFactor(it.pagadas, it.totales);
-      it.total = it.monto * it.factor;
+      it.factor   = calcularFactor(it.pagadas, it.totales);
+      it.total    = it.monto * it.factor;
       guardarDatosUsuario();
       renderTabla();
     }
@@ -771,7 +800,7 @@
 
     function limpiarTodo() {
       if (!requireLogin()) return;
-      if (!confirm("¿Seguro que quieres borrar TODOS los ítems? Esto no se puede deshacer.")) return;
+      if (!confirm("¿Seguro que quieres borrar TODOS los ítems de esta cuenta?")) return;
       items = [];
       guardarDatosUsuario();
       renderTabla();
@@ -805,7 +834,7 @@
       const msg = `Se eliminará la tarjeta "${tarjetaActiva}" y ${asociados} ítems asociados.\n¿Quieres continuar?`;
       if (!confirm(msg)) return;
 
-      items = items.filter(it => it.tarjeta !== tarjetaActiva);
+      items    = items.filter(it => it.tarjeta !== tarjetaActiva);
       tarjetas = tarjetas.filter(t => t !== tarjetaActiva);
       if (tarjetas.length === 0) {
         tarjetas = ["Tarjeta 1"];
@@ -864,7 +893,7 @@
         type: "application/json"
       });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
+      const a   = document.createElement("a");
       const hoy = new Date().toISOString().slice(0, 10);
       a.href = url;
       a.download = "cuotas-backup-" + hoy + ".json";
@@ -888,7 +917,7 @@
             return;
           }
 
-          items = data.items || [];
+          items    = data.items    || [];
           tarjetas = data.tarjetas || [];
           personas = data.personas || [];
 
@@ -897,13 +926,13 @@
             if (it.totales === undefined || it.totales <= 0) it.totales = 1;
             if (it.monto === undefined) it.monto = 0;
             it.factor = calcularFactor(it.pagadas, it.totales);
-            it.total = it.monto * it.factor;
+            it.total  = it.monto * it.factor;
           });
 
           if (!Array.isArray(tarjetas) || tarjetas.length === 0) tarjetas = ["Tarjeta 1"];
           if (!Array.isArray(personas) || personas.length === 0) personas = ["Persona 1"];
 
-          tarjetaActiva = tarjetas[0];
+          tarjetaActiva      = tarjetas[0];
           personaSeleccionada = personas[0];
 
           guardarDatosUsuario();
@@ -954,7 +983,6 @@
     document.getElementById("filtro").addEventListener("input", renderTabla);
 
     // ---------- iniciar ----------
-    // De inicio no cargamos nada hasta que Google nos diga quién eres.
     renderTarjetasSelect();
     renderPersonasSelect();
     renderTabla();
