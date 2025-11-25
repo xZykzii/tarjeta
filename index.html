@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #000000; /* Fondo negro */
+      background: #000000;
       color: #e5e7eb;
       margin: 0;
       padding: 16px;
@@ -20,7 +20,7 @@
     .card {
       max-width: 1100px;
       margin: 0 auto;
-      background: #000000; /* Card negra */
+      background: #000000;
       border-radius: 12px;
       padding: 16px;
       box-shadow: 0 15px 35px rgba(0,0,0,0.8);
@@ -34,7 +34,8 @@
       justify-content: space-between;
       margin-bottom: 12px;
     }
-    .top-bar-left {
+    .top-bar-left,
+    .top-bar-right {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
@@ -105,12 +106,12 @@
       box-shadow: 0 8px 16px rgba(248,113,113,0.35);
     }
     .warning-btn {
-      background: #facc15;      /* Amarillo */
+      background: #facc15;
       color: #1a1a1a;
     }
     .warning-btn:hover {
       background: #eab308;
-      box-shadow: 0 8px 16px rgba(250, 204, 21, 0.35);
+      box-shadow: 0 8px 16px rgba(250,204,21,0.35);
     }
     table {
       width: 100%;
@@ -130,12 +131,8 @@
       top: 0;
       z-index: 1;
     }
-    tbody tr:nth-child(even) td {
-      background: #050505;
-    }
-    tbody tr:nth-child(odd) td {
-      background: #000000;
-    }
+    tbody tr:nth-child(even) td { background: #050505; }
+    tbody tr:nth-child(odd)  td { background: #000000; }
     .right { text-align: right; }
     .actions {
       display: flex;
@@ -177,6 +174,32 @@
       align-items: center;
       flex-wrap: wrap;
     }
+    #lockScreen {
+      display: none;
+      text-align: center;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #27272a;
+      background: #020617;
+    }
+    #contenido {
+      margin-top: 8px;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      margin-top: 4px;
+    }
+    .filter-bar input {
+      max-width: 220px;
+    }
     @media (max-width: 700px) {
       .summary {
         grid-template-columns: 1fr;
@@ -190,6 +213,9 @@
       .actions {
         flex-direction: column;
       }
+      .top-bar {
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
@@ -197,95 +223,156 @@
   <div class="card">
     <h1>Control de cuotas 💳</h1>
 
-    <div class="top-bar">
-      <div class="top-bar-left">
-        <span>Tarjeta activa:</span>
-        <select id="tarjetaActiva"></select>
-        <button id="addTarjetaBtn">Añadir tarjeta</button>
-        <button id="delTarjetaBtn" class="danger-btn">Eliminar tarjeta</button>
-      </div>
-      <small style="color:#9ca3af;">Cada ítem nuevo se guarda en la tarjeta activa.</small>
+    <!-- Pantalla de bloqueo -->
+    <div id="lockScreen">
+      <p>App bloqueada. Ingresa la contraseña para ver tus datos.</p>
+      <button id="unlockBtn">Desbloquear</button>
     </div>
 
-    <div class="form-grid">
-      <div>
-        <label>Persona</label>
-        <div class="inline-group">
-          <select id="personaSelect"></select>
-          <button id="addPersonaBtn">+ persona</button>
-          <button id="delPersonaBtn" class="danger-btn">- persona</button>
+    <div id="contenido">
+      <div class="top-bar">
+        <div class="top-bar-left">
+          <span>Tarjeta activa:</span>
+          <select id="tarjetaActiva"></select>
+          <button id="addTarjetaBtn">Añadir tarjeta</button>
+          <button id="delTarjetaBtn" class="danger-btn">Eliminar tarjeta</button>
+        </div>
+        <div class="top-bar-right">
+          <button id="lockBtn" class="warning-btn">Bloquear app</button>
+          <button id="exportBtn">Exportar backup</button>
+          <button id="importBtn">Importar backup</button>
+          <input id="importFile" type="file" accept="application/json" style="display:none" />
         </div>
       </div>
-      <div>
-        <label>Ítem</label>
-        <input id="item" placeholder="Ej: Producto X" />
-      </div>
-      <div>
-        <label>Monto base</label>
-        <input id="monto" type="number" min="0" step="1" placeholder="Ej: 10000" />
-      </div>
-      <div>
-        <label>Cuotas pagadas</label>
-        <input id="cuotasPagadas" type="number" min="0" step="1" placeholder="Ej: 3" />
-      </div>
-      <div>
-        <label>Cuotas totales</label>
-        <input id="cuotasTotales" type="number" min="1" step="1" placeholder="Ej: 12" />
-      </div>
-      <div style="display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap;">
-        <button id="addBtn">Agregar ítem</button>
-        <button id="clearBtn" class="danger-btn">Borrar todo</button>
-      </div>
-    </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Persona</th>
-          <th>Tarjeta</th>
-          <th>Ítem</th>
-          <th class="right">Monto base</th>
-          <th>Cuotas</th>
-          <th class="right">Factor</th>
-          <th class="right">Total</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="tabla-body"></tbody>
-    </table>
+      <div style="margin-bottom:8px;color:#9ca3af;font-size:12px;">
+        Cada ítem nuevo se guarda en la tarjeta activa. Haz backup periódicamente para no perder nada.
+      </div>
 
-    <div class="summary">
-      <div class="totals-card">
-        <h2>Total tarjeta activa</h2>
-        <div style="font-size:22px;font-weight:700;">
-          $<span id="total-general">0</span>
+      <div class="form-grid">
+        <div>
+          <label>Persona</label>
+          <div class="inline-group">
+            <select id="personaSelect"></select>
+            <button id="addPersonaBtn">+ persona</button>
+            <button id="delPersonaBtn" class="danger-btn">- persona</button>
+          </div>
         </div>
-        <small class="badge">Solo ítems de la tarjeta seleccionada</small>
+        <div>
+          <label>Ítem</label>
+          <input id="item" placeholder="Ej: Producto X" />
+        </div>
+        <div>
+          <label>Monto base (valor de la cuota)</label>
+          <input id="monto" type="number" min="0" step="1" placeholder="Ej: 10000" />
+        </div>
+        <div>
+          <label>Cuotas pagadas</label>
+          <input id="cuotasPagadas" type="number" min="0" step="1" placeholder="Ej: 3" />
+        </div>
+        <div>
+          <label>Cuotas totales</label>
+          <input id="cuotasTotales" type="number" min="1" step="1" placeholder="Ej: 12" />
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap;">
+          <button id="addBtn">Agregar ítem</button>
+          <button id="clearBtn" class="danger-btn">Borrar todo</button>
+        </div>
       </div>
 
-      <div class="totals-card">
-        <h2>Totales por persona (tarjeta activa)</h2>
-        <div id="totales-persona"></div>
+      <div class="filter-bar">
+        <label for="filtro" style="font-size:12px;color:#9ca3af;">Filtro rápido:</label>
+        <input id="filtro" placeholder="Persona, ítem o tarjeta..." />
       </div>
 
-      <div class="totals-card">
-        <h2>Totales por tarjeta (todas)</h2>
-        <div id="totales-tarjeta"></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Persona</th>
+            <th>Tarjeta</th>
+            <th>Ítem</th>
+            <th class="right">Monto cuota</th>
+            <th>Cuotas</th>
+            <th class="right">Total contrato</th>
+            <th class="right">Pagado</th>
+            <th class="right">Pendiente</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-body"></tbody>
+      </table>
+
+      <div class="summary">
+        <div class="totals-card">
+          <h2>Resumen tarjeta activa</h2>
+          <div class="person-row">
+            <span>Total contrato:</span>
+            <span>$<span id="res-total-contrato">0</span></span>
+          </div>
+          <div class="person-row">
+            <span>Total pagado:</span>
+            <span>$<span id="res-total-pagado">0</span></span>
+          </div>
+          <div class="person-row">
+            <span>Total pendiente:</span>
+            <span>$<span id="res-total-pendiente">0</span></span>
+          </div>
+          <div class="person-row">
+            <span>Cuota mensual estimada:</span>
+            <span>$<span id="res-cuota-mensual">0</span></span>
+          </div>
+          <small class="badge">Basado en una cuota por mes por ítem pendiente</small>
+        </div>
+
+        <div class="totals-card">
+          <h2>Totales por persona (pendiente)</h2>
+          <div id="totales-persona"></div>
+        </div>
+
+        <div class="totals-card">
+          <h2>Totales por tarjeta (pendiente)</h2>
+          <div id="totales-tarjeta"></div>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    const PASSWORD = "170399";
-
-    function solicitarPassword(motivo = "eliminar") {
-      const ingreso = prompt("Ingresa la contraseña para " + motivo + " (6 dígitos):");
-      if (ingreso !== PASSWORD) {
-        alert("Contraseña incorrecta.");
-        return false;
-      }
-      return true;
+    // ---------- RESET INICIAL PARA BORRAR VERSIONES ANTERIORES ----------
+    const RESET_MARKER = "cuotas_reset_done_v3";
+    if (!localStorage.getItem(RESET_MARKER)) {
+      localStorage.removeItem("cuotas_items_v6");
+      localStorage.removeItem("cuotas_items_v7");
+      localStorage.removeItem("cuotas_items_v8");
+      localStorage.removeItem("cuotas_tarjetas_v1");
+      localStorage.removeItem("cuotas_tarjetas_v2");
+      localStorage.removeItem("cuotas_tarjetas_v3");
+      localStorage.removeItem("cuotas_personas_v1");
+      localStorage.removeItem("cuotas_personas_v2");
+      localStorage.removeItem("cuotas_personas_v3");
+      localStorage.removeItem("cuotas_tarjeta_activa_v2");
+      localStorage.removeItem("cuotas_tarjeta_activa_v3");
+      localStorage.removeItem("cuotas_tarjeta_activa");
+      localStorage.removeItem("cuotas_password_v1");
+      localStorage.removeItem("cuotas_locked_v1");
+      localStorage.removeItem("cuotas_locked_v2");
+      localStorage.setItem(RESET_MARKER, "1");
     }
+
+    const STORAGE_ITEMS = "cuotas_items_v9";
+    const STORAGE_TARJETAS = "cuotas_tarjetas_v4";
+    const STORAGE_TARJETA_ACTIVA = "cuotas_tarjeta_activa_v4";
+    const STORAGE_PERSONAS = "cuotas_personas_v4";
+    const STORAGE_LOCKED = "cuotas_locked_v3";
+    const STORAGE_PASS = "cuotas_password_v1";
+
+    let items = [];
+    let tarjetas = [];
+    let personas = [];
+    let tarjetaActiva = "";
+    let personaSeleccionada = "";
+    let locked = false;
+    let PASSWORD = "";
 
     function formatCLP(num) {
       return num.toLocaleString("es-CL");
@@ -299,101 +386,123 @@
       return f > 0 ? f : 0;
     }
 
-    const STORAGE_ITEMS = "cuotas_items_v6";
-    const STORAGE_TARJETAS = "cuotas_tarjetas_v1";
-    const STORAGE_TARJETA_ACTIVA = "cuotas_tarjeta_activa";
-    const STORAGE_PERSONAS = "cuotas_personas_v1";
-
-    let items = [];
-    let tarjetas = [];
-    let personas = [];
-    let tarjetaActiva = "";
-    let personaSeleccionada = "";
-
     function guardarEnStorage() {
       localStorage.setItem(STORAGE_ITEMS, JSON.stringify(items));
       localStorage.setItem(STORAGE_TARJETAS, JSON.stringify(tarjetas));
       localStorage.setItem(STORAGE_TARJETA_ACTIVA, tarjetaActiva);
       localStorage.setItem(STORAGE_PERSONAS, JSON.stringify(personas));
+      localStorage.setItem(STORAGE_LOCKED, locked ? "1" : "0");
+      if (PASSWORD) {
+        localStorage.setItem(STORAGE_PASS, PASSWORD);
+      }
+    }
+
+    function configurarPasswordInicial() {
+      alert("Primera vez que usas la app.\nElige una contraseña numérica para borrar datos o desbloquear.");
+      while (true) {
+        const p1 = prompt("Elige una contraseña numérica (mínimo 4 dígitos):");
+        if (p1 === null) {
+          alert("Necesitas definir una contraseña para continuar.");
+          continue;
+        }
+        const limpio = p1.trim();
+        if (!/^[0-9]{4,}$/.test(limpio)) {
+          alert("Debe ser solo números y mínimo 4 dígitos.");
+          continue;
+        }
+        const p2 = prompt("Confirma la contraseña (escribe lo mismo):");
+        if (p2 === null) {
+          alert("Confirmación cancelada, inténtalo otra vez.");
+          continue;
+        }
+        if (limpio !== p2.trim()) {
+          alert("Las contraseñas no coinciden. Vuelve a intentarlo.");
+          continue;
+        }
+        PASSWORD = limpio;
+        localStorage.setItem(STORAGE_PASS, PASSWORD);
+        alert("Contraseña guardada. Úsala para borrar datos o desbloquear la app.");
+        break;
+      }
+    }
+
+    function cargarPassword() {
+      const saved = localStorage.getItem(STORAGE_PASS);
+      if (saved) {
+        PASSWORD = saved;
+      } else {
+        configurarPasswordInicial();
+      }
+    }
+
+    function solicitarPassword(motivo = "esta acción") {
+      if (!PASSWORD) {
+        configurarPasswordInicial();
+      }
+      const ingreso = prompt("Ingresa la contraseña para " + motivo + ":");
+      if (ingreso !== PASSWORD) {
+        alert("Contraseña incorrecta.");
+        return false;
+      }
+      return true;
     }
 
     function cargarDeStorage() {
       try {
         const dataItems = localStorage.getItem(STORAGE_ITEMS);
-        if (dataItems) {
-          items = JSON.parse(dataItems) || [];
-        }
-      } catch (e) {
-        console.error("Error cargando items", e);
+        if (dataItems) items = JSON.parse(dataItems) || [];
+      } catch {
         items = [];
       }
 
-      // migración si venías de versión con it.cuotas
       items.forEach(it => {
-        if (it.pagadas === undefined && typeof it.cuotas === "string") {
-          const m = it.cuotas.match(/^\s*(\d+)\s*\/\s*(\d+)\s*$/);
-          if (m) {
-            it.pagadas = parseInt(m[1], 10);
-            it.totales = parseInt(m[2], 10);
-          }
-        }
         if (it.pagadas === undefined) it.pagadas = 0;
-        if (it.totales === undefined) it.totales = 1;
+        if (it.totales === undefined || it.totales <= 0) it.totales = 1;
+        if (it.monto === undefined) it.monto = 0;
         it.factor = calcularFactor(it.pagadas, it.totales);
         it.total = it.monto * it.factor;
-        delete it.cuotas;
       });
 
       try {
         const dataTarjetas = localStorage.getItem(STORAGE_TARJETAS);
-        if (dataTarjetas) {
-          tarjetas = JSON.parse(dataTarjetas) || [];
-        }
-      } catch (e) {
-        console.error("Error cargando tarjetas", e);
+        if (dataTarjetas) tarjetas = JSON.parse(dataTarjetas) || [];
+      } catch {
         tarjetas = [];
       }
-
       if (!Array.isArray(tarjetas) || tarjetas.length === 0) {
         tarjetas = ["Tarjeta 1", "Tarjeta 2"];
       }
-
-      // Tarjetas usadas en items que no estén en la lista
       items.forEach(it => {
-        if (it.tarjeta && !tarjetas.includes(it.tarjeta)) {
-          tarjetas.push(it.tarjeta);
-        }
+        if (it.tarjeta && !tarjetas.includes(it.tarjeta)) tarjetas.push(it.tarjeta);
       });
 
-      const storedActiva = localStorage.getItem(STORAGE_TARJETA_ACTIVA);
-      if (storedActiva && tarjetas.includes(storedActiva)) {
-        tarjetaActiva = storedActiva;
-      } else {
+      try {
+        const storedActiva = localStorage.getItem(STORAGE_TARJETA_ACTIVA);
+        if (storedActiva && tarjetas.includes(storedActiva)) {
+          tarjetaActiva = storedActiva;
+        } else {
+          tarjetaActiva = tarjetas[0];
+        }
+      } catch {
         tarjetaActiva = tarjetas[0];
       }
 
       try {
         const dataPersonas = localStorage.getItem(STORAGE_PERSONAS);
-        if (dataPersonas) {
-          personas = JSON.parse(dataPersonas) || [];
-        }
-      } catch (e) {
-        console.error("Error cargando personas", e);
+        if (dataPersonas) personas = JSON.parse(dataPersonas) || [];
+      } catch {
         personas = [];
       }
-
       if (!Array.isArray(personas) || personas.length === 0) {
         personas = ["Persona 1", "Persona 2"];
       }
-
-      // Personas usadas en items que no estén en la lista
       items.forEach(it => {
-        if (it.persona && !personas.includes(it.persona)) {
-          personas.push(it.persona);
-        }
+        if (it.persona && !personas.includes(it.persona)) personas.push(it.persona);
       });
-
       personaSeleccionada = personas[0];
+
+      const lockedVal = localStorage.getItem(STORAGE_LOCKED);
+      locked = lockedVal === "1";
     }
 
     function renderTarjetasSelect() {
@@ -425,20 +534,56 @@
       }
     }
 
+    function aplicarLockUI() {
+      const lockScreen = document.getElementById("lockScreen");
+      const contenido = document.getElementById("contenido");
+      if (locked) {
+        lockScreen.style.display = "block";
+        contenido.classList.add("hidden");
+      } else {
+        lockScreen.style.display = "none";
+        contenido.classList.remove("hidden");
+      }
+    }
+
+    function getFilteredItems() {
+      const filtro = document.getElementById("filtro").value.toLowerCase().trim();
+      let activos = items.filter(it => it.tarjeta === tarjetaActiva);
+      if (filtro) {
+        activos = activos.filter(it => {
+          const txt = (it.persona + " " + it.item + " " + it.tarjeta).toLowerCase();
+          return txt.includes(filtro);
+        });
+      }
+      return activos;
+    }
+
     function renderTabla() {
       const tbody = document.getElementById("tabla-body");
       tbody.innerHTML = "";
 
-      let totalGeneral = 0;
+      const activos = getFilteredItems();
+
+      let totalContratoTarjeta = 0;
+      let totalPagadoTarjeta = 0;
+      let totalPendienteTarjeta = 0;
+      let cuotaMensual = 0;
       const porPersona = {};
       const porTarjeta = {};
 
-      const activos = items.filter(it => it.tarjeta === tarjetaActiva);
-
       activos.forEach(it => {
         const idx = items.indexOf(it);
-
         const tr = document.createElement("tr");
+
+        const totalContrato = it.monto * it.totales;
+        const pagado = it.monto * it.pagadas;
+        const pendiente = it.total;
+
+        totalContratoTarjeta += totalContrato;
+        totalPagadoTarjeta += pagado;
+        totalPendienteTarjeta += pendiente;
+        if (it.pagadas < it.totales) cuotaMensual += it.monto;
+        porPersona[it.persona] = (porPersona[it.persona] || 0) + pendiente;
 
         const tdPersona = document.createElement("td");
         tdPersona.textContent = it.persona;
@@ -461,15 +606,20 @@
         tdCuotas.textContent = `${it.pagadas}/${it.totales}`;
         tr.appendChild(tdCuotas);
 
-        const tdFactor = document.createElement("td");
-        tdFactor.className = "right";
-        tdFactor.textContent = it.factor;
-        tr.appendChild(tdFactor);
+        const tdTotalContrato = document.createElement("td");
+        tdTotalContrato.className = "right";
+        tdTotalContrato.textContent = "$" + formatCLP(totalContrato);
+        tr.appendChild(tdTotalContrato);
 
-        const tdTotal = document.createElement("td");
-        tdTotal.className = "right";
-        tdTotal.textContent = "$" + formatCLP(it.total);
-        tr.appendChild(tdTotal);
+        const tdPagado = document.createElement("td");
+        tdPagado.className = "right";
+        tdPagado.textContent = "$" + formatCLP(pagado);
+        tr.appendChild(tdPagado);
+
+        const tdPendiente = document.createElement("td");
+        tdPendiente.className = "right";
+        tdPendiente.textContent = "$" + formatCLP(pendiente);
+        tr.appendChild(tdPendiente);
 
         const tdAcciones = document.createElement("td");
         const actionsDiv = document.createElement("div");
@@ -494,7 +644,6 @@
           pagarBtn.style.opacity = 0.5;
           pagarBtn.style.cursor = "default";
         }
-
         if (it.pagadas <= 0) {
           deshacerBtn.disabled = true;
           deshacerBtn.style.opacity = 0.5;
@@ -507,14 +656,16 @@
         tdAcciones.appendChild(actionsDiv);
         tr.appendChild(tdAcciones);
 
-        totalGeneral += it.total;
-        porPersona[it.persona] = (porPersona[it.persona] || 0) + it.total;
-
         tbody.appendChild(tr);
       });
 
-      document.getElementById("total-general").textContent = formatCLP(totalGeneral);
+      // Resumen tarjeta activa
+      document.getElementById("res-total-contrato").textContent = formatCLP(totalContratoTarjeta);
+      document.getElementById("res-total-pagado").textContent = formatCLP(totalPagadoTarjeta);
+      document.getElementById("res-total-pendiente").textContent = formatCLP(totalPendienteTarjeta);
+      document.getElementById("res-cuota-mensual").textContent = formatCLP(cuotaMensual);
 
+      // Totales por persona
       const contPers = document.getElementById("totales-persona");
       contPers.innerHTML = "";
       const personasTot = Object.entries(porPersona);
@@ -529,6 +680,7 @@
         });
       }
 
+      // Totales por tarjeta (pendiente)
       const contTarjeta = document.getElementById("totales-tarjeta");
       contTarjeta.innerHTML = "";
       items.forEach(it => {
@@ -661,8 +813,8 @@
         alert("Debe quedar al menos una tarjeta.");
         return;
       }
-      const msg = "Se eliminará la tarjeta \"" + tarjetaActiva +
-                  "\" y TODOS los ítems asociados.\n¿Quieres continuar?";
+      const asociados = items.filter(it => it.tarjeta === tarjetaActiva).length;
+      const msg = `Se eliminará la tarjeta "${tarjetaActiva}" y ${asociados} ítems asociados.\n¿Quieres continuar?`;
       if (!confirm(msg)) return;
 
       items = items.filter(it => it.tarjeta !== tarjetaActiva);
@@ -698,8 +850,7 @@
         alert("Debe quedar al menos una persona en la lista.");
         return;
       }
-      const msg = "Se eliminará la persona \"" + personaSeleccionada +
-                  "\" de la lista (los ítems existentes seguirán mostrando ese nombre).\n¿Quieres continuar?";
+      const msg = `Se eliminará la persona "${personaSeleccionada}" de la lista.\nLos ítems existentes seguirán mostrando ese nombre.\n¿Quieres continuar?`;
       if (!confirm(msg)) return;
 
       personas = personas.filter(p => p !== personaSeleccionada);
@@ -711,34 +862,129 @@
       renderPersonasSelect();
     }
 
+    function exportarBackup() {
+      const data = {
+        version: 4,
+        items,
+        tarjetas,
+        personas
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json"
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const hoy = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = "cuotas-backup-" + hoy + ".json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function importarBackupDesdeArchivo(file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data || !Array.isArray(data.items) || !Array.isArray(data.tarjetas) || !Array.isArray(data.personas)) {
+            alert("Archivo de backup inválido.");
+            return;
+          }
+          if (!confirm("Esto reemplazará todas las tarjetas, personas e ítems actuales. ¿Continuar?")) {
+            return;
+          }
+
+          items = data.items || [];
+          tarjetas = data.tarjetas || [];
+          personas = data.personas || [];
+
+          items.forEach(it => {
+            if (it.pagadas === undefined) it.pagadas = 0;
+            if (it.totales === undefined || it.totales <= 0) it.totales = 1;
+            if (it.monto === undefined) it.monto = 0;
+            it.factor = calcularFactor(it.pagadas, it.totales);
+            it.total = it.monto * it.factor;
+          });
+
+          if (!Array.isArray(tarjetas) || tarjetas.length === 0) {
+            tarjetas = ["Tarjeta 1"];
+          }
+          if (!Array.isArray(personas) || personas.length === 0) {
+            personas = ["Persona 1"];
+          }
+
+          tarjetaActiva = tarjetas[0];
+          personaSeleccionada = personas[0];
+
+          guardarEnStorage();
+          renderTarjetasSelect();
+          renderPersonasSelect();
+          renderTabla();
+
+          alert("Backup importado correctamente.");
+        } catch (err) {
+          console.error(err);
+          alert("Error leyendo el archivo de backup.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function bloquearApp() {
+      locked = true;
+      guardarEnStorage();
+      aplicarLockUI();
+    }
+
+    function desbloquearApp() {
+      if (!solicitarPassword("desbloquear la app")) return;
+      locked = false;
+      guardarEnStorage();
+      aplicarLockUI();
+    }
+
+    // --------- EVENTOS ----------
     document.getElementById("addBtn").addEventListener("click", agregarItemDesdeFormulario);
     document.getElementById("clearBtn").addEventListener("click", limpiarTodo);
     document.getElementById("addTarjetaBtn").addEventListener("click", añadirTarjeta);
     document.getElementById("delTarjetaBtn").addEventListener("click", eliminarTarjeta);
     document.getElementById("addPersonaBtn").addEventListener("click", añadirPersona);
     document.getElementById("delPersonaBtn").addEventListener("click", eliminarPersona);
-
+    document.getElementById("exportBtn").addEventListener("click", exportarBackup);
+    document.getElementById("importBtn").addEventListener("click", () => {
+      document.getElementById("importFile").value = "";
+      document.getElementById("importFile").click();
+    });
+    document.getElementById("importFile").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (file) importarBackupDesdeArchivo(file);
+    });
     document.getElementById("monto").addEventListener("keypress", e => {
       if (e.key === "Enter") agregarItemDesdeFormulario();
     });
     document.getElementById("cuotasTotales").addEventListener("keypress", e => {
       if (e.key === "Enter") agregarItemDesdeFormulario();
     });
-
     document.getElementById("tarjetaActiva").addEventListener("change", e => {
       tarjetaActiva = e.target.value;
       guardarEnStorage();
       renderTabla();
     });
-
     document.getElementById("personaSelect").addEventListener("change", e => {
       personaSeleccionada = e.target.value;
     });
+    document.getElementById("lockBtn").addEventListener("click", bloquearApp);
+    document.getElementById("unlockBtn").addEventListener("click", desbloquearApp);
+    document.getElementById("filtro").addEventListener("input", renderTabla);
 
-    // Inicializar
+    // --------- INICIALIZAR ---------
     cargarDeStorage();
+    cargarPassword();      // aquí eliges la contraseña la primera vez
     renderTarjetasSelect();
     renderPersonasSelect();
+    aplicarLockUI();
     renderTabla();
   </script>
 </body>
