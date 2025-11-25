@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <title>Control de cuotas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Script de Google Identity -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -174,21 +176,19 @@
       align-items: center;
       flex-wrap: wrap;
     }
-    #lockScreen {
-      display: none;
+    .hidden { display: none !important; }
+
+    #google-login {
       text-align: center;
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #27272a;
-      background: #020617;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #27272a;
     }
-    #contenido {
-      margin-top: 8px;
+    #google-login p {
+      margin-bottom: 8px;
+      color: #e5e7eb;
     }
-    .hidden {
-      display: none !important;
-    }
+
     .filter-bar {
       display: flex;
       flex-wrap: wrap;
@@ -200,6 +200,7 @@
     .filter-bar input {
       max-width: 220px;
     }
+
     @media (max-width: 700px) {
       .summary {
         grid-template-columns: 1fr;
@@ -223,13 +224,29 @@
   <div class="card">
     <h1>Control de cuotas 💳</h1>
 
-    <!-- Pantalla de bloqueo -->
-    <div id="lockScreen">
-      <p>App bloqueada. Ingresa la contraseña para ver tus datos.</p>
-      <button id="unlockBtn">Desbloquear</button>
+    <!-- LOGIN CON GOOGLE -->
+    <div id="google-login">
+      <p>Inicia sesión con Google para usar la app.</p>
+      <div
+        id="g_id_onload"
+        data-client_id="TU_CLIENT_ID_DE_GOOGLE"
+        data-callback="handleCredentialResponse"
+        data-auto_prompt="false">
+      </div>
+      <div
+        class="g_id_signin"
+        data-type="standard"
+        data-size="large"
+        data-theme="outline"
+        data-text="signin_with"
+        data-shape="rect"
+        data-logo_alignment="left">
+      </div>
+      <p id="login-info" style="font-size:12px;color:#9ca3af;margin-top:6px;"></p>
     </div>
 
-    <div id="contenido">
+    <!-- CONTENIDO DE LA APP (se oculta hasta que haya login) -->
+    <div id="contenido" class="hidden">
       <div class="top-bar">
         <div class="top-bar-left">
           <span>Tarjeta activa:</span>
@@ -238,7 +255,7 @@
           <button id="delTarjetaBtn" class="danger-btn">Eliminar tarjeta</button>
         </div>
         <div class="top-bar-right">
-          <button id="lockBtn" class="warning-btn">Bloquear app</button>
+          <button id="logoutBtn" class="warning-btn">Cerrar sesión</button>
           <button id="exportBtn">Exportar backup</button>
           <button id="importBtn">Importar backup</button>
           <input id="importFile" type="file" accept="application/json" style="display:none" />
@@ -338,41 +355,20 @@
   </div>
 
   <script>
-    // ---------- RESET INICIAL PARA BORRAR VERSIONES ANTERIORES ----------
-    const RESET_MARKER = "cuotas_reset_done_v3";
-    if (!localStorage.getItem(RESET_MARKER)) {
-      localStorage.removeItem("cuotas_items_v6");
-      localStorage.removeItem("cuotas_items_v7");
-      localStorage.removeItem("cuotas_items_v8");
-      localStorage.removeItem("cuotas_tarjetas_v1");
-      localStorage.removeItem("cuotas_tarjetas_v2");
-      localStorage.removeItem("cuotas_tarjetas_v3");
-      localStorage.removeItem("cuotas_personas_v1");
-      localStorage.removeItem("cuotas_personas_v2");
-      localStorage.removeItem("cuotas_personas_v3");
-      localStorage.removeItem("cuotas_tarjeta_activa_v2");
-      localStorage.removeItem("cuotas_tarjeta_activa_v3");
-      localStorage.removeItem("cuotas_tarjeta_activa");
-      localStorage.removeItem("cuotas_password_v1");
-      localStorage.removeItem("cuotas_locked_v1");
-      localStorage.removeItem("cuotas_locked_v2");
-      localStorage.setItem(RESET_MARKER, "1");
-    }
-
-    const STORAGE_ITEMS = "cuotas_items_v9";
-    const STORAGE_TARJETAS = "cuotas_tarjetas_v4";
-    const STORAGE_TARJETA_ACTIVA = "cuotas_tarjeta_activa_v4";
-    const STORAGE_PERSONAS = "cuotas_personas_v4";
-    const STORAGE_LOCKED = "cuotas_locked_v3";
-    const STORAGE_PASS = "cuotas_password_v1";
+    // --- almacenamiento / estado ---
+    const STORAGE_ITEMS = "cuotas_items_google_v1";
+    const STORAGE_TARJETAS = "cuotas_tarjetas_google_v1";
+    const STORAGE_TARJETA_ACTIVA = "cuotas_tarjeta_activa_google_v1";
+    const STORAGE_PERSONAS = "cuotas_personas_google_v1";
+    const STORAGE_GOOGLE_EMAIL = "cuotas_google_email_v1";
 
     let items = [];
     let tarjetas = [];
     let personas = [];
     let tarjetaActiva = "";
     let personaSeleccionada = "";
-    let locked = false;
-    let PASSWORD = "";
+    let loggedIn = false;
+    let googleEmail = null;
 
     function formatCLP(num) {
       return num.toLocaleString("es-CL");
@@ -391,69 +387,16 @@
       localStorage.setItem(STORAGE_TARJETAS, JSON.stringify(tarjetas));
       localStorage.setItem(STORAGE_TARJETA_ACTIVA, tarjetaActiva);
       localStorage.setItem(STORAGE_PERSONAS, JSON.stringify(personas));
-      localStorage.setItem(STORAGE_LOCKED, locked ? "1" : "0");
-      if (PASSWORD) {
-        localStorage.setItem(STORAGE_PASS, PASSWORD);
+      if (googleEmail) {
+        localStorage.setItem(STORAGE_GOOGLE_EMAIL, googleEmail);
       }
-    }
-
-    function configurarPasswordInicial() {
-      alert("Primera vez que usas la app.\nElige una contraseña numérica para borrar datos o desbloquear.");
-      while (true) {
-        const p1 = prompt("Elige una contraseña numérica (mínimo 4 dígitos):");
-        if (p1 === null) {
-          alert("Necesitas definir una contraseña para continuar.");
-          continue;
-        }
-        const limpio = p1.trim();
-        if (!/^[0-9]{4,}$/.test(limpio)) {
-          alert("Debe ser solo números y mínimo 4 dígitos.");
-          continue;
-        }
-        const p2 = prompt("Confirma la contraseña (escribe lo mismo):");
-        if (p2 === null) {
-          alert("Confirmación cancelada, inténtalo otra vez.");
-          continue;
-        }
-        if (limpio !== p2.trim()) {
-          alert("Las contraseñas no coinciden. Vuelve a intentarlo.");
-          continue;
-        }
-        PASSWORD = limpio;
-        localStorage.setItem(STORAGE_PASS, PASSWORD);
-        alert("Contraseña guardada. Úsala para borrar datos o desbloquear la app.");
-        break;
-      }
-    }
-
-    function cargarPassword() {
-      const saved = localStorage.getItem(STORAGE_PASS);
-      if (saved) {
-        PASSWORD = saved;
-      } else {
-        configurarPasswordInicial();
-      }
-    }
-
-    function solicitarPassword(motivo = "esta acción") {
-      if (!PASSWORD) {
-        configurarPasswordInicial();
-      }
-      const ingreso = prompt("Ingresa la contraseña para " + motivo + ":");
-      if (ingreso !== PASSWORD) {
-        alert("Contraseña incorrecta.");
-        return false;
-      }
-      return true;
     }
 
     function cargarDeStorage() {
       try {
         const dataItems = localStorage.getItem(STORAGE_ITEMS);
         if (dataItems) items = JSON.parse(dataItems) || [];
-      } catch {
-        items = [];
-      }
+      } catch { items = []; }
 
       items.forEach(it => {
         if (it.pagadas === undefined) it.pagadas = 0;
@@ -466,9 +409,7 @@
       try {
         const dataTarjetas = localStorage.getItem(STORAGE_TARJETAS);
         if (dataTarjetas) tarjetas = JSON.parse(dataTarjetas) || [];
-      } catch {
-        tarjetas = [];
-      }
+      } catch { tarjetas = []; }
       if (!Array.isArray(tarjetas) || tarjetas.length === 0) {
         tarjetas = ["Tarjeta 1", "Tarjeta 2"];
       }
@@ -483,16 +424,12 @@
         } else {
           tarjetaActiva = tarjetas[0];
         }
-      } catch {
-        tarjetaActiva = tarjetas[0];
-      }
+      } catch { tarjetaActiva = tarjetas[0]; }
 
       try {
         const dataPersonas = localStorage.getItem(STORAGE_PERSONAS);
         if (dataPersonas) personas = JSON.parse(dataPersonas) || [];
-      } catch {
-        personas = [];
-      }
+      } catch { personas = []; }
       if (!Array.isArray(personas) || personas.length === 0) {
         personas = ["Persona 1", "Persona 2"];
       }
@@ -501,10 +438,65 @@
       });
       personaSeleccionada = personas[0];
 
-      const lockedVal = localStorage.getItem(STORAGE_LOCKED);
-      locked = lockedVal === "1";
+      // estado de login
+      const email = localStorage.getItem(STORAGE_GOOGLE_EMAIL);
+      if (email) {
+        loggedIn = true;
+        googleEmail = email;
+      } else {
+        loggedIn = false;
+        googleEmail = null;
+      }
     }
 
+    // --- UI de login ---
+    function updateLoginUI() {
+      const loginDiv = document.getElementById("google-login");
+      const contenido = document.getElementById("contenido");
+      const info = document.getElementById("login-info");
+
+      if (loggedIn) {
+        loginDiv.classList.add("hidden");
+        contenido.classList.remove("hidden");
+        info.textContent = "Sesión iniciada como " + (googleEmail || "");
+      } else {
+        loginDiv.classList.remove("hidden");
+        contenido.classList.add("hidden");
+        info.textContent = "";
+      }
+    }
+
+    // callback de Google (tiene que ser global)
+    window.handleCredentialResponse = function(response) {
+      try {
+        const payload = JSON.parse(atob(response.credential.split(".")[1]));
+        googleEmail = payload.email || "";
+        loggedIn = true;
+        localStorage.setItem(STORAGE_GOOGLE_EMAIL, googleEmail);
+        updateLoginUI();
+        alert("Sesión iniciada como " + googleEmail);
+      } catch (e) {
+        console.error(e);
+        alert("No se pudo iniciar sesión con Google.");
+      }
+    };
+
+    function requireLogin() {
+      if (!loggedIn) {
+        alert("Primero inicia sesión con Google.");
+        return false;
+      }
+      return true;
+    }
+
+    function cerrarSesion() {
+      loggedIn = false;
+      googleEmail = null;
+      localStorage.removeItem(STORAGE_GOOGLE_EMAIL);
+      updateLoginUI();
+    }
+
+    // --- selects ---
     function renderTarjetasSelect() {
       const select = document.getElementById("tarjetaActiva");
       select.innerHTML = "";
@@ -534,18 +526,7 @@
       }
     }
 
-    function aplicarLockUI() {
-      const lockScreen = document.getElementById("lockScreen");
-      const contenido = document.getElementById("contenido");
-      if (locked) {
-        lockScreen.style.display = "block";
-        contenido.classList.add("hidden");
-      } else {
-        lockScreen.style.display = "none";
-        contenido.classList.remove("hidden");
-      }
-    }
-
+    // --- tabla / resumen ---
     function getFilteredItems() {
       const filtro = document.getElementById("filtro").value.toLowerCase().trim();
       let activos = items.filter(it => it.tarjeta === tarjetaActiva);
@@ -627,17 +608,17 @@
 
         const pagarBtn = document.createElement("button");
         pagarBtn.textContent = "Pagar cuota";
-        pagarBtn.addEventListener("click", () => pagarCuota(idx));
+        pagarBtn.addEventListener("click", () => { if(requireLogin()) pagarCuota(idx); });
 
         const deshacerBtn = document.createElement("button");
         deshacerBtn.textContent = "Deshacer cuota";
         deshacerBtn.className = "warning-btn";
-        deshacerBtn.addEventListener("click", () => deshacerCuota(idx));
+        deshacerBtn.addEventListener("click", () => { if(requireLogin()) deshacerCuota(idx); });
 
         const borrarBtn = document.createElement("button");
         borrarBtn.textContent = "Borrar";
         borrarBtn.className = "danger-btn";
-        borrarBtn.addEventListener("click", () => borrarFila(idx));
+        borrarBtn.addEventListener("click", () => { if(requireLogin()) borrarFila(idx); });
 
         if (it.pagadas >= it.totales) {
           pagarBtn.disabled = true;
@@ -659,13 +640,11 @@
         tbody.appendChild(tr);
       });
 
-      // Resumen tarjeta activa
       document.getElementById("res-total-contrato").textContent = formatCLP(totalContratoTarjeta);
       document.getElementById("res-total-pagado").textContent = formatCLP(totalPagadoTarjeta);
       document.getElementById("res-total-pendiente").textContent = formatCLP(totalPendienteTarjeta);
       document.getElementById("res-cuota-mensual").textContent = formatCLP(cuotaMensual);
 
-      // Totales por persona
       const contPers = document.getElementById("totales-persona");
       contPers.innerHTML = "";
       const personasTot = Object.entries(porPersona);
@@ -680,7 +659,6 @@
         });
       }
 
-      // Totales por tarjeta (pendiente)
       const contTarjeta = document.getElementById("totales-tarjeta");
       contTarjeta.innerHTML = "";
       items.forEach(it => {
@@ -700,7 +678,10 @@
       }
     }
 
+    // --- acciones ---
     function agregarItemDesdeFormulario() {
+      if (!requireLogin()) return;
+
       const personaSel = document.getElementById("personaSelect");
       const itemInput = document.getElementById("item");
       const montoInput = document.getElementById("monto");
@@ -775,7 +756,6 @@
     }
 
     function borrarFila(idx) {
-      if (!solicitarPassword("eliminar este ítem")) return;
       if (!confirm("¿Borrar este ítem?")) return;
       items.splice(idx, 1);
       guardarEnStorage();
@@ -783,7 +763,7 @@
     }
 
     function limpiarTodo() {
-      if (!solicitarPassword("borrar todo")) return;
+      if (!requireLogin()) return;
       if (!confirm("¿Seguro que quieres borrar TODOS los ítems? Esto no se puede deshacer.")) return;
       items = [];
       guardarEnStorage();
@@ -791,6 +771,7 @@
     }
 
     function añadirTarjeta() {
+      if (!requireLogin()) return;
       const nombre = prompt("Nombre de la nueva tarjeta (ej: Tarjeta 3):");
       if (!nombre) return;
       const n = nombre.trim();
@@ -807,8 +788,8 @@
     }
 
     function eliminarTarjeta() {
+      if (!requireLogin()) return;
       if (!tarjetaActiva) return;
-      if (!solicitarPassword("eliminar esta tarjeta")) return;
       if (tarjetas.length <= 1) {
         alert("Debe quedar al menos una tarjeta.");
         return;
@@ -829,6 +810,7 @@
     }
 
     function añadirPersona() {
+      if (!requireLogin()) return;
       const nombre = prompt("Nombre de la nueva persona:");
       if (!nombre) return;
       const n = nombre.trim();
@@ -844,8 +826,8 @@
     }
 
     function eliminarPersona() {
+      if (!requireLogin()) return;
       if (!personaSeleccionada) return;
-      if (!solicitarPassword("eliminar esta persona")) return;
       if (personas.length <= 1) {
         alert("Debe quedar al menos una persona en la lista.");
         return;
@@ -863,8 +845,9 @@
     }
 
     function exportarBackup() {
+      if (!requireLogin()) return;
       const data = {
-        version: 4,
+        version: 1,
         items,
         tarjetas,
         personas
@@ -884,6 +867,7 @@
     }
 
     function importarBackupDesdeArchivo(file) {
+      if (!requireLogin()) return;
       const reader = new FileReader();
       reader.onload = e => {
         try {
@@ -908,12 +892,8 @@
             it.total = it.monto * it.factor;
           });
 
-          if (!Array.isArray(tarjetas) || tarjetas.length === 0) {
-            tarjetas = ["Tarjeta 1"];
-          }
-          if (!Array.isArray(personas) || personas.length === 0) {
-            personas = ["Persona 1"];
-          }
+          if (!Array.isArray(tarjetas) || tarjetas.length === 0) tarjetas = ["Tarjeta 1"];
+          if (!Array.isArray(personas) || personas.length === 0) personas = ["Persona 1"];
 
           tarjetaActiva = tarjetas[0];
           personaSeleccionada = personas[0];
@@ -932,20 +912,7 @@
       reader.readAsText(file);
     }
 
-    function bloquearApp() {
-      locked = true;
-      guardarEnStorage();
-      aplicarLockUI();
-    }
-
-    function desbloquearApp() {
-      if (!solicitarPassword("desbloquear la app")) return;
-      locked = false;
-      guardarEnStorage();
-      aplicarLockUI();
-    }
-
-    // --------- EVENTOS ----------
+    // --- eventos ---
     document.getElementById("addBtn").addEventListener("click", agregarItemDesdeFormulario);
     document.getElementById("clearBtn").addEventListener("click", limpiarTodo);
     document.getElementById("addTarjetaBtn").addEventListener("click", añadirTarjeta);
@@ -975,17 +942,15 @@
     document.getElementById("personaSelect").addEventListener("change", e => {
       personaSeleccionada = e.target.value;
     });
-    document.getElementById("lockBtn").addEventListener("click", bloquearApp);
-    document.getElementById("unlockBtn").addEventListener("click", desbloquearApp);
+    document.getElementById("logoutBtn").addEventListener("click", cerrarSesion);
     document.getElementById("filtro").addEventListener("input", renderTabla);
 
-    // --------- INICIALIZAR ---------
+    // --- iniciar ---
     cargarDeStorage();
-    cargarPassword();      // aquí eliges la contraseña la primera vez
     renderTarjetasSelect();
     renderPersonasSelect();
-    aplicarLockUI();
     renderTabla();
+    updateLoginUI();
   </script>
 </body>
 </html>
