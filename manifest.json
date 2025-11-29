@@ -1,7 +1,7 @@
 {
   "name": "Control de cuotas",
   "short_name": "Cuotas",
-  "start_url": "/index.html",
+  "start_url": "./index.html",          // <- importante, relativo
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
