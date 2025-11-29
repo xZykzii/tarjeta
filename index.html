@@ -282,13 +282,15 @@
 
     /* TABLE */
     .table-wrapper {
-      width: 100%;
-      margin-top: 6px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid #27272a;
-      background: radial-gradient(circle at top, rgba(15,23,42,0.96), rgba(0,0,0,0.98));
-    }
+  width: 100%;
+  margin-top: 6px;
+  border-radius: 12px;
+  overflow-x: auto;                 /* permitir scroll horizontal */
+  overflow-y: hidden;
+  border: 1px solid #27272a;
+  background: radial-gradient(circle at top, rgba(15,23,42,0.96), rgba(0,0,0,0.98));
+  -webkit-overflow-scrolling: touch; /* scroll suave en celulares */
+}
 
     table {
       width: 100%;
