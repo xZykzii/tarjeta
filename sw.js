@@ -1,10 +1,10 @@
 const CACHE_NAME = "cuotas-v1";
 const OFFLINE_URLS = [
-  "/",
-  "/index.html",
-  "/manifest.json"
-  // agrega más archivos si quieres cachearlos offline
+  "./",
+  "./index.html",
+  "./manifest.json"
 ];
+
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
