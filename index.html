@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <title>Control de cuotas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#000000">
+
   <style>
     :root {
       --bg-main: #020617;
@@ -560,6 +564,15 @@
 
   <!-- JS: Firebase + lógica -->
   <script type="module">
+    // REGISTRO SERVICE WORKER (PWA)
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch((err) => {
+          console.error("SW registration failed", err);
+        });
+      });
+    }
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getAuth,
