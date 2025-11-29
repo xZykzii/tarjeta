@@ -1,18 +1,21 @@
 const CACHE_NAME = "cuotas-v1";
-const OFFLINE_URLS = [
+
+const urlsToCache = [
   "./",
   "./index.html",
-  "./manifest.json"
+  "./manifest.json",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
 ];
-
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(OFFLINE_URLS))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
 });
 
 self.addEventListener("activate", (event) => {
+  // limpieza simple de versiones viejas
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
