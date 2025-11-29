@@ -4,9 +4,21 @@
   <meta charset="UTF-8" />
   <title>Control de cuotas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <!-- PWA -->
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#000000" />
+
+  <!-- Registro del Service Worker (para GitHub Pages en /tarjeta/) -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("./sw.js")
+          .catch(err => console.error("SW registration failed", err));
+      });
+    }
+  </script>
 
   <style>
     :root {
@@ -282,15 +294,15 @@
 
     /* TABLE */
     .table-wrapper {
-  width: 100%;
-  margin-top: 6px;
-  border-radius: 12px;
-  overflow-x: auto;                 /* permitir scroll horizontal */
-  overflow-y: hidden;
-  border: 1px solid #27272a;
-  background: radial-gradient(circle at top, rgba(15,23,42,0.96), rgba(0,0,0,0.98));
-  -webkit-overflow-scrolling: touch; /* scroll suave en celulares */
-}
+      width: 100%;
+      margin-top: 6px;
+      border-radius: 12px;
+      overflow-x: auto;              /* <- scroll horizontal en móvil */
+      overflow-y: hidden;
+      border: 1px solid #27272a;
+      background: radial-gradient(circle at top, rgba(15,23,42,0.96), rgba(0,0,0,0.98));
+      -webkit-overflow-scrolling: touch;
+    }
 
     table {
       width: 100%;
@@ -566,15 +578,6 @@
 
   <!-- JS: Firebase + lógica -->
   <script type="module">
-    // REGISTRO SERVICE WORKER (PWA)
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js").catch((err) => {
-          console.error("SW registration failed", err);
-        });
-      });
-    }
-
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getAuth,
