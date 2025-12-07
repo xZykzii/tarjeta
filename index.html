@@ -297,7 +297,7 @@
       width: 100%;
       margin-top: 6px;
       border-radius: 12px;
-      overflow-x: auto;              /* <- scroll horizontal en móvil */
+      overflow-x: auto;              /* scroll horizontal en móvil */
       overflow-y: hidden;
       border: 1px solid #27272a;
       background: radial-gradient(circle at top, rgba(15,23,42,0.96), rgba(0,0,0,0.98));
@@ -647,7 +647,8 @@
         item:    it.item,
         monto:   it.monto,
         pagadas: it.pagadas,
-        totales: it.totales
+        totales: it.totales,
+        completedAt: it.completedAt || null
       }));
 
       await setDoc(
@@ -688,9 +689,17 @@
         if (it.pagadas === undefined) it.pagadas = 0;
         if (it.totales === undefined || it.totales <= 0) it.totales = 1;
         if (it.monto === undefined) it.monto = 0;
+
+        if (typeof it.completedAt !== "number") {
+          it.completedAt = null;
+        }
+
         it.factor = calcularFactor(it.pagadas, it.totales);
         it.total  = it.monto * it.factor;
       });
+
+      // limpiar items completos hace más de 10 min
+      cleanupCompletedItems();
 
       if (!Array.isArray(tarjetas) || tarjetas.length === 0) {
         tarjetas = ["Tarjeta 1", "Tarjeta 2"];
@@ -706,6 +715,27 @@
       renderTarjetasSelect();
       renderPersonasSelect();
       renderTabla();
+    }
+
+    // Borra ítems que llevan más de 10 minutos completos
+    function cleanupCompletedItems() {
+      const now = Date.now();
+      let changed = false;
+
+      items = items.filter(it => {
+        if (it.pagadas >= it.totales && it.completedAt) {
+          const diff = now - it.completedAt;
+          if (diff > 10 * 60 * 1000) { // 10 minutos
+            changed = true;
+            return false; // lo eliminamos
+          }
+        }
+        return true;
+      });
+
+      if (changed && currentUser) {
+        saveUserData();
+      }
     }
 
     function requireLogin() {
@@ -760,6 +790,9 @@
     }
 
     function renderTabla() {
+      // limpiar en cada render por si ya pasaron los 10 min
+      cleanupCompletedItems();
+
       tablaBody.innerHTML = "";
       const activos = getFilteredItems();
 
@@ -967,7 +1000,8 @@
         pagadas,
         totales,
         factor: 0,
-        total: 0
+        total: 0,
+        completedAt: null
       };
       nuevo.factor = calcularFactor(nuevo.pagadas, nuevo.totales);
       nuevo.total  = nuevo.monto * nuevo.factor;
@@ -985,20 +1019,36 @@
 
     async function pagarCuota(idx) {
       const it = items[idx];
+      if (!it) return;
       if (it.pagadas >= it.totales) return;
+
       it.pagadas += 1;
       it.factor   = calcularFactor(it.pagadas, it.totales);
       it.total    = it.monto * it.factor;
+
+      if (it.pagadas >= it.totales) {
+        it.completedAt = Date.now();
+      } else {
+        it.completedAt = null;
+      }
+
       await saveUserData();
       renderTabla();
     }
 
     async function deshacerCuota(idx) {
       const it = items[idx];
+      if (!it) return;
       if (it.pagadas <= 0) return;
+
       it.pagadas -= 1;
       it.factor   = calcularFactor(it.pagadas, it.totales);
       it.total    = it.monto * it.factor;
+
+      if (it.pagadas < it.totales) {
+        it.completedAt = null;
+      }
+
       await saveUserData();
       renderTabla();
     }
@@ -1165,7 +1215,8 @@
               item:    it.item    || "-",
               monto:   Number(it.monto) || 0,
               pagadas: Number(it.pagadas) || 0,
-              totales: Number(it.totales) || 1
+              totales: Number(it.totales) || 1,
+              completedAt: typeof it.completedAt === "number" ? it.completedAt : null
             };
             if (obj.totales <= 0) obj.totales = 1;
             if (obj.pagadas < 0) obj.pagadas = 0;
