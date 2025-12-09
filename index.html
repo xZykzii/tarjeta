@@ -489,6 +489,13 @@
             <button id="addPersonaBtn">+ persona</button>
             <button id="delPersonaBtn" class="danger-btn">- persona</button>
           </div>
+          <div style="margin-top:6px;font-size:11px;color:#9ca3af;">
+            Saldo actual: $<span id="saldo-actual-persona">0</span>
+          </div>
+          <div class="inline-group" style="margin-top:4px;">
+            <input id="saldoMonto" type="number" min="0" step="1" placeholder="Agregar saldo a la persona" />
+            <button id="addSaldoBtn">+ saldo</button>
+          </div>
         </div>
         <div>
           <label>Ítem</label>
@@ -615,6 +622,7 @@
     let tarjetaActiva = "";
     let personaSeleccionada = "";
     let currentUser = null; // user de Firebase
+    let saldos = {}; // saldo por persona
 
     // Helpers UI
     const contenido   = document.getElementById("contenido");
@@ -624,9 +632,10 @@
     const logoutBtn   = document.getElementById("logoutBtn");
     const tablaBody   = document.getElementById("tabla-body");
     const filtroInput = document.getElementById("filtro");
+    const saldoActualSpan = document.getElementById("saldo-actual-persona");
 
     function formatCLP(num) {
-      return num.toLocaleString("es-CL");
+      return (Number(num) || 0).toLocaleString("es-CL");
     }
 
     function calcularFactor(pagadas, totales) {
@@ -635,6 +644,15 @@
       if (t <= 0) return 0;
       const f = t - p;
       return f > 0 ? f : 0;
+    }
+
+    function updateSaldoUI() {
+      if (!personaSeleccionada) {
+        saldoActualSpan.textContent = "0";
+        return;
+      }
+      const saldo = saldos[personaSeleccionada] || 0;
+      saldoActualSpan.textContent = formatCLP(saldo);
     }
 
     async function saveUserData() {
@@ -657,7 +675,8 @@
           items: cleanedItems,
           tarjetas,
           personas,
-          tarjetaActiva
+          tarjetaActiva,
+          saldos
         },
         { merge: true }
       );
@@ -675,12 +694,14 @@
         tarjetas     = data.tarjetas     || [];
         personas     = data.personas     || [];
         tarjetaActiva = data.tarjetaActiva || (tarjetas[0] || "");
+        saldos       = data.saldos && typeof data.saldos === "object" ? data.saldos : {};
       } else {
         // Primer uso para este usuario
         items    = [];
         tarjetas = ["Tarjeta 1", "Tarjeta 2"];
         personas = ["Persona 1", "Persona 2"];
         tarjetaActiva = tarjetas[0];
+        saldos = {};
         await saveUserData();
       }
 
@@ -715,6 +736,7 @@
       renderTarjetasSelect();
       renderPersonasSelect();
       renderTabla();
+      updateSaldoUI();
     }
 
     // Borra ítems que llevan más de 10 minutos completos
@@ -774,6 +796,7 @@
         personaSeleccionada = personas[0];
         select.value = personaSeleccionada;
       }
+      updateSaldoUI();
     }
 
     // Tabla + resumen
@@ -1017,10 +1040,41 @@
       itemInput.focus();
     }
 
+    async function agregarSaldoPersona() {
+      if (!requireLogin()) return;
+      const input = document.getElementById("saldoMonto");
+      const valor = parseInt(input.value, 10);
+      if (isNaN(valor) || valor <= 0) {
+        alert("Ingresa un monto de saldo válido (mayor que 0).");
+        return;
+      }
+      const actual = saldos[personaSeleccionada] || 0;
+      saldos[personaSeleccionada] = actual + valor;
+      input.value = "";
+      await saveUserData();
+      updateSaldoUI();
+    }
+
     async function pagarCuota(idx) {
       const it = items[idx];
       if (!it) return;
       if (it.pagadas >= it.totales) return;
+
+      const persona = it.persona;
+      const montoCuota = it.monto;
+      const saldoDisp = saldos[persona] || 0;
+
+      if (saldoDisp < montoCuota) {
+        alert(
+          `Saldo insuficiente para pagar esta cuota.\n` +
+          `Saldo disponible para ${persona}: $${formatCLP(saldoDisp)}\n` +
+          `Monto de la cuota: $${formatCLP(montoCuota)}`
+        );
+        return;
+      }
+
+      // descontar del saldo de la persona
+      saldos[persona] = saldoDisp - montoCuota;
 
       it.pagadas += 1;
       it.factor   = calcularFactor(it.pagadas, it.totales);
@@ -1033,6 +1087,7 @@
       }
 
       await saveUserData();
+      updateSaldoUI();
       renderTabla();
     }
 
@@ -1048,6 +1103,8 @@
       if (it.pagadas < it.totales) {
         it.completedAt = null;
       }
+
+      // OJO: al deshacer NO devolvemos saldo automático, se asume que fue pago real
 
       await saveUserData();
       renderTabla();
@@ -1118,6 +1175,9 @@
         return;
       }
       personas.push(n);
+      if (!(n in saldos)) {
+        saldos[n] = 0;
+      }
       personaSeleccionada = n;
       await saveUserData();
       renderPersonasSelect();
@@ -1133,9 +1193,14 @@
       const msg = `Se eliminará la persona "${personaSeleccionada}" de la lista.\nLos ítems existentes seguirán mostrando ese nombre.\n¿Quieres continuar?`;
       if (!confirm(msg)) return;
 
+      // Eliminamos de la lista de personas
       personas = personas.filter(p => p !== personaSeleccionada);
+      // Eliminamos también su saldo
+      delete saldos[personaSeleccionada];
+
       if (personas.length === 0) {
         personas = ["Persona 1"];
+        if (!saldos["Persona 1"]) saldos["Persona 1"] = 0;
       }
       personaSeleccionada = personas[0];
       await saveUserData();
@@ -1145,13 +1210,14 @@
     function exportarBackup() {
       if (!requireLogin()) return;
       const data = {
-        version: 3,
+        version: 4,
         uid: currentUser.uid,
         email: currentUser.email,
         items,
         tarjetas,
         personas,
-        tarjetaActiva
+        tarjetaActiva,
+        saldos
       };
       const blob = new Blob([JSON.stringify(data, null, 2)], {
         type: "application/json"
@@ -1188,6 +1254,7 @@
           let importedTarjetas     = [];
           let importedPersonas     = [];
           let importedTarjetaActiva = "";
+          let importedSaldos       = {};
 
           if (Array.isArray(data)) {
             importedItems = data;
@@ -1198,13 +1265,16 @@
             importedTarjetas = Array.isArray(data.tarjetas) ? data.tarjetas : ["Tarjeta 1"];
             importedPersonas = Array.isArray(data.personas) ? data.personas : ["Persona 1"];
             importedTarjetaActiva = data.tarjetaActiva || "";
+            if (data.saldos && typeof data.saldos === "object") {
+              importedSaldos = data.saldos;
+            }
           } else {
             console.error("Estructura de backup no reconocida:", data);
             alert("Archivo de backup inválido o con estructura desconocida.");
             return;
           }
 
-          if (!confirm("Esto reemplazará todas las tarjetas, personas e ítems actuales de ESTA cuenta. ¿Continuar?")) {
+          if (!confirm("Esto reemplazará todas las tarjetas, personas, saldos e ítems actuales de ESTA cuenta. ¿Continuar?")) {
             return;
           }
 
@@ -1233,6 +1303,8 @@
             ? importedTarjetaActiva
             : tarjetas[0];
 
+          saldos = importedSaldos && typeof importedSaldos === "object" ? importedSaldos : {};
+
           await saveUserData();
           renderTarjetasSelect();
           renderPersonasSelect();
@@ -1255,6 +1327,7 @@
     document.getElementById("delTarjetaBtn").addEventListener("click", eliminarTarjeta);
     document.getElementById("addPersonaBtn").addEventListener("click", añadirPersona);
     document.getElementById("delPersonaBtn").addEventListener("click", eliminarPersona);
+    document.getElementById("addSaldoBtn").addEventListener("click", agregarSaldoPersona);
     document.getElementById("exportBtn").addEventListener("click", exportarBackup);
     document.getElementById("importBtn").addEventListener("click", () => {
       document.getElementById("importFile").value = "";
@@ -1277,6 +1350,7 @@
     });
     document.getElementById("personaSelect").addEventListener("change", e => {
       personaSeleccionada = e.target.value;
+      updateSaldoUI();
     });
     filtroInput.addEventListener("input", renderTabla);
 
