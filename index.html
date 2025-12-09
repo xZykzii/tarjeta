@@ -1092,23 +1092,31 @@
     }
 
     async function deshacerCuota(idx) {
-      const it = items[idx];
-      if (!it) return;
-      if (it.pagadas <= 0) return;
+  const it = items[idx];
+  if (!it) return;
+  if (it.pagadas <= 0) return;
 
-      it.pagadas -= 1;
-      it.factor   = calcularFactor(it.pagadas, it.totales);
-      it.total    = it.monto * it.factor;
+  const persona = it.persona;
+  const montoCuota = it.monto;
 
-      if (it.pagadas < it.totales) {
-        it.completedAt = null;
-      }
+  // 👇 Devolver el dinero de la cuota al saldo de la persona
+  saldos[persona] = (saldos[persona] || 0) + montoCuota;
 
-      // OJO: al deshacer NO devolvemos saldo automático, se asume que fue pago real
+  // Actualizar cuotas
+  it.pagadas -= 1;
+  it.factor   = calcularFactor(it.pagadas, it.totales);
+  it.total    = it.monto * it.factor;
 
-      await saveUserData();
-      renderTabla();
-    }
+  // Si ya no está completamente pagado, quitamos el completedAt
+  if (it.pagadas < it.totales) {
+    it.completedAt = null;
+  }
+
+  await saveUserData();
+  updateSaldoUI();   // 👈 para refrescar el "Saldo actual" en pantalla
+  renderTabla();
+}
+
 
     async function borrarFila(idx) {
       if (!confirm("¿Borrar este ítem?")) return;
