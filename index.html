@@ -9,7 +9,7 @@
   <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" content="#000000" />
 
-  <!-- Registro del Service Worker (para GitHub Pages en /tarjeta/) -->
+  <!-- Registro del Service Worker -->
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
@@ -297,7 +297,7 @@
       width: 100%;
       margin-top: 6px;
       border-radius: 12px;
-      overflow-x: auto;              /* scroll horizontal en móvil */
+      overflow-x: auto;
       overflow-y: hidden;
       border: 1px solid #27272a;
       background: radial-gradient(circle at top, rgba(15,23,42,0.96), rgba(0,0,0,0.98));
@@ -461,7 +461,7 @@
       <p id="login-info"></p>
     </div>
 
-    <!-- CONTENIDO DE LA APP (se oculta hasta que haya login) -->
+    <!-- CONTENIDO DE LA APP -->
     <div id="contenido" class="hidden">
       <div class="top-bar">
         <div class="top-bar-left">
@@ -496,6 +496,9 @@
             <input id="saldoMonto" type="number" min="0" step="1" placeholder="Agregar saldo a la persona" />
             <button id="addSaldoBtn">+ saldo</button>
           </div>
+          <button id="delSaldoBtn" class="danger-btn" style="margin-top:6px;">
+            Borrar saldo
+          </button>
         </div>
         <div>
           <label>Ítem</label>
@@ -621,7 +624,7 @@
     let personas = [];
     let tarjetaActiva = "";
     let personaSeleccionada = "";
-    let currentUser = null; // user de Firebase
+    let currentUser = null;
     let saldos = {}; // saldo por persona
 
     // Helpers UI
@@ -696,7 +699,6 @@
         tarjetaActiva = data.tarjetaActiva || (tarjetas[0] || "");
         saldos       = data.saldos && typeof data.saldos === "object" ? data.saldos : {};
       } else {
-        // Primer uso para este usuario
         items    = [];
         tarjetas = ["Tarjeta 1", "Tarjeta 2"];
         personas = ["Persona 1", "Persona 2"];
@@ -719,7 +721,6 @@
         it.total  = it.monto * it.factor;
       });
 
-      // limpiar items completos hace más de 10 min
       cleanupCompletedItems();
 
       if (!Array.isArray(tarjetas) || tarjetas.length === 0) {
@@ -749,7 +750,7 @@
           const diff = now - it.completedAt;
           if (diff > 10 * 60 * 1000) { // 10 minutos
             changed = true;
-            return false; // lo eliminamos
+            return false;
           }
         }
         return true;
@@ -813,7 +814,6 @@
     }
 
     function renderTabla() {
-      // limpiar en cada render por si ya pasaron los 10 min
       cleanupCompletedItems();
 
       tablaBody.innerHTML = "";
@@ -1055,6 +1055,21 @@
       updateSaldoUI();
     }
 
+    async function borrarSaldoPersona() {
+      if (!requireLogin()) return;
+
+      const persona = personaSeleccionada;
+      if (!persona) return;
+
+      if (!confirm(`¿Seguro que quieres borrar COMPLETAMENTE el saldo de ${persona}?`))
+        return;
+
+      saldos[persona] = 0;
+      await saveUserData();
+      updateSaldoUI();
+      alert(`Saldo de ${persona} eliminado correctamente.`);
+    }
+
     async function pagarCuota(idx) {
       const it = items[idx];
       if (!it) return;
@@ -1073,7 +1088,6 @@
         return;
       }
 
-      // descontar del saldo de la persona
       saldos[persona] = saldoDisp - montoCuota;
 
       it.pagadas += 1;
@@ -1092,31 +1106,28 @@
     }
 
     async function deshacerCuota(idx) {
-  const it = items[idx];
-  if (!it) return;
-  if (it.pagadas <= 0) return;
+      const it = items[idx];
+      if (!it) return;
+      if (it.pagadas <= 0) return;
 
-  const persona = it.persona;
-  const montoCuota = it.monto;
+      const persona = it.persona;
+      const montoCuota = it.monto;
 
-  // 👇 Devolver el dinero de la cuota al saldo de la persona
-  saldos[persona] = (saldos[persona] || 0) + montoCuota;
+      // devolver saldo a la persona
+      saldos[persona] = (saldos[persona] || 0) + montoCuota;
 
-  // Actualizar cuotas
-  it.pagadas -= 1;
-  it.factor   = calcularFactor(it.pagadas, it.totales);
-  it.total    = it.monto * it.factor;
+      it.pagadas -= 1;
+      it.factor   = calcularFactor(it.pagadas, it.totales);
+      it.total    = it.monto * it.factor;
 
-  // Si ya no está completamente pagado, quitamos el completedAt
-  if (it.pagadas < it.totales) {
-    it.completedAt = null;
-  }
+      if (it.pagadas < it.totales) {
+        it.completedAt = null;
+      }
 
-  await saveUserData();
-  updateSaldoUI();   // 👈 para refrescar el "Saldo actual" en pantalla
-  renderTabla();
-}
-
+      await saveUserData();
+      updateSaldoUI();
+      renderTabla();
+    }
 
     async function borrarFila(idx) {
       if (!confirm("¿Borrar este ítem?")) return;
@@ -1201,9 +1212,7 @@
       const msg = `Se eliminará la persona "${personaSeleccionada}" de la lista.\nLos ítems existentes seguirán mostrando ese nombre.\n¿Quieres continuar?`;
       if (!confirm(msg)) return;
 
-      // Eliminamos de la lista de personas
       personas = personas.filter(p => p !== personaSeleccionada);
-      // Eliminamos también su saldo
       delete saldos[personaSeleccionada];
 
       if (personas.length === 0) {
@@ -1336,6 +1345,7 @@
     document.getElementById("addPersonaBtn").addEventListener("click", añadirPersona);
     document.getElementById("delPersonaBtn").addEventListener("click", eliminarPersona);
     document.getElementById("addSaldoBtn").addEventListener("click", agregarSaldoPersona);
+    document.getElementById("delSaldoBtn").addEventListener("click", borrarSaldoPersona);
     document.getElementById("exportBtn").addEventListener("click", exportarBackup);
     document.getElementById("importBtn").addEventListener("click", () => {
       document.getElementById("importFile").value = "";
