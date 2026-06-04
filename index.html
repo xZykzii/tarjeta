@@ -1,306 +1,674 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <title>Control de cuotas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- PWA -->
   <link rel="manifest" href="./manifest.json" />
-  <meta name="theme-color" content="#000000" />
-
-  <!-- Registro del Service Worker -->
+  <meta name="theme-color" content="#0b1120" />
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker
-          .register("./sw.js")
-          .catch(err => console.error("SW registration failed", err));
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
       });
     }
+    // Apply saved theme before paint to avoid flash
+    const saved = localStorage.getItem("theme");
+    if (saved) document.documentElement.setAttribute("data-theme", saved);
   </script>
 
   <style>
+    /* ── TOKENS ── */
     :root {
-      --bg-main: #020617;
-      --bg-card: rgba(15,23,42,0.96);
-      --border-subtle: #1f2937;
-      --accent: #22c55e;
-      --accent-soft: rgba(34,197,94,0.12);
-      --danger: #ef4444;
-      --danger-soft: rgba(248,113,113,0.16);
-      --warning: #facc15;
-      --warning-soft: rgba(250,204,21,0.18);
-      --text-main: #e5e7eb;
-      --text-muted: #9ca3af;
-      --text-soft: #6b7280;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
+      --font: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --transition: 0.18s ease;
     }
 
-    * {
-      box-sizing: border-box;
+    [data-theme="light"] {
+      --bg:           #eef2f7;
+      --surface:      #ffffff;
+      --surface-2:    #f5f7fb;
+      --border:       #dde3ed;
+      --border-2:     #c8d0df;
+      --text:         #0d1926;
+      --text-2:       #4a5a72;
+      --text-3:       #8a97ab;
+      --accent:       #1d6fe8;
+      --accent-hover: #1558c0;
+      --accent-soft:  rgba(29,111,232,0.09);
+      --success:      #0f9152;
+      --success-soft: rgba(15,145,82,0.1);
+      --success-text: #0b7040;
+      --warning:      #b45309;
+      --warning-soft: rgba(180,83,9,0.1);
+      --warning-text: #92400e;
+      --danger:       #c8293a;
+      --danger-soft:  rgba(200,41,58,0.1);
+      --danger-text:  #a31f2d;
+      --header-bg:    #12213d;
+      --header-text:  #e2e8f0;
+      --header-muted: #8aa0be;
+      --kpi-bg:       #ffffff;
+      --shadow-card:  0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.06);
+      --shadow-hover: 0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.08);
+      --tab-active-bg: #1d6fe8;
+      --tab-active-text: #fff;
     }
+
+    [data-theme="dark"] {
+      --bg:           #08101f;
+      --surface:      #111c30;
+      --surface-2:    #162035;
+      --border:       #1f2e47;
+      --border-2:     #29405e;
+      --text:         #e8edf5;
+      --text-2:       #8a9ab8;
+      --text-3:       #4e6080;
+      --accent:       #3b82f6;
+      --accent-hover: #2563eb;
+      --accent-soft:  rgba(59,130,246,0.12);
+      --success:      #22c55e;
+      --success-soft: rgba(34,197,94,0.12);
+      --success-text: #86efac;
+      --warning:      #f59e0b;
+      --warning-soft: rgba(245,158,11,0.12);
+      --warning-text: #fde68a;
+      --danger:       #ef4444;
+      --danger-soft:  rgba(239,68,68,0.12);
+      --danger-text:  #fca5a5;
+      --header-bg:    #060e1c;
+      --header-text:  #dde5f4;
+      --header-muted: #4e6080;
+      --kpi-bg:       #0f1a2e;
+      --shadow-card:  0 1px 4px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.3);
+      --shadow-hover: 0 2px 8px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.4);
+      --tab-active-bg: #3b82f6;
+      --tab-active-text: #fff;
+    }
+
+    /* ── RESET ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
 
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at top, #111827 0, #020617 45%, #000000 100%);
-      color: var(--text-main);
-      margin: 0;
-      padding: 24px 16px;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
+      transition: background var(--transition), color var(--transition);
     }
 
-    .card {
-      width: 100%;
-      max-width: 1150px;
+    /* ── HEADER ── */
+    .app-header {
+      background: var(--header-bg);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.35);
+    }
+
+    .header-inner {
+      max-width: 1200px;
       margin: 0 auto;
-      background: var(--bg-card);
-      border-radius: 18px;
-      padding: 18px 18px 20px;
-      box-shadow:
-        0 24px 60px rgba(0,0,0,0.9),
-        0 0 0 1px rgba(15,23,42,0.8);
-      border: 1px solid var(--border-subtle);
-      backdrop-filter: blur(18px);
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, #1d6fe8, #38bdf8);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--header-text);
+      letter-spacing: -0.01em;
+    }
+
+    .logo-text span {
+      font-weight: 400;
+      color: var(--header-muted);
+    }
+
+    .header-spacer { flex: 1; }
+
+    .header-user {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--header-muted);
+    }
+
+    .header-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #1d4ed8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    /* ── THEME TOGGLE ── */
+    .theme-toggle {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 999px;
+      padding: 5px 10px;
+      cursor: pointer;
+      color: var(--header-muted);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background var(--transition), color var(--transition);
+      white-space: nowrap;
+    }
+
+    .theme-toggle:hover {
+      background: rgba(255,255,255,0.14);
+      color: var(--header-text);
+    }
+
+    /* ── MAIN ── */
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 24px 40px;
+    }
+
+    /* ── LOGIN ── */
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 48px 32px;
+      text-align: center;
+      max-width: 420px;
+      margin: 60px auto;
+      box-shadow: var(--shadow-card);
+    }
+
+    .login-card .lock-icon {
+      font-size: 40px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .login-card h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .login-card p {
+      font-size: 14px;
+      color: var(--text-2);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    #login-info {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    /* ── CARD TABS ── */
+    .card-tabs-section {
+      margin-bottom: 24px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 10px;
+    }
+
+    .card-tabs-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .card-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-2);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .card-tab:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .card-tab.active {
+      background: var(--tab-active-bg);
+      border-color: var(--tab-active-bg);
+      color: var(--tab-active-text);
+      box-shadow: 0 4px 14px rgba(59,130,246,0.3);
+    }
+
+    .card-tab-add {
+      border-style: dashed;
+      font-size: 12px;
+    }
+
+    .card-tab-del {
+      border-style: solid;
+      border-color: var(--danger-soft);
+      color: var(--danger);
+      background: var(--danger-soft);
+    }
+
+    .card-tab-del:hover {
+      background: var(--danger);
+      color: #fff;
+      border-color: var(--danger);
+    }
+
+    /* ── KPI CARDS ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: var(--kpi-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-card);
+      transition: box-shadow var(--transition);
       position: relative;
       overflow: hidden;
     }
 
-    .card::before {
+    .kpi-card::before {
       content: "";
       position: absolute;
-      inset: -40%;
-      background:
-        radial-gradient(circle at top left, rgba(34,197,94,0.12), transparent 55%),
-        radial-gradient(circle at bottom right, rgba(56,189,248,0.08), transparent 55%);
-      opacity: 0.8;
-      pointer-events: none;
-      z-index: -1;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     }
 
-    h1 {
-      font-size: 26px;
-      margin-bottom: 4px;
-      text-align: center;
-      letter-spacing: 0.04em;
-      background: linear-gradient(120deg, #22c55e, #a855f7, #38bdf8);
-      -webkit-background-clip: text;
-      color: transparent;
-    }
+    .kpi-card.kpi-total::before   { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .kpi-card.kpi-paid::before    { background: linear-gradient(90deg, #22c55e, #4ade80); }
+    .kpi-card.kpi-pending::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .kpi-card.kpi-monthly::before { background: linear-gradient(90deg, #a855f7, #c084fc); }
 
-    .subtitle {
-      text-align: center;
-      margin: 0 0 14px;
-      font-size: 13px;
-      color: var(--text-soft);
-    }
-
-    /* LOGIN */
-    #login-box {
-      text-align: center;
-      margin-bottom: 16px;
-      padding: 12px 12px 14px;
-      border-radius: 12px;
-      border: 1px dashed #27272a;
-      background: rgba(15,23,42,0.85);
-    }
-
-    #login-box p {
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-3);
       margin-bottom: 8px;
-      color: var(--text-main);
     }
 
-    #login-info {
-      font-size: 12px;
-      color: var(--text-muted) !important;
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .kpi-value .currency {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-2);
+      margin-right: 1px;
+    }
+
+    .kpi-bar {
+      height: 4px;
+      border-radius: 999px;
+      background: var(--border);
+      overflow: hidden;
+    }
+
+    .kpi-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .kpi-total .kpi-bar-fill   { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .kpi-paid .kpi-bar-fill    { background: linear-gradient(90deg, #22c55e, #4ade80); }
+    .kpi-pending .kpi-bar-fill { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .kpi-monthly .kpi-bar-fill { background: linear-gradient(90deg, #a855f7, #c084fc); }
+
+    .kpi-sub {
       margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-3);
     }
 
-    /* TOP BAR */
-    .top-bar {
+    /* ── PANEL ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .panel-header {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 10px;
-      padding: 8px 10px;
-      border-radius: 10px;
-      background: radial-gradient(circle at top left, rgba(31,41,55,0.9), rgba(15,23,42,0.96));
-      border: 1px solid rgba(55,65,81,0.7);
+      padding: 14px 20px;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color var(--transition), background var(--transition);
     }
 
-    .top-bar-left,
-    .top-bar-right {
+    .panel-header:hover { background: var(--surface-2); }
+    .panel-header.open  { border-bottom-color: var(--border); }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
       align-items: center;
+      gap: 8px;
     }
 
-    .top-bar-left span {
-      font-size: 13px;
-      color: var(--text-muted);
+    .panel-icon {
+      font-size: 15px;
+      color: var(--text-3);
+      transition: transform 0.2s ease;
     }
 
-    /* FORM */
+    .panel-icon.open { transform: rotate(180deg); }
+
+    .panel-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .panel-body.open { max-height: 700px; }
+
+    .panel-body-inner { padding: 20px; }
+
+    /* ── FORM ── */
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px,1fr));
-      gap: 10px;
-      margin-bottom: 12px;
-      margin-top: 4px;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
     }
 
-    label {
+    .field { display: flex; flex-direction: column; gap: 5px; }
+
+    .field label {
       font-size: 11px;
-      color: var(--text-muted);
-      display: block;
-      margin-bottom: 3px;
-      letter-spacing: 0.03em;
+      font-weight: 600;
       text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-3);
     }
 
-    input,
-    select {
-      width: 100%;
-      padding: 7px 9px;
-      border-radius: 8px;
-      border: 1px solid #4b5563;
-      background: #020617;
-      color: var(--text-main);
+    .field input,
+    .field select {
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
       font-size: 14px;
-      box-sizing: border-box;
-      transition: border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease, transform 0.05s ease;
-    }
-
-    input::placeholder {
-      color: var(--text-soft);
-      font-size: 12px;
-    }
-
-    select {
-      padding-right: 26px;
-      background-image: linear-gradient(45deg, transparent 50%, #9ca3af 50%),
-                        linear-gradient(135deg, #9ca3af 50%, transparent 50%);
-      background-position: calc(100% - 14px) 9px, calc(100% - 9px) 9px;
-      background-size: 6px 6px, 6px 6px;
-      background-repeat: no-repeat;
+      font-family: var(--font);
+      width: 100%;
+      transition: border-color var(--transition), box-shadow var(--transition);
       appearance: none;
     }
 
-    input:focus,
-    select:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--accent-soft), 0 0 0 1px rgba(15,23,42,0.9);
-      background: #020617;
-      transform: translateY(-0.5px);
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a9ab8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
     }
 
-    .inline-group {
+    .field input::placeholder { color: var(--text-3); font-size: 13px; }
+
+    .field input:focus,
+    .field select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    /* Persona sub-section */
+    .persona-section {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .persona-row {
       display: flex;
       gap: 6px;
       align-items: center;
       flex-wrap: wrap;
     }
 
-    /* BUTTONS */
-    button {
-      border: none;
-      border-radius: 999px;
-      padding: 7px 12px;
-      font-size: 13px;
-      cursor: pointer;
-      background: var(--accent);
-      color: #0b1120;
-      font-weight: 600;
-      transition:
-        transform 0.06s ease,
-        box-shadow 0.08s ease,
-        background 0.12s ease,
-        filter 0.12s ease;
-      white-space: nowrap;
+    .persona-balance {
+      font-size: 12px;
+      color: var(--text-2);
+    }
+
+    .persona-balance strong {
+      color: var(--success);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+      text-decoration: none;
     }
 
-    button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 26px rgba(34,197,94,0.35);
-      background: #16a34a;
-      filter: brightness(1.03);
-    }
-
-    button:active {
-      transform: translateY(0);
-      box-shadow: none;
-      filter: brightness(0.98);
-    }
-
-    .danger-btn {
-      background: var(--danger);
-      color: #fee2e2;
-    }
-
-    .danger-btn:hover {
-      background: #dc2626;
-      box-shadow: 0 10px 22px var(--danger-soft);
-    }
-
-    .warning-btn {
-      background: var(--warning);
-      color: #1a1a1a;
-    }
-
-    .warning-btn:hover {
-      background: #eab308;
-      box-shadow: 0 10px 22px var(--warning-soft);
-    }
-
-    button[disabled] {
-      opacity: 0.4 !important;
+    .btn:disabled {
+      opacity: 0.35 !important;
       cursor: default !important;
-      box-shadow: none !important;
       transform: none !important;
-      filter: none !important;
+      box-shadow: none !important;
     }
 
-    /* FILTER BAR */
-    .filter-bar {
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      box-shadow: 0 4px 14px rgba(37,99,235,0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+      border-color: var(--success);
+    }
+    .btn-success:hover:not(:disabled) {
+      filter: brightness(1.1);
+      box-shadow: 0 4px 14px rgba(34,197,94,0.3);
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border-color: transparent;
+    }
+    .btn-danger:hover:not(:disabled) {
+      background: var(--danger);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(239,68,68,0.3);
+      transform: translateY(-1px);
+    }
+
+    .btn-warning {
+      background: var(--warning-soft);
+      color: var(--warning);
+      border-color: transparent;
+    }
+    .btn-warning:hover:not(:disabled) {
+      background: var(--warning);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-2);
+      border-color: var(--border);
+    }
+    .btn-ghost:hover:not(:disabled) {
+      background: var(--surface-2);
+      color: var(--text);
+      border-color: var(--border-2);
+    }
+
+    .btn-icon {
+      padding: 7px 9px;
+      font-size: 14px;
+    }
+
+    .btn-sm {
+      padding: 6px 11px;
+      font-size: 12px;
+    }
+
+    /* ── FILTER BAR ── */
+    .filter-row {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
       align-items: center;
-      margin-bottom: 8px;
-      margin-top: 6px;
-      padding: 6px 8px;
-      border-radius: 10px;
-      background: rgba(15,23,42,0.85);
-      border: 1px solid #27272a;
+      flex-wrap: wrap;
+      padding: 14px 20px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
     }
 
-    .filter-bar input {
-      max-width: 260px;
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 180px;
+      max-width: 320px;
     }
 
-    .filter-bar label {
-      margin-bottom: 0;
+    .search-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-3);
+      font-size: 14px;
+      pointer-events: none;
     }
 
-    /* TABLE */
-    .table-wrapper {
+    .search-input {
       width: 100%;
-      margin-top: 6px;
-      border-radius: 12px;
+      padding: 8px 12px 8px 34px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 13px;
+      font-family: var(--font);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .search-input::placeholder { color: var(--text-3); }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .results-badge {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    /* ── TABLE ── */
+    .table-wrap {
       overflow-x: auto;
-      overflow-y: hidden;
-      border: 1px solid #27272a;
-      background: radial-gradient(circle at top, rgba(15,23,42,0.96), rgba(0,0,0,0.98));
       -webkit-overflow-scrolling: touch;
     }
 
@@ -308,1106 +676,1453 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 13px;
-      min-width: 640px;
+      min-width: 720px;
     }
 
-    th, td {
-      padding: 7px 9px;
-      border-bottom: 1px solid #111827;
+    thead th {
+      padding: 11px 16px;
       text-align: left;
-      white-space: nowrap;
-    }
-
-    th {
-      background: linear-gradient(to right, #020617, #020617);
-      position: sticky;
-      top: 0;
-      z-index: 1;
       font-size: 11px;
+      font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      color: var(--text-muted);
+      color: var(--text-3);
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition: color var(--transition);
     }
 
-    tbody tr:nth-child(even) td { background: #020617; }
-    tbody tr:nth-child(odd)  td { background: #020617; }
+    thead th:hover { color: var(--text); }
+    thead th.sorted { color: var(--accent); }
 
-    tbody tr:hover td {
-      background: #030712;
+    .sort-icon { margin-left: 4px; font-size: 10px; }
+
+    tbody td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      white-space: nowrap;
+      color: var(--text);
     }
 
-    .right {
+    tbody tr:last-child td { border-bottom: none; }
+
+    tbody tr {
+      transition: background var(--transition);
+    }
+
+    tbody tr:hover td { background: var(--surface-2); }
+
+    .td-right {
       text-align: right;
       font-variant-numeric: tabular-nums;
     }
 
-    .actions {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
+    /* Row status indicator */
+    .status-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 8px;
+      vertical-align: middle;
+      flex-shrink: 0;
     }
 
-    /* SUMMARY */
-    .summary {
-      margin-top: 16px;
+    .dot-done    { background: var(--success); }
+    .dot-near    { background: var(--warning); }
+    .dot-active  { background: var(--accent); }
+
+    /* Progress bar in table */
+    .progress-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .prog-bar {
+      width: 70px;
+      height: 5px;
+      border-radius: 999px;
+      background: var(--border);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .prog-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+
+    .prog-fill.done   { background: var(--success); }
+    .prog-fill.near   { background: var(--warning); }
+    .prog-fill.active { background: var(--accent); }
+
+    .prog-label {
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-2);
+      min-width: 34px;
+    }
+
+    /* Pill badges */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .pill-done    { background: var(--success-soft); color: var(--success-text); }
+    .pill-near    { background: var(--warning-soft); color: var(--warning-text); }
+    .pill-pending { background: var(--accent-soft);  color: var(--accent); }
+
+    /* Action buttons in table */
+    .row-actions {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    /* ── AMOUNT COLORS ── */
+    .amount-positive { color: var(--success); font-weight: 600; }
+    .amount-pending  { color: var(--warning); }
+    .amount-neutral  { color: var(--text-2); }
+
+    /* ── SUMMARY ── */
+    .summary-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin-top: 20px;
     }
 
-    .totals-card {
-      border-radius: 12px;
-      border: 1px solid #27272a;
-      padding: 10px;
-      background: radial-gradient(circle at top left, rgba(15,23,42,1), rgba(0,0,0,1));
-      font-size: 13px;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.6);
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-card);
     }
 
-    .totals-card h2 {
-      margin: 0 0 6px;
-      font-size: 14px;
+    .summary-card h3 {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-3);
+      margin-bottom: 14px;
       display: flex;
-      align-items: baseline;
-      gap: 4px;
+      align-items: center;
+      gap: 6px;
     }
 
-    .totals-card h2 small {
-      font-size: 11px;
-      color: var(--text-soft);
-      font-weight: 400;
-    }
-
-    .person-row {
+    .summary-row {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 3px;
-      color: var(--text-main);
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
     }
 
-    .person-row span:last-child {
+    .summary-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .summary-row .name { color: var(--text-2); }
+
+    .summary-row .val {
+      font-weight: 600;
       font-variant-numeric: tabular-nums;
+      color: var(--text);
     }
 
-    .badge {
-      display: inline-block;
-      margin-top: 6px;
-      padding: 3px 7px;
-      border-radius: 999px;
-      background: rgba(37,99,235,0.14);
-      border: 1px solid rgba(59,130,246,0.5);
-      font-size: 11px;
-      color: #bfdbfe;
+    .empty-msg {
+      font-size: 12px;
+      color: var(--text-3);
+      text-align: center;
+      padding: 16px 0;
     }
+
+    /* ── TOP ACTIONS BAR ── */
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .top-actions-right {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+
+    /* ── TOAST ── */
+    #toast-root {
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 500;
+      max-width: 340px;
+      pointer-events: all;
+      animation: toast-in 0.22s cubic-bezier(0.4,0,0.2,1);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      backdrop-filter: blur(10px);
+    }
+
+    .toast.success { background: #14532d; border: 1px solid #16a34a; color: #bbf7d0; }
+    .toast.error   { background: #7f1d1d; border: 1px solid #dc2626; color: #fecaca; }
+    .toast.info    { background: #1e3a5f; border: 1px solid #3b82f6; color: #bfdbfe; }
+
+    .toast-icon { font-size: 15px; flex-shrink: 0; }
+    .toast.fade-out { animation: toast-out 0.25s ease forwards; }
+
+    @keyframes toast-in  { from { opacity:0; transform: translateX(18px); } to { opacity:1; transform: translateX(0); } }
+    @keyframes toast-out { to   { opacity:0; transform: translateX(18px); } }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 8000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      animation: ov-in 0.15s ease;
+    }
+
+    .modal-overlay.fade-out { animation: ov-out 0.15s ease forwards; }
+
+    @keyframes ov-in  { from { opacity:0; } to { opacity:1; } }
+    @keyframes ov-out { to   { opacity:0; } }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.7);
+      animation: modal-in 0.2s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .modal-box.wide { max-width: 560px; }
+
+    @keyframes modal-in {
+      from { opacity:0; transform: scale(0.95) translateY(-6px); }
+      to   { opacity:1; transform: scale(1)    translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .modal-header-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .modal-header-icon.danger  { background: var(--danger-soft);  }
+    .modal-header-icon.info    { background: var(--accent-soft);   }
+    .modal-header-icon.success { background: var(--success-soft);  }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .modal-body {
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .modal-input {
+      width: 100%;
+      padding: 10px 13px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 14px;
+      font-family: var(--font);
+      margin-top: 12px;
+    }
+
+    .modal-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    /* Edit grid */
+    .edit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .edit-grid .span-2 { grid-column: 1 / -1; }
+
+    .edit-grid .field input,
+    .edit-grid .field select {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+    }
+
+    /* ── LOADING ── */
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(2px);
+      z-index: 7000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spinner-ring {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(59,130,246,0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     .hidden { display: none !important; }
 
-    /* RESPONSIVE */
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0;
+    }
+
+    /* ── PERSONA MANAGE ── */
+    .persona-manage {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── RESPONSIVE ── */
     @media (max-width: 900px) {
-      body {
-        padding-top: 18px;
-      }
-
-      .card {
-        padding: 14px 12px 16px;
-      }
-
-      .table-wrapper {
-        border-radius: 10px;
-      }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
-    @media (max-width: 700px) {
-      .summary {
-        grid-template-columns: 1fr;
-      }
-      table {
-        font-size: 12px;
-      }
-      th, td {
-        padding: 5px 7px;
-      }
-      .actions {
-        flex-direction: column;
-      }
-      .top-bar {
-        align-items: flex-start;
-      }
-      .filter-bar input {
-        max-width: 100%;
-      }
+    @media (max-width: 640px) {
+      .main { padding: 16px 14px 32px; }
+      .header-inner { padding: 0 14px; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .kpi-value { font-size: 18px; }
+      .logo-text span { display: none; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .edit-grid { grid-template-columns: 1fr; }
+      .edit-grid .span-2 { grid-column: 1; }
+      table { font-size: 12px; }
+      thead th, tbody td { padding: 9px 10px; }
+      .top-actions-right { margin-left: 0; width: 100%; }
+      .header-user .email-text { display: none; }
     }
 
-    @media (max-width: 500px) {
-      h1 {
-        font-size: 22px;
-      }
-      .subtitle {
-        font-size: 12px;
-      }
+    @media (max-width: 420px) {
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .kpi-value { font-size: 16px; }
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Control de cuotas 💳</h1>
-    <p class="subtitle">Organiza tus compras en cuotas por persona y tarjeta, con respaldo en la nube.</p>
 
-    <!-- LOGIN CON FIREBASE GOOGLE -->
-    <div id="login-box">
-      <p id="login-texto">Inicia sesión con Google para usar la app.</p>
-      <button id="loginBtn">Iniciar sesión con Google</button>
-      <button id="logoutBtn" class="warning-btn hidden">Cerrar sesión</button>
+<!-- Loading -->
+<div id="loading-overlay" class="hidden">
+  <div class="spinner-ring"></div>
+</div>
+
+<!-- Toasts -->
+<div id="toast-root"></div>
+
+<!-- ── HEADER ── -->
+<header class="app-header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">💳</div>
+      <div class="logo-text">Cuotas <span>/ Control</span></div>
+    </div>
+    <div class="header-spacer"></div>
+    <button class="theme-toggle" id="themeToggle">
+      <span id="themeIcon">☀️</span>
+      <span id="themeLabel">Claro</span>
+    </button>
+    <div class="header-user hidden" id="headerUser">
+      <div class="header-avatar" id="headerAvatar">?</div>
+      <span class="email-text" id="headerEmail"></span>
+    </div>
+  </div>
+</header>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+  <!-- Login -->
+  <div id="login-box">
+    <div class="login-card">
+      <span class="lock-icon">🔐</span>
+      <h2>Bienvenido</h2>
+      <p>Inicia sesión con tu cuenta de Google para acceder a tu control de cuotas personal.</p>
+      <button class="btn btn-primary" id="loginBtn" style="width:100%;justify-content:center;font-size:14px;padding:12px;">
+        Iniciar sesión con Google
+      </button>
       <p id="login-info"></p>
     </div>
+  </div>
 
-    <!-- CONTENIDO DE LA APP -->
-    <div id="contenido" class="hidden">
-      <div class="top-bar">
-        <div class="top-bar-left">
-          <span>Tarjeta activa:</span>
-          <select id="tarjetaActiva"></select>
-          <button id="addTarjetaBtn">Añadir tarjeta</button>
-          <button id="delTarjetaBtn" class="danger-btn">Eliminar tarjeta</button>
+  <!-- App content -->
+  <div id="contenido" class="hidden">
+
+    <!-- Card tabs + actions -->
+    <div class="card-tabs-section">
+      <div class="section-label">Tarjetas</div>
+      <div class="card-tabs-row" id="cardTabsRow">
+        <!-- rendered dynamically -->
+        <button class="btn btn-ghost btn-sm card-tab card-tab-add" id="addTarjetaBtn">+ Nueva tarjeta</button>
+        <button class="btn btn-sm card-tab card-tab-del" id="delTarjetaBtn">Eliminar activa</button>
+      </div>
+    </div>
+
+    <!-- KPI cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-label">Total contrato</div>
+        <div class="kpi-value"><span class="currency">$</span><span id="kpi-total">0</span></div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:100%"></div></div>
+      </div>
+      <div class="kpi-card kpi-paid">
+        <div class="kpi-label">Total pagado</div>
+        <div class="kpi-value"><span class="currency">$</span><span id="kpi-paid">0</span></div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-paid-bar" style="width:0%"></div></div>
+        <div class="kpi-sub" id="kpi-paid-pct">0% del total</div>
+      </div>
+      <div class="kpi-card kpi-pending">
+        <div class="kpi-label">Pendiente</div>
+        <div class="kpi-value"><span class="currency">$</span><span id="kpi-pending">0</span></div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-pending-bar" style="width:0%"></div></div>
+      </div>
+      <div class="kpi-card kpi-monthly">
+        <div class="kpi-label">Cuota mensual</div>
+        <div class="kpi-value"><span class="currency">$</span><span id="kpi-monthly">0</span></div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:60%"></div></div>
+        <div class="kpi-sub">Estimado este mes</div>
+      </div>
+    </div>
+
+    <!-- Add item form -->
+    <div class="panel" id="formPanel">
+      <div class="panel-header" id="formToggle">
+        <div class="panel-title">
+          ＋ Agregar nuevo ítem
         </div>
-        <div class="top-bar-right">
-          <button id="exportBtn">Exportar backup</button>
-          <button id="importBtn">Importar backup</button>
+        <span class="panel-icon" id="formToggleIcon">▼</span>
+      </div>
+      <div class="panel-body" id="formBody">
+        <div class="panel-body-inner">
+          <div class="form-grid">
+            <!-- Persona -->
+            <div class="field" style="grid-column: span 1;">
+              <label>Persona</label>
+              <div class="persona-section">
+                <div class="persona-manage">
+                  <select id="personaSelect" style="flex:1;"></select>
+                  <button class="btn btn-ghost btn-sm btn-icon" id="addPersonaBtn" title="Agregar persona">＋</button>
+                  <button class="btn btn-danger btn-sm btn-icon" id="delPersonaBtn" title="Eliminar persona">−</button>
+                </div>
+                <div class="persona-balance">
+                  Saldo disponible: <strong>$<span id="saldo-actual-persona">0</span></strong>
+                </div>
+                <div class="persona-row">
+                  <input id="saldoMonto" type="number" min="0" step="1"
+                    style="flex:1;padding:7px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:var(--font);font-size:13px;"
+                    placeholder="Agregar saldo..." />
+                  <button class="btn btn-success btn-sm" id="addSaldoBtn">＋ Saldo</button>
+                </div>
+                <button class="btn btn-danger btn-sm" id="delSaldoBtn" style="width:100%;justify-content:center;">
+                  Borrar saldo
+                </button>
+              </div>
+            </div>
+            <!-- Item -->
+            <div class="field">
+              <label>Ítem</label>
+              <input id="item" placeholder="PS5, notebook, smart TV..." />
+            </div>
+            <!-- Monto -->
+            <div class="field">
+              <label>Monto por cuota</label>
+              <input id="monto" type="number" min="0" step="1" placeholder="10000" />
+            </div>
+            <!-- Pagadas -->
+            <div class="field">
+              <label>Cuotas pagadas</label>
+              <input id="cuotasPagadas" type="number" min="0" step="1" placeholder="0" />
+            </div>
+            <!-- Totales -->
+            <div class="field">
+              <label>Cuotas totales</label>
+              <input id="cuotasTotales" type="number" min="1" step="1" placeholder="12" />
+            </div>
+            <!-- Actions -->
+            <div class="field" style="justify-content:flex-end;flex-direction:row;align-items:flex-end;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-primary" id="addBtn">Agregar ítem</button>
+              <button class="btn btn-danger" id="clearBtn">Borrar todo</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table panel -->
+    <div class="panel">
+      <!-- Filter bar -->
+      <div class="filter-row">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" id="filtro" placeholder="Buscar por persona o ítem..." />
+        </div>
+        <div style="display:flex;gap:8px;margin-left:auto;align-items:center;flex-wrap:wrap;">
+          <button class="btn btn-ghost btn-sm" id="exportBtn">⬇ Exportar</button>
+          <button class="btn btn-ghost btn-sm" id="importBtn">⬆ Importar</button>
           <input id="importFile" type="file" accept="application/json" style="display:none" />
+          <span class="results-badge" id="results-badge"></span>
+          <button class="btn btn-ghost btn-sm" id="logoutBtn">Cerrar sesión</button>
         </div>
       </div>
 
-      <div style="margin-bottom:8px;color:#9ca3af;font-size:12px;">
-        Cada ítem nuevo se guarda en la tarjeta activa. Tus datos se sincronizan en la nube (Firebase) por cuenta de Google.
-      </div>
-
-      <div class="form-grid">
-        <div>
-          <label>Persona</label>
-          <div class="inline-group">
-            <select id="personaSelect"></select>
-            <button id="addPersonaBtn">+ persona</button>
-            <button id="delPersonaBtn" class="danger-btn">- persona</button>
-          </div>
-          <div style="margin-top:6px;font-size:11px;color:#9ca3af;">
-            Saldo actual: $<span id="saldo-actual-persona">0</span>
-          </div>
-          <div class="inline-group" style="margin-top:4px;">
-            <input id="saldoMonto" type="number" min="0" step="1" placeholder="Agregar saldo a la persona" />
-            <button id="addSaldoBtn">+ saldo</button>
-          </div>
-          <button id="delSaldoBtn" class="danger-btn" style="margin-top:6px;">
-            Borrar saldo
-          </button>
-        </div>
-        <div>
-          <label>Ítem</label>
-          <input id="item" placeholder="Ej: Playstation 5, notebook, etc." />
-        </div>
-        <div>
-          <label>Monto base (valor de la cuota)</label>
-          <input id="monto" type="number" min="0" step="1" placeholder="Ej: 10000" />
-        </div>
-        <div>
-          <label>Cuotas pagadas</label>
-          <input id="cuotasPagadas" type="number" min="0" step="1" placeholder="Ej: 3" />
-        </div>
-        <div>
-          <label>Cuotas totales</label>
-          <input id="cuotasTotales" type="number" min="1" step="1" placeholder="Ej: 12" />
-        </div>
-        <div style="display:flex;align-items:flex-end;gap:6px;flex-wrap:wrap;">
-          <button id="addBtn">Agregar ítem</button>
-          <button id="clearBtn" class="danger-btn">Borrar todo</button>
-        </div>
-      </div>
-
-      <div class="filter-bar">
-        <label for="filtro" style="font-size:12px;color:#9ca3af;">Filtro rápido:</label>
-        <input id="filtro" placeholder="Persona, ítem o tarjeta..." />
-      </div>
-
-      <div class="table-wrapper">
+      <!-- Table -->
+      <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Persona</th>
-              <th>Tarjeta</th>
-              <th>Ítem</th>
-              <th class="right">Monto cuota</th>
-              <th>Cuotas</th>
-              <th class="right">Total contrato</th>
-              <th class="right">Pagado</th>
-              <th class="right">Pendiente</th>
+              <th data-col="persona">Persona <span class="sort-icon"></span></th>
+              <th data-col="item">Ítem <span class="sort-icon"></span></th>
+              <th data-col="monto" class="td-right">Cuota <span class="sort-icon"></span></th>
+              <th data-col="progreso">Progreso <span class="sort-icon"></span></th>
+              <th data-col="totalContrato" class="td-right">Total <span class="sort-icon"></span></th>
+              <th data-col="pagado" class="td-right">Pagado <span class="sort-icon"></span></th>
+              <th data-col="pendiente" class="td-right">Pendiente <span class="sort-icon"></span></th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody id="tabla-body"></tbody>
         </table>
       </div>
+    </div>
 
-      <div class="summary">
-        <div class="totals-card">
-          <h2>Resumen tarjeta activa</h2>
-          <div class="person-row">
-            <span>Total contrato:</span>
-            <span>$<span id="res-total-contrato">0</span></span>
-          </div>
-          <div class="person-row">
-            <span>Total pagado:</span>
-            <span>$<span id="res-total-pagado">0</span></span>
-          </div>
-          <div class="person-row">
-            <span>Total pendiente:</span>
-            <span>$<span id="res-total-pendiente">0</span></span>
-          </div>
-          <div class="person-row">
-            <span>Cuota mensual estimada:</span>
-            <span>$<span id="res-cuota-mensual">0</span></span>
-          </div>
-          <span class="badge">Basado en una cuota por mes por ítem pendiente</span>
-        </div>
-
-        <div class="totals-card">
-          <h2>Pendiente por persona</h2>
-          <div id="totales-persona"></div>
-        </div>
-
-        <div class="totals-card">
-          <h2>Pendiente por tarjeta</h2>
-          <div id="totales-tarjeta"></div>
-        </div>
-
-        <div class="totals-card">
-          <h2>Cuota mensual por persona <small>(tarjeta activa)</small></h2>
-          <div id="totales-mensual-persona"></div>
-        </div>
+    <!-- Summary -->
+    <div class="summary-grid">
+      <div class="summary-card">
+        <h3>📊 Pendiente por persona</h3>
+        <div id="sum-persona"></div>
+      </div>
+      <div class="summary-card">
+        <h3>💳 Pendiente por tarjeta</h3>
+        <div id="sum-tarjeta"></div>
+      </div>
+      <div class="summary-card">
+        <h3>📅 Cuota mensual por persona</h3>
+        <div id="sum-mensual"></div>
       </div>
     </div>
-  </div>
 
-  <!-- JS: Firebase + lógica -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {
-      getAuth,
-      GoogleAuthProvider,
-      signInWithPopup,
-      signOut,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      setDoc
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  </div><!-- /contenido -->
+</main>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCG1b1R2NP12kqQ6hsvI80Ajv56biQoebc",
-      authDomain: "tarjeta-cuotas.firebaseapp.com",
-      projectId: "tarjeta-cuotas",
-      storageBucket: "tarjeta-cuotas.firebasestorage.app",
-      messagingSenderId: "469467519102",
-      appId: "1:469467519102:web:d3032a02ff1a53a527602f",
-      measurementId: "G-49RR054112"
-    };
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import {
+    getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, setDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-    const db = getFirestore(app);
+  const firebaseConfig = {
+    apiKey: "AIzaSyCG1b1R2NP12kqQ6hsvI80Ajv56biQoebc",
+    authDomain: "tarjeta-cuotas.firebaseapp.com",
+    projectId: "tarjeta-cuotas",
+    storageBucket: "tarjeta-cuotas.firebasestorage.app",
+    messagingSenderId: "469467519102",
+    appId: "1:469467519102:web:d3032a02ff1a53a527602f"
+  };
 
-    // Estado
-    let items = [];
-    let tarjetas = [];
-    let personas = [];
-    let tarjetaActiva = "";
-    let personaSeleccionada = "";
-    let currentUser = null;
-    let saldos = {}; // saldo por persona
+  const app      = initializeApp(firebaseConfig);
+  const auth     = getAuth(app);
+  const provider = new GoogleAuthProvider();
+  const db       = getFirestore(app);
 
-    // Helpers UI
-    const contenido   = document.getElementById("contenido");
-    const loginTexto  = document.getElementById("login-texto");
-    const loginInfo   = document.getElementById("login-info");
-    const loginBtn    = document.getElementById("loginBtn");
-    const logoutBtn   = document.getElementById("logoutBtn");
-    const tablaBody   = document.getElementById("tabla-body");
-    const filtroInput = document.getElementById("filtro");
-    const saldoActualSpan = document.getElementById("saldo-actual-persona");
+  // ── State ──
+  let items = [], tarjetas = [], personas = [];
+  let tarjetaActiva = "", personaSeleccionada = "";
+  let currentUser = null;
+  let saldos = {};
+  let sortCol = null, sortDir = 1;
 
-    function formatCLP(num) {
-      return (Number(num) || 0).toLocaleString("es-CL");
-    }
+  // ── Theme ──
+  const themeToggle = document.getElementById("themeToggle");
+  const themeIcon   = document.getElementById("themeIcon");
+  const themeLabel  = document.getElementById("themeLabel");
 
-    function calcularFactor(pagadas, totales) {
-      const p = Number(pagadas) || 0;
-      const t = Number(totales) || 0;
-      if (t <= 0) return 0;
-      const f = t - p;
-      return f > 0 ? f : 0;
-    }
+  function applyTheme(t) {
+    document.documentElement.setAttribute("data-theme", t);
+    localStorage.setItem("theme", t);
+    themeIcon.textContent  = t === "dark" ? "☀️" : "🌙";
+    themeLabel.textContent = t === "dark" ? "Claro" : "Oscuro";
+  }
 
-    function updateSaldoUI() {
-      if (!personaSeleccionada) {
-        saldoActualSpan.textContent = "0";
-        return;
+  themeToggle.addEventListener("click", () => {
+    const current = document.documentElement.getAttribute("data-theme");
+    applyTheme(current === "dark" ? "light" : "dark");
+  });
+
+  // Sync icon on load
+  applyTheme(document.documentElement.getAttribute("data-theme") || "dark");
+
+  // ── Toast ──
+  function toast(msg, type = "success", dur = 3200) {
+    const root = document.getElementById("toast-root");
+    const el = document.createElement("div");
+    el.className = `toast ${type}`;
+    const icons = { success: "✓", error: "✕", info: "ℹ" };
+    el.innerHTML = `<span class="toast-icon">${icons[type] || "ℹ"}</span><span>${msg}</span>`;
+    root.appendChild(el);
+    setTimeout(() => {
+      el.classList.add("fade-out");
+      setTimeout(() => el.remove(), 260);
+    }, dur);
+  }
+
+  // ── Modal ──
+  function showModal({ title, body = "", icon = "ℹ", iconType = "info",
+    confirm = "Aceptar", cancel = null, danger = false, prompt = null }) {
+    return new Promise(resolve => {
+      const ov = document.createElement("div");
+      ov.className = "modal-overlay";
+
+      const cancelHtml = cancel
+        ? `<button class="btn btn-ghost" id="m-cancel">${cancel}</button>` : "";
+      const inputHtml  = prompt !== null
+        ? `<input class="modal-input" id="m-input" placeholder="${prompt}" />` : "";
+
+      ov.innerHTML = `
+        <div class="modal-box">
+          <div class="modal-header">
+            <div class="modal-header-icon ${iconType}">${icon}</div>
+            <div class="modal-title">${title}</div>
+          </div>
+          ${body ? `<div class="modal-body">${body}</div>` : ""}
+          ${inputHtml}
+          <div class="modal-actions">
+            ${cancelHtml}
+            <button class="btn ${danger ? "btn-danger" : "btn-primary"}" id="m-confirm">${confirm}</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(ov);
+
+      const inputEl   = ov.querySelector("#m-input");
+      const confirmEl = ov.querySelector("#m-confirm");
+      const cancelEl  = ov.querySelector("#m-cancel");
+
+      if (inputEl) setTimeout(() => inputEl.focus(), 60);
+      else setTimeout(() => confirmEl.focus(), 60);
+
+      function close(val) {
+        ov.classList.add("fade-out");
+        setTimeout(() => ov.remove(), 160);
+        resolve(val);
       }
-      const saldo = saldos[personaSeleccionada] || 0;
-      saldoActualSpan.textContent = formatCLP(saldo);
-    }
 
-    async function saveUserData() {
-      if (!currentUser) return;
-      const uid = currentUser.uid;
+      confirmEl.addEventListener("click", () => close(inputEl ? (inputEl.value.trim() || null) : true));
+      cancelEl?.addEventListener("click", () => close(false));
+      ov.addEventListener("click", e => { if (e.target === ov) close(false); });
 
-      const cleanedItems = items.map(it => ({
-        persona: it.persona,
-        tarjeta: it.tarjeta,
-        item:    it.item,
-        monto:   it.monto,
-        pagadas: it.pagadas,
-        totales: it.totales,
-        completedAt: it.completedAt || null
-      }));
+      ov.addEventListener("keydown", e => {
+        if (e.key === "Escape") close(false);
+        if (e.key === "Enter" && !inputEl) confirmEl.click();
+        if (e.key === "Enter" && inputEl) confirmEl.click();
+      });
+    });
+  }
 
-      await setDoc(
-        doc(db, "users", uid),
-        {
-          items: cleanedItems,
-          tarjetas,
-          personas,
-          tarjetaActiva,
-          saldos
-        },
-        { merge: true }
-      );
-    }
+  // ── Edit modal ──
+  function showEditModal(it) {
+    return new Promise(resolve => {
+      const ov = document.createElement("div");
+      ov.className = "modal-overlay";
 
-    async function loadUserData() {
-      if (!currentUser) return;
-      const uid = currentUser.uid;
+      const pOpts = personas.map(p =>
+        `<option value="${p}" ${p === it.persona ? "selected" : ""}>${p}</option>`).join("");
+      const tOpts = tarjetas.map(t =>
+        `<option value="${t}" ${t === it.tarjeta ? "selected" : ""}>${t}</option>`).join("");
 
-      const ref = doc(db, "users", uid);
-      const snap = await getDoc(ref);
+      ov.innerHTML = `
+        <div class="modal-box wide">
+          <div class="modal-header">
+            <div class="modal-header-icon info">✎</div>
+            <div class="modal-title">Editar ítem</div>
+          </div>
+          <div class="edit-grid">
+            <div class="field">
+              <label>Persona</label>
+              <select id="e-persona">${pOpts}</select>
+            </div>
+            <div class="field">
+              <label>Tarjeta</label>
+              <select id="e-tarjeta">${tOpts}</select>
+            </div>
+            <div class="field span-2">
+              <label>Ítem</label>
+              <input id="e-item" value="${it.item || ""}" />
+            </div>
+            <div class="field">
+              <label>Monto por cuota</label>
+              <input id="e-monto" type="number" min="0" value="${it.monto}" />
+            </div>
+            <div class="field">
+              <label>Cuotas pagadas</label>
+              <input id="e-pagadas" type="number" min="0" value="${it.pagadas}" />
+            </div>
+            <div class="field">
+              <label>Cuotas totales</label>
+              <input id="e-totales" type="number" min="1" value="${it.totales}" />
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-ghost" id="e-cancel">Cancelar</button>
+            <button class="btn btn-primary" id="e-save">Guardar cambios</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(ov);
+
+      function close(val) {
+        ov.classList.add("fade-out");
+        setTimeout(() => ov.remove(), 160);
+        resolve(val);
+      }
+
+      ov.querySelector("#e-save").addEventListener("click", () => {
+        const monto   = parseInt(ov.querySelector("#e-monto").value, 10);
+        const pagadas = parseInt(ov.querySelector("#e-pagadas").value, 10);
+        const totales = parseInt(ov.querySelector("#e-totales").value, 10);
+        if (isNaN(monto) || monto <= 0)         { toast("Monto inválido.", "error"); return; }
+        if (isNaN(totales) || totales <= 0)      { toast("Cuotas totales inválidas.", "error"); return; }
+        if (isNaN(pagadas) || pagadas < 0 || pagadas > totales) { toast("Cuotas pagadas inválidas.", "error"); return; }
+        close({
+          persona: ov.querySelector("#e-persona").value,
+          tarjeta: ov.querySelector("#e-tarjeta").value,
+          item:    ov.querySelector("#e-item").value.trim() || "-",
+          monto, pagadas, totales
+        });
+      });
+      ov.querySelector("#e-cancel").addEventListener("click", () => close(null));
+      ov.addEventListener("click", e => { if (e.target === ov) close(null); });
+    });
+  }
+
+  // ── Loading ──
+  const loadingEl = document.getElementById("loading-overlay");
+  function showLoading() { loadingEl.classList.remove("hidden"); }
+  function hideLoading() { loadingEl.classList.add("hidden"); }
+
+  // ── Helpers ──
+  function fmt(n) { return (Number(n) || 0).toLocaleString("es-CL"); }
+
+  function calcFactor(pagadas, totales) {
+    const f = (Number(totales) || 0) - (Number(pagadas) || 0);
+    return f > 0 ? f : 0;
+  }
+
+  function updateSaldoUI() {
+    const s = personaSeleccionada ? (saldos[personaSeleccionada] || 0) : 0;
+    document.getElementById("saldo-actual-persona").textContent = fmt(s);
+  }
+
+  // ── Firebase ──
+  async function save() {
+    if (!currentUser) return;
+    const clean = items.map(it => ({
+      persona: it.persona, tarjeta: it.tarjeta, item: it.item,
+      monto: it.monto, pagadas: it.pagadas, totales: it.totales,
+      completedAt: it.completedAt || null
+    }));
+    await setDoc(doc(db, "users", currentUser.uid),
+      { items: clean, tarjetas, personas, tarjetaActiva, saldos },
+      { merge: true });
+  }
+
+  async function loadData() {
+    if (!currentUser) return;
+    showLoading();
+    try {
+      const snap = await getDoc(doc(db, "users", currentUser.uid));
       if (snap.exists()) {
-        const data = snap.data();
-        items        = data.items        || [];
-        tarjetas     = data.tarjetas     || [];
-        personas     = data.personas     || [];
-        tarjetaActiva = data.tarjetaActiva || (tarjetas[0] || "");
-        saldos       = data.saldos && typeof data.saldos === "object" ? data.saldos : {};
+        const d      = snap.data();
+        items         = d.items        || [];
+        tarjetas      = d.tarjetas     || [];
+        personas      = d.personas     || [];
+        tarjetaActiva = d.tarjetaActiva || (tarjetas[0] || "");
+        saldos        = (d.saldos && typeof d.saldos === "object") ? d.saldos : {};
       } else {
-        items    = [];
-        tarjetas = ["Tarjeta 1", "Tarjeta 2"];
-        personas = ["Persona 1", "Persona 2"];
-        tarjetaActiva = tarjetas[0];
-        saldos = {};
-        await saveUserData();
+        items = []; tarjetas = ["Tarjeta 1","Tarjeta 2"];
+        personas = ["Persona 1","Persona 2"];
+        tarjetaActiva = tarjetas[0]; saldos = {};
+        await save();
       }
-
-      // Normalizar items
       items.forEach(it => {
-        if (it.pagadas === undefined) it.pagadas = 0;
-        if (it.totales === undefined || it.totales <= 0) it.totales = 1;
-        if (it.monto === undefined) it.monto = 0;
-
-        if (typeof it.completedAt !== "number") {
-          it.completedAt = null;
-        }
-
-        it.factor = calcularFactor(it.pagadas, it.totales);
+        if (!it.pagadas && it.pagadas !== 0) it.pagadas = 0;
+        if (!it.totales || it.totales <= 0)  it.totales = 1;
+        if (!it.monto)   it.monto = 0;
+        if (typeof it.completedAt !== "number") it.completedAt = null;
+        it.factor = calcFactor(it.pagadas, it.totales);
         it.total  = it.monto * it.factor;
       });
-
-      cleanupCompletedItems();
-
-      if (!Array.isArray(tarjetas) || tarjetas.length === 0) {
-        tarjetas = ["Tarjeta 1", "Tarjeta 2"];
-      }
-      if (!tarjetaActiva || !tarjetas.includes(tarjetaActiva)) {
-        tarjetaActiva = tarjetas[0];
-      }
-      if (!Array.isArray(personas) || personas.length === 0) {
-        personas = ["Persona 1", "Persona 2"];
-      }
+      cleanupCompleted();
+      if (!tarjetas.length) tarjetas = ["Tarjeta 1"];
+      if (!tarjetas.includes(tarjetaActiva)) tarjetaActiva = tarjetas[0];
+      if (!personas.length) personas = ["Persona 1"];
       personaSeleccionada = personas[0];
+      renderCardTabs(); renderPersonaSelect(); renderTabla(); updateSaldoUI();
+    } finally { hideLoading(); }
+  }
 
-      renderTarjetasSelect();
-      renderPersonasSelect();
-      renderTabla();
-      updateSaldoUI();
-    }
-
-    // Borra ítems que llevan más de 10 minutos completos
-    function cleanupCompletedItems() {
-      const now = Date.now();
-      let changed = false;
-
-      items = items.filter(it => {
-        if (it.pagadas >= it.totales && it.completedAt) {
-          const diff = now - it.completedAt;
-          if (diff > 10 * 60 * 1000) { // 10 minutos
-            changed = true;
-            return false;
-          }
-        }
-        return true;
-      });
-
-      if (changed && currentUser) {
-        saveUserData();
-      }
-    }
-
-    function requireLogin() {
-      if (!currentUser) {
-        alert("Primero inicia sesión con Google.");
-        return false;
+  function cleanupCompleted() {
+    const now = Date.now();
+    let ch = false;
+    items = items.filter(it => {
+      if (it.pagadas >= it.totales && it.completedAt && now - it.completedAt > 10 * 60 * 1000) {
+        ch = true; return false;
       }
       return true;
-    }
+    });
+    if (ch && currentUser) save();
+  }
 
-    // Selects
-    function renderTarjetasSelect() {
-      const select = document.getElementById("tarjetaActiva");
-      select.innerHTML = "";
-      tarjetas.forEach(t => {
-        const opt = document.createElement("option");
-        opt.value = t;
-        opt.textContent = t;
-        if (t === tarjetaActiva) opt.selected = true;
-        select.appendChild(opt);
+  function requireLogin() {
+    if (!currentUser) { toast("Primero inicia sesión con Google.", "error"); return false; }
+    return true;
+  }
+
+  // ── Card tabs ──
+  function renderCardTabs() {
+    const row = document.getElementById("cardTabsRow");
+    // remove existing tabs (not the add/del buttons)
+    row.querySelectorAll(".dyn-tab").forEach(el => el.remove());
+    const addBtn = document.getElementById("addTarjetaBtn");
+    tarjetas.forEach(t => {
+      const tab = document.createElement("button");
+      tab.className = "btn btn-sm card-tab dyn-tab" + (t === tarjetaActiva ? " active" : "");
+      tab.textContent = t;
+      tab.addEventListener("click", async () => {
+        tarjetaActiva = t;
+        showLoading(); try { await save(); } finally { hideLoading(); }
+        renderCardTabs(); renderTabla();
       });
-    }
+      row.insertBefore(tab, addBtn);
+    });
+  }
 
-    function renderPersonasSelect() {
-      const select = document.getElementById("personaSelect");
-      select.innerHTML = "";
-      personas.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p;
-        opt.textContent = p;
-        select.appendChild(opt);
+  function renderPersonaSelect() {
+    const sel = document.getElementById("personaSelect");
+    sel.innerHTML = "";
+    personas.forEach(p => {
+      const o = document.createElement("option");
+      o.value = p; o.textContent = p;
+      sel.appendChild(o);
+    });
+    sel.value = personas.includes(personaSeleccionada) ? personaSeleccionada : personas[0];
+    personaSeleccionada = sel.value;
+    updateSaldoUI();
+  }
+
+  // ── Sort ──
+  function sortVal(it) {
+    const totalContrato = it.monto * it.totales;
+    const pagado        = it.monto * it.pagadas;
+    const pct = it.totales > 0 ? it.pagadas / it.totales : 0;
+    switch (sortCol) {
+      case "persona":       return it.persona.toLowerCase();
+      case "item":          return it.item.toLowerCase();
+      case "monto":         return it.monto;
+      case "progreso":      return pct;
+      case "totalContrato": return totalContrato;
+      case "pagado":        return pagado;
+      case "pendiente":     return it.total;
+      default: return 0;
+    }
+  }
+
+  function getItems() {
+    const f = document.getElementById("filtro").value.toLowerCase().trim();
+    let list = items.filter(it => it.tarjeta === tarjetaActiva);
+    if (f) list = list.filter(it =>
+      (it.persona + " " + it.item + " " + it.tarjeta).toLowerCase().includes(f));
+    if (sortCol) list.sort((a, b) => {
+      const va = sortVal(a), vb = sortVal(b);
+      return va < vb ? -sortDir : va > vb ? sortDir : 0;
+    });
+    return list;
+  }
+
+  // ── Render table ──
+  function renderTabla() {
+    cleanupCompleted();
+    const tbody = document.getElementById("tabla-body");
+    tbody.innerHTML = "";
+
+    const list = getItems();
+    let totContrato = 0, totPagado = 0, totPendiente = 0, totMensual = 0;
+    const porPersona = {}, porTarjeta = {}, porMensual = {};
+
+    list.forEach(it => {
+      const idx           = items.indexOf(it);
+      const totalContrato = it.monto * it.totales;
+      const pagado        = it.monto * it.pagadas;
+      const pct           = it.totales > 0 ? it.pagadas / it.totales : 0;
+      const pctN          = Math.round(pct * 100);
+      const isDone        = it.pagadas >= it.totales;
+      const isNear        = !isDone && pct >= 0.75;
+      const cls           = isDone ? "done" : isNear ? "near" : "active";
+
+      totContrato  += totalContrato;
+      totPagado    += pagado;
+      totPendiente += it.total;
+      if (!isDone) { totMensual += it.monto; porMensual[it.persona] = (porMensual[it.persona]||0) + it.monto; }
+      porPersona[it.persona] = (porPersona[it.persona] || 0) + it.total;
+
+      const tr = document.createElement("tr");
+
+      // Persona
+      const tdP = document.createElement("td");
+      tdP.innerHTML = `<span class="status-dot dot-${cls}"></span>${it.persona}`;
+      tr.appendChild(tdP);
+
+      // Item
+      const tdI = document.createElement("td");
+      tdI.textContent = it.item;
+      tr.appendChild(tdI);
+
+      // Monto
+      const tdM = document.createElement("td");
+      tdM.className = "td-right amount-neutral";
+      tdM.textContent = "$" + fmt(it.monto);
+      tr.appendChild(tdM);
+
+      // Progreso
+      const tdPr = document.createElement("td");
+      tdPr.innerHTML = `
+        <div class="progress-cell">
+          <div class="prog-bar"><div class="prog-fill ${cls}" style="width:${pctN}%"></div></div>
+          <span class="prog-label">${it.pagadas}/${it.totales}</span>
+          ${isDone ? '<span class="pill pill-done">✓ Listo</span>' : isNear ? '<span class="pill pill-near">↑ Casi</span>' : '<span class="pill pill-pending">En curso</span>'}
+        </div>`;
+      tr.appendChild(tdPr);
+
+      // Total contrato
+      const tdTC = document.createElement("td");
+      tdTC.className = "td-right amount-neutral";
+      tdTC.textContent = "$" + fmt(totalContrato);
+      tr.appendChild(tdTC);
+
+      // Pagado
+      const tdPag = document.createElement("td");
+      tdPag.className = "td-right amount-positive";
+      tdPag.textContent = "$" + fmt(pagado);
+      tr.appendChild(tdPag);
+
+      // Pendiente
+      const tdPend = document.createElement("td");
+      tdPend.className = "td-right amount-pending";
+      tdPend.textContent = "$" + fmt(it.total);
+      tr.appendChild(tdPend);
+
+      // Actions
+      const tdA  = document.createElement("td");
+      const divA = document.createElement("div");
+      divA.className = "row-actions";
+
+      const btnPagar = document.createElement("button");
+      btnPagar.className = "btn btn-success btn-sm";
+      btnPagar.textContent = "Pagar";
+      btnPagar.disabled = isDone;
+      btnPagar.addEventListener("click", async () => { if (requireLogin()) await pagarCuota(idx); });
+
+      const btnUndo = document.createElement("button");
+      btnUndo.className = "btn btn-warning btn-sm btn-icon";
+      btnUndo.textContent = "↩";
+      btnUndo.title = "Deshacer cuota";
+      btnUndo.disabled = it.pagadas <= 0;
+      btnUndo.addEventListener("click", async () => { if (requireLogin()) await deshacerCuota(idx); });
+
+      const btnEdit = document.createElement("button");
+      btnEdit.className = "btn btn-ghost btn-sm btn-icon";
+      btnEdit.textContent = "✎";
+      btnEdit.title = "Editar";
+      btnEdit.addEventListener("click", async () => { if (requireLogin()) await editarFila(idx); });
+
+      const btnDel = document.createElement("button");
+      btnDel.className = "btn btn-danger btn-sm btn-icon";
+      btnDel.textContent = "✕";
+      btnDel.title = "Borrar";
+      btnDel.addEventListener("click", async () => { if (requireLogin()) await borrarFila(idx); });
+
+      divA.append(btnPagar, btnUndo, btnEdit, btnDel);
+      tdA.appendChild(divA);
+      tr.appendChild(tdA);
+      tbody.appendChild(tr);
+    });
+
+    // KPIs
+    document.getElementById("kpi-total").textContent   = fmt(totContrato);
+    document.getElementById("kpi-paid").textContent    = fmt(totPagado);
+    document.getElementById("kpi-pending").textContent = fmt(totPendiente);
+    document.getElementById("kpi-monthly").textContent = fmt(totMensual);
+
+    const pct = totContrato > 0 ? Math.round(totPagado / totContrato * 100) : 0;
+    const pendPct = totContrato > 0 ? Math.round(totPendiente / totContrato * 100) : 0;
+    document.getElementById("kpi-paid-bar").style.width    = pct + "%";
+    document.getElementById("kpi-pending-bar").style.width = pendPct + "%";
+    document.getElementById("kpi-paid-pct").textContent    = pct + "% del total";
+
+    // Pendiente por tarjeta (global)
+    items.forEach(it => {
+      const k = it.tarjeta || "Sin tarjeta";
+      porTarjeta[k] = (porTarjeta[k] || 0) + it.total;
+    });
+
+    renderSummaryBlock("sum-persona",  porPersona);
+    renderSummaryBlock("sum-tarjeta",  porTarjeta);
+    renderSummaryBlock("sum-mensual",  porMensual, "Sin cuotas pendientes.");
+
+    // Sort icons
+    document.querySelectorAll("thead th[data-col]").forEach(th => {
+      const col = th.dataset.col;
+      const ic  = th.querySelector(".sort-icon");
+      th.classList.toggle("sorted", col === sortCol);
+      ic.textContent = col === sortCol ? (sortDir === 1 ? " ↑" : " ↓") : "";
+    });
+
+    document.getElementById("results-badge").textContent =
+      list.length === 0 ? "Sin resultados" : `${list.length} ítem${list.length !== 1 ? "s" : ""}`;
+  }
+
+  function renderSummaryBlock(id, map, empty = "Sin datos todavía.") {
+    const el = document.getElementById(id);
+    el.innerHTML = "";
+    const entries = Object.entries(map);
+    if (!entries.length) { el.innerHTML = `<div class="empty-msg">${empty}</div>`; return; }
+    entries.forEach(([k, v]) => {
+      const r = document.createElement("div");
+      r.className = "summary-row";
+      r.innerHTML = `<span class="name">${k}</span><span class="val">$${fmt(v)}</span>`;
+      el.appendChild(r);
+    });
+  }
+
+  // ── Actions ──
+  async function agregarItem() {
+    if (!requireLogin()) return;
+    const persona = document.getElementById("personaSelect").value || personas[0];
+    const item    = document.getElementById("item").value.trim() || "-";
+    const monto   = parseInt(document.getElementById("monto").value, 10);
+    const pagadas = parseInt(document.getElementById("cuotasPagadas").value, 10) || 0;
+    const totales = parseInt(document.getElementById("cuotasTotales").value, 10) || 0;
+
+    if (isNaN(monto) || monto <= 0)           { toast("Monto inválido (debe ser > 0).", "error"); return; }
+    if (totales <= 0)                          { toast("Cuotas totales debe ser > 0.", "error"); return; }
+    if (pagadas < 0 || pagadas > totales)      { toast("Cuotas pagadas fuera de rango.", "error"); return; }
+    if (!tarjetaActiva)                        { toast("Crea o selecciona una tarjeta primero.", "error"); return; }
+
+    const n = { persona, tarjeta: tarjetaActiva, item, monto, pagadas, totales, completedAt: null };
+    n.factor = calcFactor(n.pagadas, n.totales);
+    n.total  = n.monto * n.factor;
+    items.push(n);
+    showLoading(); try { await save(); } finally { hideLoading(); }
+    renderTabla();
+    ["item","monto","cuotasPagadas","cuotasTotales"].forEach(id => document.getElementById(id).value = "");
+    document.getElementById("item").focus();
+    toast(`"${item}" agregado correctamente.`);
+  }
+
+  async function editarFila(idx) {
+    const it = items[idx]; if (!it) return;
+    const result = await showEditModal({ ...it });
+    if (!result) return;
+    items[idx] = {
+      ...items[idx], ...result,
+      factor: calcFactor(result.pagadas, result.totales),
+      total:  result.monto * calcFactor(result.pagadas, result.totales),
+      completedAt: result.pagadas >= result.totales ? (items[idx].completedAt || Date.now()) : null
+    };
+    showLoading(); try { await save(); } finally { hideLoading(); }
+    renderTabla(); toast("Ítem actualizado.");
+  }
+
+  async function agregarSaldo() {
+    if (!requireLogin()) return;
+    const input = document.getElementById("saldoMonto");
+    const val   = parseInt(input.value, 10);
+    if (isNaN(val) || val <= 0) { toast("Ingresa un monto válido.", "error"); return; }
+    saldos[personaSeleccionada] = (saldos[personaSeleccionada] || 0) + val;
+    input.value = "";
+    showLoading(); try { await save(); } finally { hideLoading(); }
+    updateSaldoUI();
+    toast(`$${fmt(val)} agregado a ${personaSeleccionada}.`);
+  }
+
+  async function borrarSaldo() {
+    if (!requireLogin()) return;
+    const ok = await showModal({
+      title: "Borrar saldo",
+      body: `¿Eliminar todo el saldo de <strong>${personaSeleccionada}</strong>?`,
+      icon: "⚠️", iconType: "danger",
+      confirm: "Borrar", cancel: "Cancelar", danger: true
+    });
+    if (!ok) return;
+    saldos[personaSeleccionada] = 0;
+    showLoading(); try { await save(); } finally { hideLoading(); }
+    updateSaldoUI(); toast(`Saldo de ${personaSeleccionada} eliminado.`, "info");
+  }
+
+  async function pagarCuota(idx) {
+    const it = items[idx]; if (!it || it.pagadas >= it.totales) return;
+    const disp = saldos[it.persona] || 0;
+    if (disp < it.monto) {
+      await showModal({
+        title: "Saldo insuficiente",
+        body: `<strong>${it.persona}</strong> no tiene saldo suficiente.<br>
+          Disponible: <strong>$${fmt(disp)}</strong> · Cuota: <strong>$${fmt(it.monto)}</strong>`,
+        icon: "⚠️", iconType: "danger", confirm: "Entendido"
       });
-      if (personas.includes(personaSeleccionada)) {
-        select.value = personaSeleccionada;
-      } else {
-        personaSeleccionada = personas[0];
-        select.value = personaSeleccionada;
-      }
-      updateSaldoUI();
+      return;
     }
-
-    // Tabla + resumen
-    function getFilteredItems() {
-      const filtro = filtroInput.value.toLowerCase().trim();
-      let activos = items.filter(it => it.tarjeta === tarjetaActiva);
-      if (filtro) {
-        activos = activos.filter(it => {
-          const txt = (it.persona + " " + it.item + " " + it.tarjeta).toLowerCase();
-          return txt.includes(filtro);
-        });
-      }
-      return activos;
-    }
-
-    function renderTabla() {
-      cleanupCompletedItems();
-
-      tablaBody.innerHTML = "";
-      const activos = getFilteredItems();
-
-      let totalContratoTarjeta  = 0;
-      let totalPagadoTarjeta    = 0;
-      let totalPendienteTarjeta = 0;
-      let cuotaMensualGlobal    = 0;
-
-      const porPersonaPendiente = {};
-      const porTarjetaPendiente = {};
-      const mensualPorPersona   = {};
-
-      activos.forEach(it => {
-        const idx = items.indexOf(it);
-        const tr  = document.createElement("tr");
-
-        const totalContrato = it.monto * it.totales;
-        const pagado        = it.monto * it.pagadas;
-        const pendiente     = it.total;
-
-        totalContratoTarjeta  += totalContrato;
-        totalPagadoTarjeta    += pagado;
-        totalPendienteTarjeta += pendiente;
-
-        if (it.pagadas < it.totales) {
-          cuotaMensualGlobal += it.monto;
-          mensualPorPersona[it.persona] = (mensualPorPersona[it.persona] || 0) + it.monto;
-        }
-
-        porPersonaPendiente[it.persona] = (porPersonaPendiente[it.persona] || 0) + pendiente;
-
-        const tdPersona = document.createElement("td");
-        tdPersona.textContent = it.persona;
-        tr.appendChild(tdPersona);
-
-        const tdTarjeta = document.createElement("td");
-        tdTarjeta.textContent = it.tarjeta || "-";
-        tr.appendChild(tdTarjeta);
-
-        const tdItem = document.createElement("td");
-        tdItem.textContent = it.item;
-        tr.appendChild(tdItem);
-
-        const tdMonto = document.createElement("td");
-        tdMonto.className = "right";
-        tdMonto.textContent = "$" + formatCLP(it.monto);
-        tr.appendChild(tdMonto);
-
-        const tdCuotas = document.createElement("td");
-        tdCuotas.textContent = `${it.pagadas}/${it.totales}`;
-        tr.appendChild(tdCuotas);
-
-        const tdTotalContrato = document.createElement("td");
-        tdTotalContrato.className = "right";
-        tdTotalContrato.textContent = "$" + formatCLP(totalContrato);
-        tr.appendChild(tdTotalContrato);
-
-        const tdPagado = document.createElement("td");
-        tdPagado.className = "right";
-        tdPagado.textContent = "$" + formatCLP(pagado);
-        tr.appendChild(tdPagado);
-
-        const tdPendiente = document.createElement("td");
-        tdPendiente.className = "right";
-        tdPendiente.textContent = "$" + formatCLP(pendiente);
-        tr.appendChild(tdPendiente);
-
-        const tdAcciones = document.createElement("td");
-        const actionsDiv = document.createElement("div");
-        actionsDiv.className = "actions";
-
-        const pagarBtn = document.createElement("button");
-        pagarBtn.textContent = "Pagar cuota";
-        pagarBtn.addEventListener("click", async () => {
-          if (!requireLogin()) return;
-          await pagarCuota(idx);
-        });
-
-        const deshacerBtn = document.createElement("button");
-        deshacerBtn.textContent = "Deshacer cuota";
-        deshacerBtn.className = "warning-btn";
-        deshacerBtn.addEventListener("click", async () => {
-          if (!requireLogin()) return;
-          await deshacerCuota(idx);
-        });
-
-        const borrarBtn = document.createElement("button");
-        borrarBtn.textContent = "Borrar";
-        borrarBtn.className = "danger-btn";
-        borrarBtn.addEventListener("click", async () => {
-          if (!requireLogin()) return;
-          await borrarFila(idx);
-        });
-
-        if (it.pagadas >= it.totales) {
-          pagarBtn.disabled = true;
-        }
-        if (it.pagadas <= 0) {
-          deshacerBtn.disabled = true;
-        }
-
-        actionsDiv.appendChild(pagarBtn);
-        actionsDiv.appendChild(deshacerBtn);
-        actionsDiv.appendChild(borrarBtn);
-        tdAcciones.appendChild(actionsDiv);
-        tr.appendChild(tdAcciones);
-
-        tablaBody.appendChild(tr);
-      });
-
-      // Resumen tarjeta activa
-      document.getElementById("res-total-contrato").textContent  = formatCLP(totalContratoTarjeta);
-      document.getElementById("res-total-pagado").textContent    = formatCLP(totalPagadoTarjeta);
-      document.getElementById("res-total-pendiente").textContent = formatCLP(totalPendienteTarjeta);
-      document.getElementById("res-cuota-mensual").textContent   = formatCLP(cuotaMensualGlobal);
-
-      // Pendiente por persona
-      const contPers = document.getElementById("totales-persona");
-      contPers.innerHTML = "";
-      const personasTot = Object.entries(porPersonaPendiente);
-      if (personasTot.length === 0) {
-        contPers.textContent = "Sin datos todavía.";
-      } else {
-        personasTot.forEach(([persona, total]) => {
-          const row = document.createElement("div");
-          row.className = "person-row";
-          row.innerHTML = `<span>${persona}</span><span>$${formatCLP(total)}</span>`;
-          contPers.appendChild(row);
-        });
-      }
-
-      // Pendiente por tarjeta
-      const contTarjeta = document.getElementById("totales-tarjeta");
-      contTarjeta.innerHTML = "";
-      items.forEach(it => {
-        const key = it.tarjeta || "Sin tarjeta";
-        porTarjetaPendiente[key] = (porTarjetaPendiente[key] || 0) + it.total;
-      });
-      const tarjetasTotals = Object.entries(porTarjetaPendiente);
-      if (tarjetasTotals.length === 0) {
-        contTarjeta.textContent = "Sin datos todavía.";
-      } else {
-        tarjetasTotals.forEach(([tarj, total]) => {
-          const row = document.createElement("div");
-          row.className = "person-row";
-          row.innerHTML = `<span>${tarj}</span><span>$${formatCLP(total)}</span>`;
-          contTarjeta.appendChild(row);
-        });
-      }
-
-      // Cuota mensual por persona (tarjeta activa)
-      const contMensualPersona = document.getElementById("totales-mensual-persona");
-      contMensualPersona.innerHTML = "";
-      const mensualTot = Object.entries(mensualPorPersona);
-      if (mensualTot.length === 0) {
-        contMensualPersona.textContent = "Sin cuotas pendientes en esta tarjeta.";
-      } else {
-        mensualTot.forEach(([persona, total]) => {
-          const row = document.createElement("div");
-          row.className = "person-row";
-          row.innerHTML = `<span>${persona}</span><span>$${formatCLP(total)}</span>`;
-          contMensualPersona.appendChild(row);
-        });
-      }
-    }
-
-    // Acciones
-    async function agregarItemDesdeFormulario() {
-      if (!requireLogin()) return;
-
-      const personaSel   = document.getElementById("personaSelect");
-      const itemInput    = document.getElementById("item");
-      const montoInput   = document.getElementById("monto");
-      const pagadasInput = document.getElementById("cuotasPagadas");
-      const totalesInput = document.getElementById("cuotasTotales");
-
-      const persona = personaSel.value || personas[0];
-      const item    = itemInput.value.trim() || "-";
-      const monto   = parseInt(montoInput.value, 10);
-      const pagadas = parseInt(pagadasInput.value, 10) || 0;
-      const totales = parseInt(totalesInput.value, 10) || 0;
-
-      if (isNaN(monto) || monto <= 0) {
-        alert("Pon un monto válido (mayor que 0).");
-        return;
-      }
-      if (totales <= 0) {
-        alert("Pon un número de cuotas totales mayor que 0.");
-        return;
-      }
-      if (pagadas < 0 || pagadas > totales) {
-        alert("Las cuotas pagadas deben estar entre 0 y el total.");
-        return;
-      }
-      if (!tarjetaActiva) {
-        alert("Primero crea o selecciona una tarjeta.");
-        return;
-      }
-
-      const nuevo = {
-        persona,
-        tarjeta: tarjetaActiva,
-        item,
-        monto,
-        pagadas,
-        totales,
-        factor: 0,
-        total: 0,
-        completedAt: null
-      };
-      nuevo.factor = calcularFactor(nuevo.pagadas, nuevo.totales);
-      nuevo.total  = nuevo.monto * nuevo.factor;
-
-      items.push(nuevo);
-      await saveUserData();
-      renderTabla();
-
-      itemInput.value    = "";
-      montoInput.value   = "";
-      pagadasInput.value = "";
-      totalesInput.value = "";
-      itemInput.focus();
-    }
-
-    async function agregarSaldoPersona() {
-      if (!requireLogin()) return;
-      const input = document.getElementById("saldoMonto");
-      const valor = parseInt(input.value, 10);
-      if (isNaN(valor) || valor <= 0) {
-        alert("Ingresa un monto de saldo válido (mayor que 0).");
-        return;
-      }
-      const actual = saldos[personaSeleccionada] || 0;
-      saldos[personaSeleccionada] = actual + valor;
-      input.value = "";
-      await saveUserData();
-      updateSaldoUI();
-    }
-
-    async function borrarSaldoPersona() {
-      if (!requireLogin()) return;
-
-      const persona = personaSeleccionada;
-      if (!persona) return;
-
-      if (!confirm(`¿Seguro que quieres borrar COMPLETAMENTE el saldo de ${persona}?`))
-        return;
-
-      saldos[persona] = 0;
-      await saveUserData();
-      updateSaldoUI();
-      alert(`Saldo de ${persona} eliminado correctamente.`);
-    }
-
-    async function pagarCuota(idx) {
-      const it = items[idx];
-      if (!it) return;
-      if (it.pagadas >= it.totales) return;
-
-      const persona = it.persona;
-      const montoCuota = it.monto;
-      const saldoDisp = saldos[persona] || 0;
-
-      if (saldoDisp < montoCuota) {
-        alert(
-          `Saldo insuficiente para pagar esta cuota.\n` +
-          `Saldo disponible para ${persona}: $${formatCLP(saldoDisp)}\n` +
-          `Monto de la cuota: $${formatCLP(montoCuota)}`
-        );
-        return;
-      }
-
-      saldos[persona] = saldoDisp - montoCuota;
-
-      it.pagadas += 1;
-      it.factor   = calcularFactor(it.pagadas, it.totales);
-      it.total    = it.monto * it.factor;
-
-      if (it.pagadas >= it.totales) {
-        it.completedAt = Date.now();
-      } else {
-        it.completedAt = null;
-      }
-
-      await saveUserData();
-      updateSaldoUI();
-      renderTabla();
-    }
-
-    async function deshacerCuota(idx) {
-      const it = items[idx];
-      if (!it) return;
-      if (it.pagadas <= 0) return;
-
-      const persona = it.persona;
-      const montoCuota = it.monto;
-
-      // devolver saldo a la persona
-      saldos[persona] = (saldos[persona] || 0) + montoCuota;
-
-      it.pagadas -= 1;
-      it.factor   = calcularFactor(it.pagadas, it.totales);
-      it.total    = it.monto * it.factor;
-
-      if (it.pagadas < it.totales) {
-        it.completedAt = null;
-      }
-
-      await saveUserData();
-      updateSaldoUI();
-      renderTabla();
-    }
-
-    async function borrarFila(idx) {
-      if (!confirm("¿Borrar este ítem?")) return;
-      items.splice(idx, 1);
-      await saveUserData();
-      renderTabla();
-    }
-
-    async function limpiarTodo() {
-      if (!requireLogin()) return;
-      if (!confirm("¿Seguro que quieres borrar TODOS los ítems de esta cuenta?")) return;
-      items = [];
-      await saveUserData();
-      renderTabla();
-    }
-
-    async function añadirTarjeta() {
-      if (!requireLogin()) return;
-      const nombre = prompt("Nombre de la nueva tarjeta (ej: Tarjeta 3):");
-      if (!nombre) return;
-      const n = nombre.trim();
-      if (!n) return;
-      if (tarjetas.includes(n)) {
-        alert("Esa tarjeta ya existe.");
-        return;
-      }
-      tarjetas.push(n);
-      tarjetaActiva = n;
-      await saveUserData();
-      renderTarjetasSelect();
-      renderTabla();
-    }
-
-    async function eliminarTarjeta() {
-      if (!requireLogin()) return;
-      if (!tarjetaActiva) return;
-      if (tarjetas.length <= 1) {
-        alert("Debe quedar al menos una tarjeta.");
-        return;
-      }
-      const asociados = items.filter(it => it.tarjeta === tarjetaActiva).length;
-      const msg = `Se eliminará la tarjeta "${tarjetaActiva}" y ${asociados} ítems asociados.\n¿Quieres continuar?`;
-      if (!confirm(msg)) return;
-
-      items    = items.filter(it => it.tarjeta !== tarjetaActiva);
-      tarjetas = tarjetas.filter(t => t !== tarjetaActiva);
-      if (tarjetas.length === 0) {
-        tarjetas = ["Tarjeta 1"];
-      }
-      tarjetaActiva = tarjetas[0];
-      await saveUserData();
-      renderTarjetasSelect();
-      renderTabla();
-    }
-
-    async function añadirPersona() {
-      if (!requireLogin()) return;
-      const nombre = prompt("Nombre de la nueva persona:");
-      if (!nombre) return;
-      const n = nombre.trim();
-      if (!n) return;
-      if (personas.includes(n)) {
-        alert("Esa persona ya existe.");
-        return;
-      }
-      personas.push(n);
-      if (!(n in saldos)) {
-        saldos[n] = 0;
-      }
-      personaSeleccionada = n;
-      await saveUserData();
-      renderPersonasSelect();
-    }
-
-    async function eliminarPersona() {
-      if (!requireLogin()) return;
-      if (!personaSeleccionada) return;
-      if (personas.length <= 1) {
-        alert("Debe quedar al menos una persona en la lista.");
-        return;
-      }
-      const msg = `Se eliminará la persona "${personaSeleccionada}" de la lista.\nLos ítems existentes seguirán mostrando ese nombre.\n¿Quieres continuar?`;
-      if (!confirm(msg)) return;
-
-      personas = personas.filter(p => p !== personaSeleccionada);
-      delete saldos[personaSeleccionada];
-
-      if (personas.length === 0) {
-        personas = ["Persona 1"];
-        if (!saldos["Persona 1"]) saldos["Persona 1"] = 0;
-      }
-      personaSeleccionada = personas[0];
-      await saveUserData();
-      renderPersonasSelect();
-    }
-
-    function exportarBackup() {
-      if (!requireLogin()) return;
-      const data = {
-        version: 4,
-        uid: currentUser.uid,
-        email: currentUser.email,
-        items,
-        tarjetas,
-        personas,
-        tarjetaActiva,
-        saldos
-      };
-      const blob = new Blob([JSON.stringify(data, null, 2)], {
-        type: "application/json"
-      });
-      const url = URL.createObjectURL(blob);
-      const a   = document.createElement("a");
-      const hoy = new Date().toISOString().slice(0, 10);
-      a.href = url;
-      a.download = "cuotas-backup-" + hoy + ".json";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    function importarBackupDesdeArchivo(file) {
-      if (!requireLogin()) return;
-
-      const reader = new FileReader();
-      reader.onload = async e => {
-        try {
-          const text = e.target.result;
-
-          let data;
-          try {
-            data = JSON.parse(text);
-          } catch (parseError) {
-            console.error("Error parseando JSON:", parseError);
-            alert("El archivo no es un JSON válido.");
-            return;
-          }
-
-          let importedItems        = [];
-          let importedTarjetas     = [];
-          let importedPersonas     = [];
-          let importedTarjetaActiva = "";
-          let importedSaldos       = {};
-
-          if (Array.isArray(data)) {
-            importedItems = data;
-            importedTarjetas = ["Tarjeta 1"];
-            importedPersonas = ["Persona 1"];
-          } else if (data && Array.isArray(data.items)) {
-            importedItems    = data.items;
-            importedTarjetas = Array.isArray(data.tarjetas) ? data.tarjetas : ["Tarjeta 1"];
-            importedPersonas = Array.isArray(data.personas) ? data.personas : ["Persona 1"];
-            importedTarjetaActiva = data.tarjetaActiva || "";
-            if (data.saldos && typeof data.saldos === "object") {
-              importedSaldos = data.saldos;
-            }
-          } else {
-            console.error("Estructura de backup no reconocida:", data);
-            alert("Archivo de backup inválido o con estructura desconocida.");
-            return;
-          }
-
-          if (!confirm("Esto reemplazará todas las tarjetas, personas, saldos e ítems actuales de ESTA cuenta. ¿Continuar?")) {
-            return;
-          }
-
-          items = importedItems.map(it => {
-            const obj = {
-              persona: it.persona || "Persona 1",
-              tarjeta: it.tarjeta || (importedTarjetas[0] || "Tarjeta 1"),
-              item:    it.item    || "-",
-              monto:   Number(it.monto) || 0,
-              pagadas: Number(it.pagadas) || 0,
-              totales: Number(it.totales) || 1,
-              completedAt: typeof it.completedAt === "number" ? it.completedAt : null
-            };
-            if (obj.totales <= 0) obj.totales = 1;
-            if (obj.pagadas < 0) obj.pagadas = 0;
-            if (obj.pagadas > obj.totales) obj.pagadas = obj.totales;
-            obj.factor = calcularFactor(obj.pagadas, obj.totales);
-            obj.total  = obj.monto * obj.factor;
-            return obj;
-          });
-
-          tarjetas = importedTarjetas && importedTarjetas.length ? importedTarjetas : ["Tarjeta 1"];
-          personas = importedPersonas && importedPersonas.length ? importedPersonas : ["Persona 1"];
-
-          tarjetaActiva = importedTarjetaActiva && tarjetas.includes(importedTarjetaActiva)
-            ? importedTarjetaActiva
-            : tarjetas[0];
-
-          saldos = importedSaldos && typeof importedSaldos === "object" ? importedSaldos : {};
-
-          await saveUserData();
-          renderTarjetasSelect();
-          renderPersonasSelect();
-          renderTabla();
-
-          alert("Backup importado correctamente.");
-        } catch (err) {
-          console.error("Error general importando backup:", err);
-          alert("Error leyendo el archivo de backup.");
-        }
-      };
-
-      reader.readAsText(file);
-    }
-
-    // Eventos de UI
-    document.getElementById("addBtn").addEventListener("click", agregarItemDesdeFormulario);
-    document.getElementById("clearBtn").addEventListener("click", limpiarTodo);
-    document.getElementById("addTarjetaBtn").addEventListener("click", añadirTarjeta);
-    document.getElementById("delTarjetaBtn").addEventListener("click", eliminarTarjeta);
-    document.getElementById("addPersonaBtn").addEventListener("click", añadirPersona);
-    document.getElementById("delPersonaBtn").addEventListener("click", eliminarPersona);
-    document.getElementById("addSaldoBtn").addEventListener("click", agregarSaldoPersona);
-    document.getElementById("delSaldoBtn").addEventListener("click", borrarSaldoPersona);
-    document.getElementById("exportBtn").addEventListener("click", exportarBackup);
-    document.getElementById("importBtn").addEventListener("click", () => {
-      document.getElementById("importFile").value = "";
-      document.getElementById("importFile").click();
+    saldos[it.persona] = disp - it.monto;
+    it.pagadas++;
+    it.factor = calcFactor(it.pagadas, it.totales);
+    it.total  = it.monto * it.factor;
+    it.completedAt = it.pagadas >= it.totales ? Date.now() : null;
+    showLoading(); try { await save(); } finally { hideLoading(); }
+    updateSaldoUI(); renderTabla();
+    toast(it.pagadas >= it.totales
+      ? `¡${it.item} completamente pagado! 🎉`
+      : `Cuota pagada. Quedan ${it.totales - it.pagadas}.`);
+  }
+
+  async function deshacerCuota(idx) {
+    const it = items[idx]; if (!it || it.pagadas <= 0) return;
+    saldos[it.persona] = (saldos[it.persona] || 0) + it.monto;
+    it.pagadas--;
+    it.factor = calcFactor(it.pagadas, it.totales);
+    it.total  = it.monto * it.factor;
+    if (it.pagadas < it.totales) it.completedAt = null;
+    showLoading(); try { await save(); } finally { hideLoading(); }
+    updateSaldoUI(); renderTabla(); toast("Cuota deshecha. Saldo devuelto.", "info");
+  }
+
+  async function borrarFila(idx) {
+    const it = items[idx];
+    const ok = await showModal({
+      title: "Borrar ítem",
+      body: `¿Eliminar <strong>${it?.item || "este ítem"}</strong>? No se puede deshacer.`,
+      icon: "🗑️", iconType: "danger",
+      confirm: "Borrar", cancel: "Cancelar", danger: true
     });
-    document.getElementById("importFile").addEventListener("change", e => {
-      const file = e.target.files[0];
-      if (file) importarBackupDesdeArchivo(file);
-    });
-    document.getElementById("monto").addEventListener("keypress", e => {
-      if (e.key === "Enter") agregarItemDesdeFormulario();
-    });
-    document.getElementById("cuotasTotales").addEventListener("keypress", e => {
-      if (e.key === "Enter") agregarItemDesdeFormulario();
-    });
-    document.getElementById("tarjetaActiva").addEventListener("change", async e => {
-      tarjetaActiva = e.target.value;
-      await saveUserData();
-      renderTabla();
-    });
-    document.getElementById("personaSelect").addEventListener("change", e => {
-      personaSeleccionada = e.target.value;
-      updateSaldoUI();
-    });
-    filtroInput.addEventListener("input", renderTabla);
+    if (!ok) return;
+    items.splice(idx, 1);
+    showLoading(); try { await save(); } finally { hideLoading(); }
+    renderTabla(); toast("Ítem eliminado.", "info");
+  }
 
-    // Login / Logout
-    loginBtn.addEventListener("click", async () => {
+  async function limpiarTodo() {
+    if (!requireLogin()) return;
+    const ok = await showModal({
+      title: "Borrar todo",
+      body: "¿Eliminar <strong>todos los ítems</strong> de esta cuenta? No se puede deshacer.",
+      icon: "⚠️", iconType: "danger",
+      confirm: "Borrar todo", cancel: "Cancelar", danger: true
+    });
+    if (!ok) return;
+    items = [];
+    showLoading(); try { await save(); } finally { hideLoading(); }
+    renderTabla(); toast("Todos los ítems eliminados.", "info");
+  }
+
+  async function añadirTarjeta() {
+    if (!requireLogin()) return;
+    const n = await showModal({
+      title: "Nueva tarjeta",
+      icon: "💳", iconType: "info",
+      confirm: "Agregar", cancel: "Cancelar",
+      prompt: "Nombre (ej: Tarjeta Visa)"
+    });
+    if (!n) return;
+    if (tarjetas.includes(n)) { toast("Esa tarjeta ya existe.", "error"); return; }
+    tarjetas.push(n); tarjetaActiva = n;
+    showLoading(); try { await save(); } finally { hideLoading(); }
+    renderCardTabs(); renderTabla(); toast(`Tarjeta "${n}" creada.`);
+  }
+
+  async function eliminarTarjeta() {
+    if (!requireLogin()) return;
+    if (tarjetas.length <= 1) { toast("Debe quedar al menos una tarjeta.", "error"); return; }
+    const n = items.filter(it => it.tarjeta === tarjetaActiva).length;
+    const ok = await showModal({
+      title: `Eliminar "${tarjetaActiva}"`,
+      body: `Se eliminarán también los <strong>${n} ítem${n !== 1 ? "s" : ""}</strong> asociados.`,
+      icon: "⚠️", iconType: "danger",
+      confirm: "Eliminar", cancel: "Cancelar", danger: true
+    });
+    if (!ok) return;
+    items    = items.filter(it => it.tarjeta !== tarjetaActiva);
+    tarjetas = tarjetas.filter(t => t !== tarjetaActiva);
+    if (!tarjetas.length) tarjetas = ["Tarjeta 1"];
+    tarjetaActiva = tarjetas[0];
+    showLoading(); try { await save(); } finally { hideLoading(); }
+    renderCardTabs(); renderTabla(); toast("Tarjeta eliminada.", "info");
+  }
+
+  async function añadirPersona() {
+    if (!requireLogin()) return;
+    const n = await showModal({
+      title: "Nueva persona",
+      icon: "👤", iconType: "info",
+      confirm: "Agregar", cancel: "Cancelar",
+      prompt: "Nombre de la persona"
+    });
+    if (!n) return;
+    if (personas.includes(n)) { toast("Esa persona ya existe.", "error"); return; }
+    personas.push(n); if (!(n in saldos)) saldos[n] = 0;
+    personaSeleccionada = n;
+    showLoading(); try { await save(); } finally { hideLoading(); }
+    renderPersonaSelect(); toast(`Persona "${n}" agregada.`);
+  }
+
+  async function eliminarPersona() {
+    if (!requireLogin()) return;
+    if (personas.length <= 1) { toast("Debe quedar al menos una persona.", "error"); return; }
+    const ok = await showModal({
+      title: `Eliminar "${personaSeleccionada}"`,
+      body: "Se eliminará de la lista. Los ítems existentes mantienen el nombre.",
+      icon: "⚠️", iconType: "danger",
+      confirm: "Eliminar", cancel: "Cancelar", danger: true
+    });
+    if (!ok) return;
+    personas = personas.filter(p => p !== personaSeleccionada);
+    delete saldos[personaSeleccionada];
+    if (!personas.length) { personas = ["Persona 1"]; saldos["Persona 1"] = 0; }
+    personaSeleccionada = personas[0];
+    showLoading(); try { await save(); } finally { hideLoading(); }
+    renderPersonaSelect(); toast("Persona eliminada.", "info");
+  }
+
+  function exportar() {
+    if (!requireLogin()) return;
+    const blob = new Blob([JSON.stringify({ version:4, items, tarjetas, personas, tarjetaActiva, saldos }, null, 2)],
+      { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `cuotas-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(a.href);
+    toast("Backup exportado.");
+  }
+
+  function importar(file) {
+    if (!requireLogin()) return;
+    const reader = new FileReader();
+    reader.onload = async e => {
       try {
-        await signInWithPopup(auth, provider);
-      } catch (err) {
-        console.error(err);
-        alert("Error al iniciar sesión.");
-      }
-    });
+        let data;
+        try { data = JSON.parse(e.target.result); } catch { toast("JSON inválido.", "error"); return; }
 
-    logoutBtn.addEventListener("click", async () => {
-      try {
-        await signOut(auth);
-      } catch (err) {
-        console.error(err);
-      }
-    });
+        let imp = { items:[], tarjetas:["Tarjeta 1"], personas:["Persona 1"], tarjetaActiva:"", saldos:{} };
+        if (Array.isArray(data)) { imp.items = data; }
+        else if (data?.items) {
+          imp.items    = data.items;
+          imp.tarjetas = Array.isArray(data.tarjetas) ? data.tarjetas : imp.tarjetas;
+          imp.personas = Array.isArray(data.personas) ? data.personas : imp.personas;
+          imp.tarjetaActiva = data.tarjetaActiva || "";
+          if (data.saldos && typeof data.saldos === "object") imp.saldos = data.saldos;
+        } else { toast("Estructura de backup desconocida.", "error"); return; }
 
-    // Escuchar cambios de auth
-    onAuthStateChanged(auth, async (user) => {
-      currentUser = user;
-      if (user) {
-        loginBtn.classList.add("hidden");
-        logoutBtn.classList.remove("hidden");
-        contenido.classList.remove("hidden");
-        loginTexto.textContent = "Sesión iniciada.";
-        loginInfo.textContent = "Sesión iniciada como " + (user.email || "");
-        await loadUserData();
-      } else {
-        loginBtn.classList.remove("hidden");
-        logoutBtn.classList.add("hidden");
-        contenido.classList.add("hidden");
-        loginTexto.textContent = "Inicia sesión con Google para usar la app.";
-        loginInfo.textContent = "";
-      }
+        const ok = await showModal({
+          title: "Importar backup",
+          body: "Esto reemplazará <strong>todos</strong> los datos actuales. ¿Continuar?",
+          icon: "📥", iconType: "info",
+          confirm: "Importar", cancel: "Cancelar", danger: true
+        });
+        if (!ok) return;
+
+        items = imp.items.map(it => {
+          const o = {
+            persona: it.persona || "Persona 1",
+            tarjeta: it.tarjeta || imp.tarjetas[0],
+            item:    it.item    || "-",
+            monto:   Number(it.monto)   || 0,
+            pagadas: Number(it.pagadas) || 0,
+            totales: Number(it.totales) || 1,
+            completedAt: typeof it.completedAt === "number" ? it.completedAt : null
+          };
+          if (o.totales <= 0) o.totales = 1;
+          if (o.pagadas < 0)  o.pagadas = 0;
+          if (o.pagadas > o.totales) o.pagadas = o.totales;
+          o.factor = calcFactor(o.pagadas, o.totales);
+          o.total  = o.monto * o.factor;
+          return o;
+        });
+        tarjetas      = imp.tarjetas.length ? imp.tarjetas : ["Tarjeta 1"];
+        personas      = imp.personas.length ? imp.personas : ["Persona 1"];
+        tarjetaActiva = (imp.tarjetaActiva && tarjetas.includes(imp.tarjetaActiva)) ? imp.tarjetaActiva : tarjetas[0];
+        saldos        = (imp.saldos && typeof imp.saldos === "object") ? imp.saldos : {};
+
+        showLoading(); try { await save(); } finally { hideLoading(); }
+        renderCardTabs(); renderPersonaSelect(); renderTabla();
+        toast("Backup importado correctamente.");
+      } catch { toast("Error leyendo el backup.", "error"); }
+    };
+    reader.readAsText(file);
+  }
+
+  // ── Form collapsible ──
+  const formBody   = document.getElementById("formBody");
+  const formToggle = document.getElementById("formToggle");
+  const formIcon   = document.getElementById("formToggleIcon");
+  let formOpen = window.innerWidth > 640;
+
+  function setForm(open) {
+    formOpen = open;
+    formBody.classList.toggle("open", open);
+    formIcon.classList.toggle("open", open);
+    formToggle.classList.toggle("open", open);
+  }
+  setForm(formOpen);
+  formToggle.addEventListener("click", () => setForm(!formOpen));
+
+  // ── Sort ──
+  document.querySelectorAll("thead th[data-col]").forEach(th => {
+    th.addEventListener("click", () => {
+      const col = th.dataset.col;
+      sortDir = sortCol === col ? sortDir * -1 : 1;
+      sortCol = col;
+      renderTabla();
     });
-  </script>
+  });
+
+  // ── Events ──
+  document.getElementById("addBtn").addEventListener("click", agregarItem);
+  document.getElementById("clearBtn").addEventListener("click", limpiarTodo);
+  document.getElementById("addTarjetaBtn").addEventListener("click", añadirTarjeta);
+  document.getElementById("delTarjetaBtn").addEventListener("click", eliminarTarjeta);
+  document.getElementById("addPersonaBtn").addEventListener("click", añadirPersona);
+  document.getElementById("delPersonaBtn").addEventListener("click", eliminarPersona);
+  document.getElementById("addSaldoBtn").addEventListener("click", agregarSaldo);
+  document.getElementById("delSaldoBtn").addEventListener("click", borrarSaldo);
+  document.getElementById("exportBtn").addEventListener("click", exportar);
+  document.getElementById("importBtn").addEventListener("click", () => {
+    document.getElementById("importFile").value = "";
+    document.getElementById("importFile").click();
+  });
+  document.getElementById("importFile").addEventListener("change", e => {
+    if (e.target.files[0]) importar(e.target.files[0]);
+  });
+  document.getElementById("personaSelect").addEventListener("change", e => {
+    personaSeleccionada = e.target.value; updateSaldoUI();
+  });
+  document.getElementById("filtro").addEventListener("input", renderTabla);
+  ["monto","cuotasTotales"].forEach(id => {
+    document.getElementById(id).addEventListener("keypress", e => {
+      if (e.key === "Enter") agregarItem();
+    });
+  });
+
+  // ── Auth ──
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+    try { await signInWithPopup(auth, provider); }
+    catch { toast("Error al iniciar sesión.", "error"); }
+  });
+
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    try { await signOut(auth); }
+    catch { toast("Error al cerrar sesión.", "error"); }
+  });
+
+  onAuthStateChanged(auth, async user => {
+    currentUser = user;
+    const loginBox  = document.getElementById("login-box");
+    const contenido = document.getElementById("contenido");
+    const headerUser = document.getElementById("headerUser");
+
+    if (user) {
+      loginBox.classList.add("hidden");
+      contenido.classList.remove("hidden");
+      headerUser.classList.remove("hidden");
+      document.getElementById("headerEmail").textContent = user.email || "";
+      const initial = (user.displayName || user.email || "?")[0].toUpperCase();
+      document.getElementById("headerAvatar").textContent = initial;
+      document.getElementById("login-info").textContent = "";
+      await loadData();
+    } else {
+      loginBox.classList.remove("hidden");
+      contenido.classList.add("hidden");
+      headerUser.classList.add("hidden");
+    }
+  });
+</script>
 </body>
 </html>
