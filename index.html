@@ -12,7 +12,6 @@
         navigator.serviceWorker.register("./sw.js").catch(() => {});
       });
     }
-    // Apply saved theme before paint to avoid flash
     const saved = localStorage.getItem("theme");
     if (saved) document.documentElement.setAttribute("data-theme", saved);
   </script>
@@ -92,9 +91,7 @@
 
     /* ── RESET ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     html { scroll-behavior: smooth; }
-
     body {
       font-family: var(--font);
       background: var(--bg);
@@ -112,7 +109,6 @@
       z-index: 100;
       box-shadow: 0 2px 16px rgba(0,0,0,0.35);
     }
-
     .header-inner {
       max-width: 1200px;
       margin: 0 auto;
@@ -122,60 +118,22 @@
       align-items: center;
       gap: 16px;
     }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-    }
-
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
     .logo-icon {
-      width: 34px;
-      height: 34px;
+      width: 34px; height: 34px;
       background: linear-gradient(135deg, #1d6fe8, #38bdf8);
       border-radius: var(--radius-md);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 17px;
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; flex-shrink: 0;
     }
-
-    .logo-text {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--header-text);
-      letter-spacing: -0.01em;
-    }
-
-    .logo-text span {
-      font-weight: 400;
-      color: var(--header-muted);
-    }
-
+    .logo-text { font-size: 15px; font-weight: 700; color: var(--header-text); letter-spacing: -0.01em; }
+    .logo-text span { font-weight: 400; color: var(--header-muted); }
     .header-spacer { flex: 1; }
-
-    .header-user {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: var(--header-muted);
-    }
-
+    .header-user { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--header-muted); }
     .header-avatar {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: #1d4ed8;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-      color: #fff;
-      flex-shrink: 0;
+      width: 28px; height: 28px; border-radius: 50%; background: #1d4ed8;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
     }
 
     /* ── THEME TOGGLE ── */
@@ -187,877 +145,285 @@
       cursor: pointer;
       color: var(--header-muted);
       font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      display: flex; align-items: center; gap: 6px;
       transition: background var(--transition), color var(--transition);
       white-space: nowrap;
     }
-
-    .theme-toggle:hover {
-      background: rgba(255,255,255,0.14);
-      color: var(--header-text);
-    }
+    .theme-toggle:hover { background: rgba(255,255,255,0.14); color: var(--header-text); }
 
     /* ── MAIN ── */
-    .main {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 28px 24px 40px;
-    }
+    .main { max-width: 1200px; margin: 0 auto; padding: 28px 24px 40px; }
 
     /* ── LOGIN ── */
     .login-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      padding: 48px 32px;
-      text-align: center;
-      max-width: 420px;
-      margin: 60px auto;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-xl); padding: 48px 32px;
+      text-align: center; max-width: 420px; margin: 60px auto;
       box-shadow: var(--shadow-card);
     }
-
-    .login-card .lock-icon {
-      font-size: 40px;
-      margin-bottom: 16px;
-      display: block;
-    }
-
-    .login-card h2 {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 8px;
-    }
-
-    .login-card p {
-      font-size: 14px;
-      color: var(--text-2);
-      margin-bottom: 24px;
-      line-height: 1.5;
-    }
-
-    #login-info {
-      margin-top: 12px;
-      font-size: 12px;
-      color: var(--text-3);
-    }
+    .login-card .lock-icon { font-size: 40px; margin-bottom: 16px; display: block; }
+    .login-card h2 { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    .login-card p { font-size: 14px; color: var(--text-2); margin-bottom: 24px; line-height: 1.5; }
+    #login-info { margin-top: 12px; font-size: 12px; color: var(--text-3); }
 
     /* ── CARD TABS ── */
-    .card-tabs-section {
-      margin-bottom: 24px;
-    }
-
+    .card-tabs-section { margin-bottom: 24px; }
     .section-label {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-3);
-      margin-bottom: 10px;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-3); margin-bottom: 10px;
     }
-
-    .card-tabs-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
+    .card-tabs-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .card-tab {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 14px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text-2);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all var(--transition);
-      white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text-2); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all var(--transition); white-space: nowrap;
     }
-
-    .card-tab:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
+    .card-tab:hover { border-color: var(--accent); color: var(--accent); }
     .card-tab.active {
-      background: var(--tab-active-bg);
-      border-color: var(--tab-active-bg);
-      color: var(--tab-active-text);
-      box-shadow: 0 4px 14px rgba(59,130,246,0.3);
+      background: var(--tab-active-bg); border-color: var(--tab-active-bg);
+      color: var(--tab-active-text); box-shadow: 0 4px 14px rgba(59,130,246,0.3);
     }
-
-    .card-tab-add {
-      border-style: dashed;
-      font-size: 12px;
-    }
-
-    .card-tab-del {
-      border-style: solid;
-      border-color: var(--danger-soft);
-      color: var(--danger);
-      background: var(--danger-soft);
-    }
-
-    .card-tab-del:hover {
-      background: var(--danger);
-      color: #fff;
-      border-color: var(--danger);
-    }
+    .card-tab-add { border-style: dashed; font-size: 12px; }
+    .card-tab-del { border-style: solid; border-color: var(--danger-soft); color: var(--danger); background: var(--danger-soft); }
+    .card-tab-del:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 
     /* ── KPI CARDS ── */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-bottom: 24px;
-    }
-
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
     .kpi-card {
-      background: var(--kpi-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 18px 20px;
-      box-shadow: var(--shadow-card);
-      transition: box-shadow var(--transition);
-      position: relative;
-      overflow: hidden;
+      background: var(--kpi-bg); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 18px 20px;
+      box-shadow: var(--shadow-card); transition: box-shadow var(--transition);
+      position: relative; overflow: hidden;
     }
-
     .kpi-card::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
       border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     }
-
     .kpi-card.kpi-total::before   { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
     .kpi-card.kpi-paid::before    { background: linear-gradient(90deg, #22c55e, #4ade80); }
     .kpi-card.kpi-pending::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
     .kpi-card.kpi-monthly::before { background: linear-gradient(90deg, #a855f7, #c084fc); }
-
-    .kpi-label {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--text-3);
-      margin-bottom: 8px;
-    }
-
-    .kpi-value {
-      font-size: 24px;
-      font-weight: 800;
-      color: var(--text);
-      letter-spacing: -0.03em;
-      font-variant-numeric: tabular-nums;
-      line-height: 1;
-      margin-bottom: 10px;
-    }
-
-    .kpi-value .currency {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-2);
-      margin-right: 1px;
-    }
-
-    .kpi-bar {
-      height: 4px;
-      border-radius: 999px;
-      background: var(--border);
-      overflow: hidden;
-    }
-
-    .kpi-bar-fill {
-      height: 100%;
-      border-radius: 999px;
-      transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
-    }
-
+    .kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-3); margin-bottom: 8px; }
+    .kpi-value { font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 10px; }
+    .kpi-value .currency { font-size: 14px; font-weight: 600; color: var(--text-2); margin-right: 1px; }
+    .kpi-bar { height: 4px; border-radius: 999px; background: var(--border); overflow: hidden; }
+    .kpi-bar-fill { height: 100%; border-radius: 999px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
     .kpi-total .kpi-bar-fill   { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
     .kpi-paid .kpi-bar-fill    { background: linear-gradient(90deg, #22c55e, #4ade80); }
     .kpi-pending .kpi-bar-fill { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
     .kpi-monthly .kpi-bar-fill { background: linear-gradient(90deg, #a855f7, #c084fc); }
-
-    .kpi-sub {
-      margin-top: 6px;
-      font-size: 11px;
-      color: var(--text-3);
-    }
+    .kpi-sub { margin-top: 6px; font-size: 11px; color: var(--text-3); }
 
     /* ── PANEL ── */
-    .panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      margin-bottom: 16px;
-      box-shadow: var(--shadow-card);
-      overflow: hidden;
-    }
-
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 16px; box-shadow: var(--shadow-card); overflow: hidden; }
     .panel-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 20px;
-      cursor: pointer;
-      user-select: none;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px; cursor: pointer; user-select: none;
       border-bottom: 1px solid transparent;
       transition: border-color var(--transition), background var(--transition);
     }
-
     .panel-header:hover { background: var(--surface-2); }
     .panel-header.open  { border-bottom-color: var(--border); }
-
-    .panel-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .panel-icon {
-      font-size: 15px;
-      color: var(--text-3);
-      transition: transform 0.2s ease;
-    }
-
+    .panel-title { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .panel-icon { font-size: 15px; color: var(--text-3); transition: transform 0.2s ease; }
     .panel-icon.open { transform: rotate(180deg); }
-
-    .panel-body {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease;
-    }
-
-    .panel-body.open { max-height: 700px; }
-
+    .panel-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+    .panel-body.open { max-height: 800px; }
     .panel-body-inner { padding: 20px; }
 
     /* ── FORM ── */
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 14px;
-      margin-bottom: 16px;
-    }
-
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 16px; }
     .field { display: flex; flex-direction: column; gap: 5px; }
-
-    .field label {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-3);
-    }
-
-    .field input,
-    .field select {
-      padding: 9px 12px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background: var(--surface-2);
-      color: var(--text);
-      font-size: 14px;
-      font-family: var(--font);
-      width: 100%;
-      transition: border-color var(--transition), box-shadow var(--transition);
+    .field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+    .field input, .field select {
+      padding: 9px 12px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--surface-2);
+      color: var(--text); font-size: 14px; font-family: var(--font);
+      width: 100%; transition: border-color var(--transition), box-shadow var(--transition);
       appearance: none;
     }
-
     .field select {
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a9ab8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      padding-right: 32px;
+      background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
     }
-
     .field input::placeholder { color: var(--text-3); font-size: 13px; }
-
-    .field input:focus,
-    .field select:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-soft);
-    }
+    .field input:focus, .field select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 
     /* Persona sub-section */
-    .persona-section {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    .persona-section { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+    .persona-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .persona-balance { font-size: 12px; color: var(--text-2); }
+    .persona-balance strong { color: var(--success); font-variant-numeric: tabular-nums; }
+    .persona-manage { display: flex; align-items: center; gap: 6px; }
 
-    .persona-row {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      flex-wrap: wrap;
+    /* ── TIPO COMPRA ── */
+    .tipo-compra-row { display: flex; gap: 8px; }
+    .tipo-btn {
+      flex: 1; padding: 9px 12px;
+      border-radius: var(--radius-sm); border: 1px solid var(--border);
+      background: var(--surface); color: var(--text-2);
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: all var(--transition); font-family: var(--font);
+      text-align: center;
     }
-
-    .persona-balance {
-      font-size: 12px;
-      color: var(--text-2);
-    }
-
-    .persona-balance strong {
-      color: var(--success);
-      font-variant-numeric: tabular-nums;
-    }
+    .tipo-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .tipo-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 
     /* ── BUTTONS ── */
     .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 9px 16px;
-      border-radius: var(--radius-sm);
-      border: 1px solid transparent;
-      font-size: 13px;
-      font-weight: 600;
-      font-family: var(--font);
-      cursor: pointer;
-      transition: all var(--transition);
-      white-space: nowrap;
-      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 16px; border-radius: var(--radius-sm);
+      border: 1px solid transparent; font-size: 13px; font-weight: 600;
+      font-family: var(--font); cursor: pointer;
+      transition: all var(--transition); white-space: nowrap; text-decoration: none;
     }
-
-    .btn:disabled {
-      opacity: 0.35 !important;
-      cursor: default !important;
-      transform: none !important;
-      box-shadow: none !important;
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
-    }
-    .btn-primary:hover:not(:disabled) {
-      background: var(--accent-hover);
-      border-color: var(--accent-hover);
-      box-shadow: 0 4px 14px rgba(37,99,235,0.4);
-      transform: translateY(-1px);
-    }
-
-    .btn-success {
-      background: var(--success);
-      color: #fff;
-      border-color: var(--success);
-    }
-    .btn-success:hover:not(:disabled) {
-      filter: brightness(1.1);
-      box-shadow: 0 4px 14px rgba(34,197,94,0.3);
-      transform: translateY(-1px);
-    }
-
-    .btn-danger {
-      background: var(--danger-soft);
-      color: var(--danger);
-      border-color: transparent;
-    }
-    .btn-danger:hover:not(:disabled) {
-      background: var(--danger);
-      color: #fff;
-      box-shadow: 0 4px 14px rgba(239,68,68,0.3);
-      transform: translateY(-1px);
-    }
-
-    .btn-warning {
-      background: var(--warning-soft);
-      color: var(--warning);
-      border-color: transparent;
-    }
-    .btn-warning:hover:not(:disabled) {
-      background: var(--warning);
-      color: #fff;
-      transform: translateY(-1px);
-    }
-
-    .btn-ghost {
-      background: transparent;
-      color: var(--text-2);
-      border-color: var(--border);
-    }
-    .btn-ghost:hover:not(:disabled) {
-      background: var(--surface-2);
-      color: var(--text);
-      border-color: var(--border-2);
-    }
-
-    .btn-icon {
-      padding: 7px 9px;
-      font-size: 14px;
-    }
-
-    .btn-sm {
-      padding: 6px 11px;
-      font-size: 12px;
-    }
+    .btn:disabled { opacity: 0.35 !important; cursor: default !important; transform: none !important; box-shadow: none !important; }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); box-shadow: 0 4px 14px rgba(37,99,235,0.4); transform: translateY(-1px); }
+    .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+    .btn-success:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 4px 14px rgba(34,197,94,0.3); transform: translateY(-1px); }
+    .btn-danger { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+    .btn-danger:hover:not(:disabled) { background: var(--danger); color: #fff; box-shadow: 0 4px 14px rgba(239,68,68,0.3); transform: translateY(-1px); }
+    .btn-warning { background: var(--warning-soft); color: var(--warning); border-color: transparent; }
+    .btn-warning:hover:not(:disabled) { background: var(--warning); color: #fff; transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--text-2); border-color: var(--border); }
+    .btn-ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--text); border-color: var(--border-2); }
+    .btn-icon { padding: 7px 9px; font-size: 14px; }
+    .btn-sm { padding: 6px 11px; font-size: 12px; }
 
     /* ── FILTER BAR ── */
-    .filter-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-      padding: 14px 20px;
-      background: var(--surface-2);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .search-wrap {
-      position: relative;
-      flex: 1;
-      min-width: 180px;
-      max-width: 320px;
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 11px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-3);
-      font-size: 14px;
-      pointer-events: none;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 8px 12px 8px 34px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text);
-      font-size: 13px;
-      font-family: var(--font);
-      transition: border-color var(--transition), box-shadow var(--transition);
-    }
-
+    .filter-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 14px 20px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+    .search-wrap { position: relative; flex: 1; min-width: 180px; max-width: 320px; }
+    .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-3); font-size: 14px; pointer-events: none; }
+    .search-input { width: 100%; padding: 8px 12px 8px 34px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 13px; font-family: var(--font); transition: border-color var(--transition), box-shadow var(--transition); }
     .search-input::placeholder { color: var(--text-3); }
-
-    .search-input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-soft);
-    }
-
-    .results-badge {
-      font-size: 12px;
-      color: var(--text-3);
-      margin-left: auto;
-      white-space: nowrap;
-    }
+    .search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .results-badge { font-size: 12px; color: var(--text-3); margin-left: auto; white-space: nowrap; }
 
     /* ── TABLE ── */
-    .table-wrap {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      min-width: 720px;
-    }
-
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 720px; }
     thead th {
-      padding: 11px 16px;
-      text-align: left;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-3);
-      background: var(--surface-2);
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-      user-select: none;
-      white-space: nowrap;
-      transition: color var(--transition);
+      padding: 11px 16px; text-align: left; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3);
+      background: var(--surface-2); border-bottom: 1px solid var(--border);
+      cursor: pointer; user-select: none; white-space: nowrap; transition: color var(--transition);
     }
-
     thead th:hover { color: var(--text); }
     thead th.sorted { color: var(--accent); }
-
     .sort-icon { margin-left: 4px; font-size: 10px; }
-
-    tbody td {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      vertical-align: middle;
-      white-space: nowrap;
-      color: var(--text);
-    }
-
+    tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; white-space: nowrap; color: var(--text); }
     tbody tr:last-child td { border-bottom: none; }
-
-    tbody tr {
-      transition: background var(--transition);
-    }
-
+    tbody tr { transition: background var(--transition); }
     tbody tr:hover td { background: var(--surface-2); }
-
-    .td-right {
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* Row status indicator */
-    .status-dot {
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      margin-right: 8px;
-      vertical-align: middle;
-      flex-shrink: 0;
-    }
-
+    .td-right { text-align: right; font-variant-numeric: tabular-nums; }
+    .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 8px; vertical-align: middle; flex-shrink: 0; }
     .dot-done    { background: var(--success); }
     .dot-near    { background: var(--warning); }
     .dot-active  { background: var(--accent); }
-
-    /* Progress bar in table */
-    .progress-cell {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .prog-bar {
-      width: 70px;
-      height: 5px;
-      border-radius: 999px;
-      background: var(--border);
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    .prog-fill {
-      height: 100%;
-      border-radius: 999px;
-      transition: width 0.5s ease;
-    }
-
+    .progress-cell { display: flex; align-items: center; gap: 8px; }
+    .prog-bar { width: 70px; height: 5px; border-radius: 999px; background: var(--border); overflow: hidden; flex-shrink: 0; }
+    .prog-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
     .prog-fill.done   { background: var(--success); }
     .prog-fill.near   { background: var(--warning); }
     .prog-fill.active { background: var(--accent); }
-
-    .prog-label {
-      font-size: 12px;
-      font-variant-numeric: tabular-nums;
-      color: var(--text-2);
-      min-width: 34px;
-    }
-
-    /* Pill badges */
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-    }
-
+    .prog-label { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text-2); min-width: 34px; }
+    .pill { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; }
     .pill-done    { background: var(--success-soft); color: var(--success-text); }
     .pill-near    { background: var(--warning-soft); color: var(--warning-text); }
     .pill-pending { background: var(--accent-soft);  color: var(--accent); }
-
-    /* Action buttons in table */
-    .row-actions {
-      display: flex;
-      gap: 4px;
-      align-items: center;
-    }
-
-    /* ── AMOUNT COLORS ── */
+    .pill-unico   { background: rgba(168,85,247,0.12); color: #c084fc; }
+    .row-actions  { display: flex; gap: 4px; align-items: center; }
     .amount-positive { color: var(--success); font-weight: 600; }
     .amount-pending  { color: var(--warning); }
     .amount-neutral  { color: var(--text-2); }
 
     /* ── SUMMARY ── */
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 14px;
-      margin-top: 20px;
-    }
-
-    .summary-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 18px 20px;
-      box-shadow: var(--shadow-card);
-    }
-
-    .summary-card h3 {
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--text-3);
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 13px;
-    }
-
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 20px; }
+    .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; box-shadow: var(--shadow-card); }
+    .summary-card h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-3); margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+    .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
     .summary-row:last-child { border-bottom: none; padding-bottom: 0; }
-
     .summary-row .name { color: var(--text-2); }
-
-    .summary-row .val {
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-      color: var(--text);
-    }
-
-    .empty-msg {
-      font-size: 12px;
-      color: var(--text-3);
-      text-align: center;
-      padding: 16px 0;
-    }
-
-    /* ── TOP ACTIONS BAR ── */
-    .top-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-    }
-
-    .top-actions-right {
-      margin-left: auto;
-      display: flex;
-      gap: 8px;
-    }
+    .summary-row .val { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); }
+    .empty-msg { font-size: 12px; color: var(--text-3); text-align: center; padding: 16px 0; }
 
     /* ── TOAST ── */
-    #toast-root {
-      position: fixed;
-      top: 70px;
-      right: 20px;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      pointer-events: none;
-    }
-
-    .toast {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
-      border-radius: var(--radius-md);
-      font-size: 13px;
-      font-weight: 500;
-      max-width: 340px;
-      pointer-events: all;
-      animation: toast-in 0.22s cubic-bezier(0.4,0,0.2,1);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-      backdrop-filter: blur(10px);
-    }
-
+    #toast-root { position: fixed; top: 70px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .toast { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; max-width: 340px; pointer-events: all; animation: toast-in 0.22s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 8px 24px rgba(0,0,0,0.35); backdrop-filter: blur(10px); }
     .toast.success { background: #14532d; border: 1px solid #16a34a; color: #bbf7d0; }
     .toast.error   { background: #7f1d1d; border: 1px solid #dc2626; color: #fecaca; }
     .toast.info    { background: #1e3a5f; border: 1px solid #3b82f6; color: #bfdbfe; }
-
     .toast-icon { font-size: 15px; flex-shrink: 0; }
     .toast.fade-out { animation: toast-out 0.25s ease forwards; }
-
     @keyframes toast-in  { from { opacity:0; transform: translateX(18px); } to { opacity:1; transform: translateX(0); } }
     @keyframes toast-out { to   { opacity:0; transform: translateX(18px); } }
 
     /* ── MODAL ── */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(4px);
-      z-index: 8000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      animation: ov-in 0.15s ease;
-    }
-
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 8000; display: flex; align-items: center; justify-content: center; padding: 16px; animation: ov-in 0.15s ease; }
     .modal-overlay.fade-out { animation: ov-out 0.15s ease forwards; }
-
     @keyframes ov-in  { from { opacity:0; } to { opacity:1; } }
     @keyframes ov-out { to   { opacity:0; } }
-
-    .modal-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      padding: 28px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 32px 80px rgba(0,0,0,0.7);
-      animation: modal-in 0.2s cubic-bezier(0.4,0,0.2,1);
-    }
-
+    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 28px; width: 100%; max-width: 400px; box-shadow: 0 32px 80px rgba(0,0,0,0.7); animation: modal-in 0.2s cubic-bezier(0.4,0,0.2,1); }
     .modal-box.wide { max-width: 560px; }
-
-    @keyframes modal-in {
-      from { opacity:0; transform: scale(0.95) translateY(-6px); }
-      to   { opacity:1; transform: scale(1)    translateY(0); }
-    }
-
-    .modal-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .modal-header-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: var(--radius-md);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 17px;
-      flex-shrink: 0;
-    }
-
-    .modal-header-icon.danger  { background: var(--danger-soft);  }
-    .modal-header-icon.info    { background: var(--accent-soft);   }
-    .modal-header-icon.success { background: var(--success-soft);  }
-
-    .modal-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .modal-body {
-      font-size: 13px;
-      color: var(--text-2);
-      line-height: 1.6;
-      margin-bottom: 20px;
-    }
-
-    .modal-input {
-      width: 100%;
-      padding: 10px 13px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background: var(--surface-2);
-      color: var(--text);
-      font-size: 14px;
-      font-family: var(--font);
-      margin-top: 12px;
-    }
-
-    .modal-input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-soft);
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-    }
-
-    /* Edit grid */
-    .edit-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
+    .modal-box.hist { max-width: 600px; max-height: 85vh; display: flex; flex-direction: column; }
+    @keyframes modal-in { from { opacity:0; transform: scale(0.95) translateY(-6px); } to { opacity:1; transform: scale(1) translateY(0); } }
+    .modal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .modal-header-icon { width: 36px; height: 36px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+    .modal-header-icon.danger  { background: var(--danger-soft); }
+    .modal-header-icon.info    { background: var(--accent-soft); }
+    .modal-header-icon.success { background: var(--success-soft); }
+    .modal-title { font-size: 16px; font-weight: 700; color: var(--text); }
+    .modal-body { font-size: 13px; color: var(--text-2); line-height: 1.6; margin-bottom: 20px; }
+    .modal-input { width: 100%; padding: 10px 13px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font-size: 14px; font-family: var(--font); margin-top: 12px; }
+    .modal-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
     .edit-grid .span-2 { grid-column: 1 / -1; }
+    .edit-grid .field input, .edit-grid .field select { background: var(--surface-2); border: 1px solid var(--border); }
 
-    .edit-grid .field input,
-    .edit-grid .field select {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
+    /* ── HISTORIAL MODAL ── */
+    .hist-filter-row {
+      display: flex; gap: 8px; align-items: center;
+      margin-bottom: 14px; flex-shrink: 0;
     }
+    .hist-filter-row select {
+      flex: 1; padding: 8px 32px 8px 12px;
+      border-radius: var(--radius-sm); border: 1px solid var(--border);
+      background: var(--surface-2); color: var(--text);
+      font-size: 13px; font-family: var(--font); appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a9ab8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center;
+    }
+    .hist-count { font-size: 12px; color: var(--text-3); white-space: nowrap; }
+    .hist-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 2px; }
+    .hist-row {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 10px 14px; border-radius: var(--radius-md);
+      background: var(--surface-2); border-left: 3px solid var(--border-2);
+    }
+    .hist-row.hist-saldo  { border-left-color: var(--success); }
+    .hist-row.hist-compra { border-left-color: var(--accent); }
+    .hist-row.hist-unico  { border-left-color: #a855f7; }
+    .hist-row.hist-danger { border-left-color: var(--danger); }
+    .hist-icon { font-size: 18px; line-height: 1.2; flex-shrink: 0; }
+    .hist-info { flex: 1; min-width: 0; }
+    .hist-desc { font-size: 13px; color: var(--text); line-height: 1.5; }
+    .hist-desc strong { color: var(--text); }
+    .hist-meta { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+    .hist-empty { text-align: center; padding: 32px; color: var(--text-3); font-size: 13px; }
 
     /* ── LOADING ── */
-    #loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.45);
-      backdrop-filter: blur(2px);
-      z-index: 7000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .spinner-ring {
-      width: 40px;
-      height: 40px;
-      border: 3px solid rgba(59,130,246,0.2);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
-
+    #loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(2px); z-index: 7000; display: flex; align-items: center; justify-content: center; }
+    .spinner-ring { width: 40px; height: 40px; border: 3px solid rgba(59,130,246,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
     .hidden { display: none !important; }
-
-    /* ── DIVIDER ── */
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin: 20px 0;
-    }
-
-    /* ── PERSONA MANAGE ── */
-    .persona-manage {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
 
     /* ── RESPONSIVE ── */
-    @media (max-width: 900px) {
-      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-
+    @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 640px) {
       .main { padding: 16px 14px 32px; }
       .header-inner { padding: 0 14px; }
@@ -1069,24 +435,14 @@
       .edit-grid .span-2 { grid-column: 1; }
       table { font-size: 12px; }
       thead th, tbody td { padding: 9px 10px; }
-      .top-actions-right { margin-left: 0; width: 100%; }
       .header-user .email-text { display: none; }
     }
-
-    @media (max-width: 420px) {
-      .kpi-grid { grid-template-columns: 1fr 1fr; }
-      .kpi-value { font-size: 16px; }
-    }
+    @media (max-width: 420px) { .kpi-grid { grid-template-columns: 1fr 1fr; } .kpi-value { font-size: 16px; } }
   </style>
 </head>
 <body>
 
-<!-- Loading -->
-<div id="loading-overlay" class="hidden">
-  <div class="spinner-ring"></div>
-</div>
-
-<!-- Toasts -->
+<div id="loading-overlay" class="hidden"><div class="spinner-ring"></div></div>
 <div id="toast-root"></div>
 
 <!-- ── HEADER ── -->
@@ -1108,7 +464,6 @@
   </div>
 </header>
 
-<!-- ── MAIN ── -->
 <main class="main">
 
   <!-- Login -->
@@ -1127,11 +482,10 @@
   <!-- App content -->
   <div id="contenido" class="hidden">
 
-    <!-- Card tabs + actions -->
+    <!-- Card tabs -->
     <div class="card-tabs-section">
       <div class="section-label">Tarjetas</div>
       <div class="card-tabs-row" id="cardTabsRow">
-        <!-- rendered dynamically -->
         <button class="btn btn-ghost btn-sm card-tab card-tab-add" id="addTarjetaBtn">+ Nueva tarjeta</button>
         <button class="btn btn-sm card-tab card-tab-del" id="delTarjetaBtn">Eliminar activa</button>
       </div>
@@ -1166,14 +520,13 @@
     <!-- Add item form -->
     <div class="panel" id="formPanel">
       <div class="panel-header" id="formToggle">
-        <div class="panel-title">
-          ＋ Agregar nuevo ítem
-        </div>
+        <div class="panel-title">＋ Agregar nuevo ítem</div>
         <span class="panel-icon" id="formToggleIcon">▼</span>
       </div>
       <div class="panel-body" id="formBody">
         <div class="panel-body-inner">
           <div class="form-grid">
+
             <!-- Persona -->
             <div class="field" style="grid-column: span 1;">
               <label>Persona</label>
@@ -1197,31 +550,44 @@
                 </button>
               </div>
             </div>
-            <!-- Item -->
+
+            <!-- Ítem -->
             <div class="field">
               <label>Ítem</label>
               <input id="item" placeholder="PS5, notebook, smart TV..." />
             </div>
+
             <!-- Monto -->
             <div class="field">
-              <label>Monto por cuota</label>
+              <label id="monto-label">Monto por cuota</label>
               <input id="monto" type="number" min="0" step="1" placeholder="10000" />
             </div>
-            <!-- Pagadas -->
-            <div class="field">
+
+            <!-- Tipo de compra (nuevo) -->
+            <div class="field" style="grid-column: 1 / -1;">
+              <label>Tipo de compra</label>
+              <div class="tipo-compra-row">
+                <button type="button" class="tipo-btn active" id="btnConCuotas">📅 Con cuotas</button>
+                <button type="button" class="tipo-btn" id="btnSinCuotas">💵 Pago único</button>
+              </div>
+            </div>
+
+            <!-- Cuotas (se ocultan con pago único) -->
+            <div class="field" id="campo-cuotas-pagadas">
               <label>Cuotas pagadas</label>
               <input id="cuotasPagadas" type="number" min="0" step="1" placeholder="0" />
             </div>
-            <!-- Totales -->
-            <div class="field">
+            <div class="field" id="campo-cuotas-totales">
               <label>Cuotas totales</label>
               <input id="cuotasTotales" type="number" min="1" step="1" placeholder="12" />
             </div>
-            <!-- Actions -->
+
+            <!-- Acciones -->
             <div class="field" style="justify-content:flex-end;flex-direction:row;align-items:flex-end;gap:8px;flex-wrap:wrap;">
               <button class="btn btn-primary" id="addBtn">Agregar ítem</button>
               <button class="btn btn-danger" id="clearBtn">Borrar todo</button>
             </div>
+
           </div>
         </div>
       </div>
@@ -1229,13 +595,13 @@
 
     <!-- Table panel -->
     <div class="panel">
-      <!-- Filter bar -->
       <div class="filter-row">
         <div class="search-wrap">
           <span class="search-icon">🔍</span>
           <input class="search-input" id="filtro" placeholder="Buscar por persona o ítem..." />
         </div>
         <div style="display:flex;gap:8px;margin-left:auto;align-items:center;flex-wrap:wrap;">
+          <button class="btn btn-ghost btn-sm" id="historialBtn">📋 Historial</button>
           <button class="btn btn-ghost btn-sm" id="exportBtn">⬇ Exportar</button>
           <button class="btn btn-ghost btn-sm" id="importBtn">⬆ Importar</button>
           <input id="importFile" type="file" accept="application/json" style="display:none" />
@@ -1244,7 +610,6 @@
         </div>
       </div>
 
-      <!-- Table -->
       <div class="table-wrap">
         <table>
           <thead>
@@ -1307,11 +672,12 @@
   const db       = getFirestore(app);
 
   // ── State ──
-  let items = [], tarjetas = [], personas = [];
+  let items = [], tarjetas = [], personas = [], historial = [];
   let tarjetaActiva = "", personaSeleccionada = "";
   let currentUser = null;
   let saldos = {};
   let sortCol = null, sortDir = 1;
+  let esConCuotas = true;
 
   // ── Theme ──
   const themeToggle = document.getElementById("themeToggle");
@@ -1329,8 +695,6 @@
     const current = document.documentElement.getAttribute("data-theme");
     applyTheme(current === "dark" ? "light" : "dark");
   });
-
-  // Sync icon on load
   applyTheme(document.documentElement.getAttribute("data-theme") || "dark");
 
   // ── Toast ──
@@ -1353,12 +717,8 @@
     return new Promise(resolve => {
       const ov = document.createElement("div");
       ov.className = "modal-overlay";
-
-      const cancelHtml = cancel
-        ? `<button class="btn btn-ghost" id="m-cancel">${cancel}</button>` : "";
-      const inputHtml  = prompt !== null
-        ? `<input class="modal-input" id="m-input" placeholder="${prompt}" />` : "";
-
+      const cancelHtml = cancel ? `<button class="btn btn-ghost" id="m-cancel">${cancel}</button>` : "";
+      const inputHtml  = prompt !== null ? `<input class="modal-input" id="m-input" placeholder="${prompt}" />` : "";
       ov.innerHTML = `
         <div class="modal-box">
           <div class="modal-header">
@@ -1371,31 +731,24 @@
             ${cancelHtml}
             <button class="btn ${danger ? "btn-danger" : "btn-primary"}" id="m-confirm">${confirm}</button>
           </div>
-        </div>
-      `;
+        </div>`;
       document.body.appendChild(ov);
-
       const inputEl   = ov.querySelector("#m-input");
       const confirmEl = ov.querySelector("#m-confirm");
       const cancelEl  = ov.querySelector("#m-cancel");
-
       if (inputEl) setTimeout(() => inputEl.focus(), 60);
       else setTimeout(() => confirmEl.focus(), 60);
-
       function close(val) {
         ov.classList.add("fade-out");
         setTimeout(() => ov.remove(), 160);
         resolve(val);
       }
-
       confirmEl.addEventListener("click", () => close(inputEl ? (inputEl.value.trim() || null) : true));
       cancelEl?.addEventListener("click", () => close(false));
       ov.addEventListener("click", e => { if (e.target === ov) close(false); });
-
       ov.addEventListener("keydown", e => {
         if (e.key === "Escape") close(false);
-        if (e.key === "Enter" && !inputEl) confirmEl.click();
-        if (e.key === "Enter" && inputEl) confirmEl.click();
+        if (e.key === "Enter") confirmEl.click();
       });
     });
   }
@@ -1405,12 +758,9 @@
     return new Promise(resolve => {
       const ov = document.createElement("div");
       ov.className = "modal-overlay";
-
-      const pOpts = personas.map(p =>
-        `<option value="${p}" ${p === it.persona ? "selected" : ""}>${p}</option>`).join("");
-      const tOpts = tarjetas.map(t =>
-        `<option value="${t}" ${t === it.tarjeta ? "selected" : ""}>${t}</option>`).join("");
-
+      const pOpts = personas.map(p => `<option value="${p}" ${p === it.persona ? "selected" : ""}>${p}</option>`).join("");
+      const tOpts = tarjetas.map(t => `<option value="${t}" ${t === it.tarjeta ? "selected" : ""}>${t}</option>`).join("");
+      const esSinCuotas = it.totales === 1 && !it.cuotas;
       ov.innerHTML = `
         <div class="modal-box wide">
           <div class="modal-header">
@@ -1430,45 +780,68 @@
               <label>Ítem</label>
               <input id="e-item" value="${it.item || ""}" />
             </div>
-            <div class="field">
-              <label>Monto por cuota</label>
+            <div class="field span-2">
+              <label>Tipo de compra</label>
+              <div class="tipo-compra-row">
+                <button type="button" class="tipo-btn ${!it.pagoUnico ? "active" : ""}" id="e-btn-cuotas">📅 Con cuotas</button>
+                <button type="button" class="tipo-btn ${it.pagoUnico ? "active" : ""}" id="e-btn-unico">💵 Pago único</button>
+              </div>
+            </div>
+            <div class="field" id="e-campo-monto">
+              <label id="e-monto-label">${it.pagoUnico ? "Monto total" : "Monto por cuota"}</label>
               <input id="e-monto" type="number" min="0" value="${it.monto}" />
             </div>
-            <div class="field">
+            <div class="field" id="e-campo-pagadas" ${it.pagoUnico ? 'style="display:none"' : ""}>
               <label>Cuotas pagadas</label>
               <input id="e-pagadas" type="number" min="0" value="${it.pagadas}" />
             </div>
-            <div class="field">
+            <div class="field" id="e-campo-totales" ${it.pagoUnico ? 'style="display:none"' : ""}>
               <label>Cuotas totales</label>
-              <input id="e-totales" type="number" min="1" value="${it.totales}" />
+              <input id="e-totales" type="number" min="1" value="${it.pagoUnico ? 1 : it.totales}" />
             </div>
           </div>
           <div class="modal-actions">
             <button class="btn btn-ghost" id="e-cancel">Cancelar</button>
             <button class="btn btn-primary" id="e-save">Guardar cambios</button>
           </div>
-        </div>
-      `;
+        </div>`;
       document.body.appendChild(ov);
+
+      let editPagoUnico = !!it.pagoUnico;
+      const btnCuotas  = ov.querySelector("#e-btn-cuotas");
+      const btnUnico   = ov.querySelector("#e-btn-unico");
+      const campoP     = ov.querySelector("#e-campo-pagadas");
+      const campoT     = ov.querySelector("#e-campo-totales");
+      const montoLabel = ov.querySelector("#e-monto-label");
+
+      function toggleEdit(unico) {
+        editPagoUnico = unico;
+        btnCuotas.classList.toggle("active", !unico);
+        btnUnico.classList.toggle("active", unico);
+        campoP.style.display = unico ? "none" : "";
+        campoT.style.display = unico ? "none" : "";
+        montoLabel.textContent = unico ? "Monto total" : "Monto por cuota";
+      }
+      btnCuotas.addEventListener("click", () => toggleEdit(false));
+      btnUnico.addEventListener("click",  () => toggleEdit(true));
 
       function close(val) {
         ov.classList.add("fade-out");
         setTimeout(() => ov.remove(), 160);
         resolve(val);
       }
-
       ov.querySelector("#e-save").addEventListener("click", () => {
         const monto   = parseInt(ov.querySelector("#e-monto").value, 10);
-        const pagadas = parseInt(ov.querySelector("#e-pagadas").value, 10);
-        const totales = parseInt(ov.querySelector("#e-totales").value, 10);
+        const pagadas = editPagoUnico ? 0 : parseInt(ov.querySelector("#e-pagadas").value, 10);
+        const totales = editPagoUnico ? 1 : parseInt(ov.querySelector("#e-totales").value, 10);
         if (isNaN(monto) || monto <= 0)         { toast("Monto inválido.", "error"); return; }
-        if (isNaN(totales) || totales <= 0)      { toast("Cuotas totales inválidas.", "error"); return; }
-        if (isNaN(pagadas) || pagadas < 0 || pagadas > totales) { toast("Cuotas pagadas inválidas.", "error"); return; }
+        if (!editPagoUnico && (isNaN(totales) || totales <= 0)) { toast("Cuotas totales inválidas.", "error"); return; }
+        if (!editPagoUnico && (isNaN(pagadas) || pagadas < 0 || pagadas > totales)) { toast("Cuotas pagadas inválidas.", "error"); return; }
         close({
           persona: ov.querySelector("#e-persona").value,
           tarjeta: ov.querySelector("#e-tarjeta").value,
           item:    ov.querySelector("#e-item").value.trim() || "-",
-          monto, pagadas, totales
+          monto, pagadas, totales, pagoUnico: editPagoUnico
         });
       });
       ov.querySelector("#e-cancel").addEventListener("click", () => close(null));
@@ -1483,15 +856,110 @@
 
   // ── Helpers ──
   function fmt(n) { return (Number(n) || 0).toLocaleString("es-CL"); }
-
   function calcFactor(pagadas, totales) {
     const f = (Number(totales) || 0) - (Number(pagadas) || 0);
     return f > 0 ? f : 0;
   }
-
   function updateSaldoUI() {
     const s = personaSeleccionada ? (saldos[personaSeleccionada] || 0) : 0;
     document.getElementById("saldo-actual-persona").textContent = fmt(s);
+  }
+
+  // ── Historial ──
+  function logEvento(tipo, datos) {
+    historial.unshift({ tipo, ...datos, fecha: Date.now() });
+    if (historial.length > 500) historial.length = 500;
+  }
+
+  function fmtFecha(ts) {
+    if (!ts) return "";
+    return new Date(ts).toLocaleString("es-CL", {
+      day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit"
+    });
+  }
+
+  function renderHistList(el, list) {
+    if (!list.length) {
+      el.innerHTML = '<div class="hist-empty">Sin actividad registrada.</div>';
+      return;
+    }
+    el.innerHTML = list.slice(0, 200).map(e => {
+      let icon, desc, cls;
+      switch (e.tipo) {
+        case "saldo":
+          icon = "💰"; cls = "hist-saldo";
+          desc = `<strong>${e.persona}</strong> — Saldo agregado: <strong>$${fmt(e.monto)}</strong>`;
+          break;
+        case "saldo_borrado":
+          icon = "🗑️"; cls = "hist-danger";
+          desc = `<strong>${e.persona}</strong> — Saldo eliminado`;
+          break;
+        case "compra_cuotas":
+          icon = "📅"; cls = "hist-compra";
+          desc = `<strong>${e.persona}</strong> — Nueva compra: <em>${e.item}</em> · $${fmt(e.monto)} × ${e.totales} cuotas · <em>${e.tarjeta}</em>`;
+          break;
+        case "compra_unica":
+          icon = "💵"; cls = "hist-unico";
+          desc = `<strong>${e.persona}</strong> — Pago único: <em>${e.item}</em> · <strong>$${fmt(e.monto)}</strong> · <em>${e.tarjeta}</em>`;
+          break;
+        default:
+          icon = "ℹ️"; cls = "";
+          desc = `Evento: ${e.tipo}`;
+      }
+      return `<div class="hist-row ${cls}">
+        <span class="hist-icon">${icon}</span>
+        <div class="hist-info">
+          <div class="hist-desc">${desc}</div>
+          <div class="hist-meta">${fmtFecha(e.fecha)}</div>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  function showHistorial() {
+    const ov = document.createElement("div");
+    ov.className = "modal-overlay";
+    const pOpts = ['<option value="">Todas las personas</option>',
+      ...personas.map(p => `<option value="${p}">${p}</option>`)].join("");
+
+    ov.innerHTML = `
+      <div class="modal-box hist">
+        <div class="modal-header" style="flex-shrink:0;margin-bottom:14px;">
+          <div class="modal-header-icon info">📋</div>
+          <div class="modal-title">Historial de actividad</div>
+        </div>
+        <div class="hist-filter-row">
+          <select id="hist-persona-filter">${pOpts}</select>
+          <span class="hist-count" id="hist-count"></span>
+        </div>
+        <div class="hist-list" id="hist-list"></div>
+        <div class="modal-actions" style="flex-shrink:0;margin-top:16px;">
+          <button class="btn btn-ghost" id="hist-close">Cerrar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+
+    const listEl   = ov.querySelector("#hist-list");
+    const countEl  = ov.querySelector("#hist-count");
+    const filterEl = ov.querySelector("#hist-persona-filter");
+
+    function applyFilter() {
+      const p = filterEl.value;
+      const filtered = p ? historial.filter(h => h.persona === p) : historial;
+      countEl.textContent = `${filtered.length} evento${filtered.length !== 1 ? "s" : ""}`;
+      renderHistList(listEl, filtered);
+    }
+    applyFilter();
+    filterEl.addEventListener("change", applyFilter);
+
+    function closeHist() {
+      ov.classList.add("fade-out");
+      setTimeout(() => ov.remove(), 160);
+    }
+    ov.querySelector("#hist-close").addEventListener("click", closeHist);
+    ov.addEventListener("click", e => { if (e.target === ov) closeHist(); });
+    ov.addEventListener("keydown", e => { if (e.key === "Escape") closeHist(); });
   }
 
   // ── Firebase ──
@@ -1500,10 +968,11 @@
     const clean = items.map(it => ({
       persona: it.persona, tarjeta: it.tarjeta, item: it.item,
       monto: it.monto, pagadas: it.pagadas, totales: it.totales,
+      pagoUnico: it.pagoUnico || false,
       completedAt: it.completedAt || null
     }));
     await setDoc(doc(db, "users", currentUser.uid),
-      { items: clean, tarjetas, personas, tarjetaActiva, saldos },
+      { items: clean, tarjetas, personas, tarjetaActiva, saldos, historial },
       { merge: true });
   }
 
@@ -1513,16 +982,17 @@
     try {
       const snap = await getDoc(doc(db, "users", currentUser.uid));
       if (snap.exists()) {
-        const d      = snap.data();
+        const d       = snap.data();
         items         = d.items        || [];
         tarjetas      = d.tarjetas     || [];
         personas      = d.personas     || [];
         tarjetaActiva = d.tarjetaActiva || (tarjetas[0] || "");
         saldos        = (d.saldos && typeof d.saldos === "object") ? d.saldos : {};
+        historial     = Array.isArray(d.historial) ? d.historial : [];
       } else {
         items = []; tarjetas = ["Tarjeta 1","Tarjeta 2"];
         personas = ["Persona 1","Persona 2"];
-        tarjetaActiva = tarjetas[0]; saldos = {};
+        tarjetaActiva = tarjetas[0]; saldos = {}; historial = [];
         await save();
       }
       items.forEach(it => {
@@ -1530,6 +1000,7 @@
         if (!it.totales || it.totales <= 0)  it.totales = 1;
         if (!it.monto)   it.monto = 0;
         if (typeof it.completedAt !== "number") it.completedAt = null;
+        it.pagoUnico = !!it.pagoUnico;
         it.factor = calcFactor(it.pagadas, it.totales);
         it.total  = it.monto * it.factor;
       });
@@ -1562,7 +1033,6 @@
   // ── Card tabs ──
   function renderCardTabs() {
     const row = document.getElementById("cardTabsRow");
-    // remove existing tabs (not the add/del buttons)
     row.querySelectorAll(".dyn-tab").forEach(el => el.remove());
     const addBtn = document.getElementById("addTarjetaBtn");
     tarjetas.forEach(t => {
@@ -1666,12 +1136,21 @@
 
       // Progreso
       const tdPr = document.createElement("td");
-      tdPr.innerHTML = `
-        <div class="progress-cell">
-          <div class="prog-bar"><div class="prog-fill ${cls}" style="width:${pctN}%"></div></div>
-          <span class="prog-label">${it.pagadas}/${it.totales}</span>
-          ${isDone ? '<span class="pill pill-done">✓ Listo</span>' : isNear ? '<span class="pill pill-near">↑ Casi</span>' : '<span class="pill pill-pending">En curso</span>'}
-        </div>`;
+      if (it.pagoUnico) {
+        tdPr.innerHTML = `
+          <div class="progress-cell">
+            <div class="prog-bar"><div class="prog-fill ${cls}" style="width:${pctN}%"></div></div>
+            <span class="prog-label">${isDone ? "✓" : "—"}</span>
+            ${isDone ? '<span class="pill pill-done">✓ Listo</span>' : '<span class="pill pill-unico">💵 Único</span>'}
+          </div>`;
+      } else {
+        tdPr.innerHTML = `
+          <div class="progress-cell">
+            <div class="prog-bar"><div class="prog-fill ${cls}" style="width:${pctN}%"></div></div>
+            <span class="prog-label">${it.pagadas}/${it.totales}</span>
+            ${isDone ? '<span class="pill pill-done">✓ Listo</span>' : isNear ? '<span class="pill pill-near">↑ Casi</span>' : '<span class="pill pill-pending">En curso</span>'}
+          </div>`;
+      }
       tr.appendChild(tdPr);
 
       // Total contrato
@@ -1699,14 +1178,14 @@
 
       const btnPagar = document.createElement("button");
       btnPagar.className = "btn btn-success btn-sm";
-      btnPagar.textContent = "Pagar";
+      btnPagar.textContent = it.pagoUnico ? "Pagar" : "Pagar";
       btnPagar.disabled = isDone;
       btnPagar.addEventListener("click", async () => { if (requireLogin()) await pagarCuota(idx); });
 
       const btnUndo = document.createElement("button");
       btnUndo.className = "btn btn-warning btn-sm btn-icon";
       btnUndo.textContent = "↩";
-      btnUndo.title = "Deshacer cuota";
+      btnUndo.title = "Deshacer";
       btnUndo.disabled = it.pagadas <= 0;
       btnUndo.addEventListener("click", async () => { if (requireLogin()) await deshacerCuota(idx); });
 
@@ -1734,23 +1213,21 @@
     document.getElementById("kpi-pending").textContent = fmt(totPendiente);
     document.getElementById("kpi-monthly").textContent = fmt(totMensual);
 
-    const pct = totContrato > 0 ? Math.round(totPagado / totContrato * 100) : 0;
+    const pct     = totContrato > 0 ? Math.round(totPagado    / totContrato * 100) : 0;
     const pendPct = totContrato > 0 ? Math.round(totPendiente / totContrato * 100) : 0;
     document.getElementById("kpi-paid-bar").style.width    = pct + "%";
     document.getElementById("kpi-pending-bar").style.width = pendPct + "%";
     document.getElementById("kpi-paid-pct").textContent    = pct + "% del total";
 
-    // Pendiente por tarjeta (global)
     items.forEach(it => {
       const k = it.tarjeta || "Sin tarjeta";
       porTarjeta[k] = (porTarjeta[k] || 0) + it.total;
     });
 
-    renderSummaryBlock("sum-persona",  porPersona);
-    renderSummaryBlock("sum-tarjeta",  porTarjeta);
-    renderSummaryBlock("sum-mensual",  porMensual, "Sin cuotas pendientes.");
+    renderSummaryBlock("sum-persona", porPersona);
+    renderSummaryBlock("sum-tarjeta", porTarjeta);
+    renderSummaryBlock("sum-mensual", porMensual, "Sin cuotas pendientes.");
 
-    // Sort icons
     document.querySelectorAll("thead th[data-col]").forEach(th => {
       const col = th.dataset.col;
       const ic  = th.querySelector(".sort-icon");
@@ -1781,23 +1258,38 @@
     const persona = document.getElementById("personaSelect").value || personas[0];
     const item    = document.getElementById("item").value.trim() || "-";
     const monto   = parseInt(document.getElementById("monto").value, 10);
-    const pagadas = parseInt(document.getElementById("cuotasPagadas").value, 10) || 0;
-    const totales = parseInt(document.getElementById("cuotasTotales").value, 10) || 0;
+
+    let pagadas, totales;
+    if (esConCuotas) {
+      pagadas = parseInt(document.getElementById("cuotasPagadas").value, 10) || 0;
+      totales = parseInt(document.getElementById("cuotasTotales").value, 10) || 0;
+    } else {
+      pagadas = 0;
+      totales = 1;
+    }
 
     if (isNaN(monto) || monto <= 0)           { toast("Monto inválido (debe ser > 0).", "error"); return; }
-    if (totales <= 0)                          { toast("Cuotas totales debe ser > 0.", "error"); return; }
-    if (pagadas < 0 || pagadas > totales)      { toast("Cuotas pagadas fuera de rango.", "error"); return; }
+    if (esConCuotas && totales <= 0)           { toast("Cuotas totales debe ser > 0.", "error"); return; }
+    if (esConCuotas && (pagadas < 0 || pagadas > totales)) { toast("Cuotas pagadas fuera de rango.", "error"); return; }
     if (!tarjetaActiva)                        { toast("Crea o selecciona una tarjeta primero.", "error"); return; }
 
-    const n = { persona, tarjeta: tarjetaActiva, item, monto, pagadas, totales, completedAt: null };
+    const n = {
+      persona, tarjeta: tarjetaActiva, item, monto, pagadas, totales,
+      pagoUnico: !esConCuotas, completedAt: null
+    };
     n.factor = calcFactor(n.pagadas, n.totales);
     n.total  = n.monto * n.factor;
     items.push(n);
+
+    logEvento(esConCuotas ? "compra_cuotas" : "compra_unica", {
+      persona, item, monto, totales, tarjeta: tarjetaActiva
+    });
+
     showLoading(); try { await save(); } finally { hideLoading(); }
     renderTabla();
     ["item","monto","cuotasPagadas","cuotasTotales"].forEach(id => document.getElementById(id).value = "");
     document.getElementById("item").focus();
-    toast(`"${item}" agregado correctamente.`);
+    toast(`"${item}" agregado${esConCuotas ? ` (${totales} cuotas)` : " (pago único)"}.`);
   }
 
   async function editarFila(idx) {
@@ -1821,6 +1313,7 @@
     if (isNaN(val) || val <= 0) { toast("Ingresa un monto válido.", "error"); return; }
     saldos[personaSeleccionada] = (saldos[personaSeleccionada] || 0) + val;
     input.value = "";
+    logEvento("saldo", { persona: personaSeleccionada, monto: val });
     showLoading(); try { await save(); } finally { hideLoading(); }
     updateSaldoUI();
     toast(`$${fmt(val)} agregado a ${personaSeleccionada}.`);
@@ -1835,6 +1328,7 @@
       confirm: "Borrar", cancel: "Cancelar", danger: true
     });
     if (!ok) return;
+    logEvento("saldo_borrado", { persona: personaSeleccionada });
     saldos[personaSeleccionada] = 0;
     showLoading(); try { await save(); } finally { hideLoading(); }
     updateSaldoUI(); toast(`Saldo de ${personaSeleccionada} eliminado.`, "info");
@@ -1861,7 +1355,7 @@
     updateSaldoUI(); renderTabla();
     toast(it.pagadas >= it.totales
       ? `¡${it.item} completamente pagado! 🎉`
-      : `Cuota pagada. Quedan ${it.totales - it.pagadas}.`);
+      : it.pagoUnico ? "Pago único registrado." : `Cuota pagada. Quedan ${it.totales - it.pagadas}.`);
   }
 
   async function deshacerCuota(idx) {
@@ -1906,10 +1400,8 @@
   async function añadirTarjeta() {
     if (!requireLogin()) return;
     const n = await showModal({
-      title: "Nueva tarjeta",
-      icon: "💳", iconType: "info",
-      confirm: "Agregar", cancel: "Cancelar",
-      prompt: "Nombre (ej: Tarjeta Visa)"
+      title: "Nueva tarjeta", icon: "💳", iconType: "info",
+      confirm: "Agregar", cancel: "Cancelar", prompt: "Nombre (ej: Tarjeta Visa)"
     });
     if (!n) return;
     if (tarjetas.includes(n)) { toast("Esa tarjeta ya existe.", "error"); return; }
@@ -1940,10 +1432,8 @@
   async function añadirPersona() {
     if (!requireLogin()) return;
     const n = await showModal({
-      title: "Nueva persona",
-      icon: "👤", iconType: "info",
-      confirm: "Agregar", cancel: "Cancelar",
-      prompt: "Nombre de la persona"
+      title: "Nueva persona", icon: "👤", iconType: "info",
+      confirm: "Agregar", cancel: "Cancelar", prompt: "Nombre de la persona"
     });
     if (!n) return;
     if (personas.includes(n)) { toast("Esa persona ya existe.", "error"); return; }
@@ -1973,7 +1463,7 @@
 
   function exportar() {
     if (!requireLogin()) return;
-    const blob = new Blob([JSON.stringify({ version:4, items, tarjetas, personas, tarjetaActiva, saldos }, null, 2)],
+    const blob = new Blob([JSON.stringify({ version: 5, items, tarjetas, personas, tarjetaActiva, saldos, historial }, null, 2)],
       { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -1990,15 +1480,15 @@
       try {
         let data;
         try { data = JSON.parse(e.target.result); } catch { toast("JSON inválido.", "error"); return; }
-
-        let imp = { items:[], tarjetas:["Tarjeta 1"], personas:["Persona 1"], tarjetaActiva:"", saldos:{} };
+        let imp = { items:[], tarjetas:["Tarjeta 1"], personas:["Persona 1"], tarjetaActiva:"", saldos:{}, historial:[] };
         if (Array.isArray(data)) { imp.items = data; }
         else if (data?.items) {
-          imp.items    = data.items;
-          imp.tarjetas = Array.isArray(data.tarjetas) ? data.tarjetas : imp.tarjetas;
-          imp.personas = Array.isArray(data.personas) ? data.personas : imp.personas;
+          imp.items        = data.items;
+          imp.tarjetas     = Array.isArray(data.tarjetas)  ? data.tarjetas  : imp.tarjetas;
+          imp.personas     = Array.isArray(data.personas)  ? data.personas  : imp.personas;
           imp.tarjetaActiva = data.tarjetaActiva || "";
-          if (data.saldos && typeof data.saldos === "object") imp.saldos = data.saldos;
+          if (data.saldos    && typeof data.saldos === "object")    imp.saldos    = data.saldos;
+          if (Array.isArray(data.historial))                        imp.historial = data.historial;
         } else { toast("Estructura de backup desconocida.", "error"); return; }
 
         const ok = await showModal({
@@ -2017,6 +1507,7 @@
             monto:   Number(it.monto)   || 0,
             pagadas: Number(it.pagadas) || 0,
             totales: Number(it.totales) || 1,
+            pagoUnico: !!it.pagoUnico,
             completedAt: typeof it.completedAt === "number" ? it.completedAt : null
           };
           if (o.totales <= 0) o.totales = 1;
@@ -2026,10 +1517,11 @@
           o.total  = o.monto * o.factor;
           return o;
         });
-        tarjetas      = imp.tarjetas.length ? imp.tarjetas : ["Tarjeta 1"];
-        personas      = imp.personas.length ? imp.personas : ["Persona 1"];
+        tarjetas      = imp.tarjetas.length  ? imp.tarjetas  : ["Tarjeta 1"];
+        personas      = imp.personas.length  ? imp.personas  : ["Persona 1"];
         tarjetaActiva = (imp.tarjetaActiva && tarjetas.includes(imp.tarjetaActiva)) ? imp.tarjetaActiva : tarjetas[0];
         saldos        = (imp.saldos && typeof imp.saldos === "object") ? imp.saldos : {};
+        historial     = Array.isArray(imp.historial) ? imp.historial : [];
 
         showLoading(); try { await save(); } finally { hideLoading(); }
         renderCardTabs(); renderPersonaSelect(); renderTabla();
@@ -2039,12 +1531,32 @@
     reader.readAsText(file);
   }
 
+  // ── Tipo de compra toggle ──
+  function setCuotasVisible(visible) {
+    document.getElementById("campo-cuotas-pagadas").style.display = visible ? "" : "none";
+    document.getElementById("campo-cuotas-totales").style.display = visible ? "" : "none";
+    document.getElementById("monto-label").textContent = visible ? "Monto por cuota" : "Monto total";
+  }
+
+  document.getElementById("btnConCuotas").addEventListener("click", () => {
+    esConCuotas = true;
+    document.getElementById("btnConCuotas").classList.add("active");
+    document.getElementById("btnSinCuotas").classList.remove("active");
+    setCuotasVisible(true);
+  });
+
+  document.getElementById("btnSinCuotas").addEventListener("click", () => {
+    esConCuotas = false;
+    document.getElementById("btnSinCuotas").classList.add("active");
+    document.getElementById("btnConCuotas").classList.remove("active");
+    setCuotasVisible(false);
+  });
+
   // ── Form collapsible ──
   const formBody   = document.getElementById("formBody");
   const formToggle = document.getElementById("formToggle");
   const formIcon   = document.getElementById("formToggleIcon");
   let formOpen = window.innerWidth > 640;
-
   function setForm(open) {
     formOpen = open;
     formBody.classList.toggle("open", open);
@@ -2074,6 +1586,10 @@
   document.getElementById("addSaldoBtn").addEventListener("click", agregarSaldo);
   document.getElementById("delSaldoBtn").addEventListener("click", borrarSaldo);
   document.getElementById("exportBtn").addEventListener("click", exportar);
+  document.getElementById("historialBtn").addEventListener("click", () => {
+    if (!requireLogin()) return;
+    showHistorial();
+  });
   document.getElementById("importBtn").addEventListener("click", () => {
     document.getElementById("importFile").value = "";
     document.getElementById("importFile").click();
@@ -2104,10 +1620,9 @@
 
   onAuthStateChanged(auth, async user => {
     currentUser = user;
-    const loginBox  = document.getElementById("login-box");
-    const contenido = document.getElementById("contenido");
+    const loginBox   = document.getElementById("login-box");
+    const contenido  = document.getElementById("contenido");
     const headerUser = document.getElementById("headerUser");
-
     if (user) {
       loginBox.classList.add("hidden");
       contenido.classList.remove("hidden");
