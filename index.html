@@ -903,6 +903,18 @@
           icon = "💵"; cls = "hist-unico";
           desc = `<strong>${e.persona}</strong> — Pago único: <em>${e.item}</em> · <strong>$${fmt(e.monto)}</strong> · <em>${e.tarjeta}</em>`;
           break;
+        case "pago_cuota":
+          icon = "✅"; cls = "hist-saldo";
+          desc = `<strong>${e.persona}</strong> — Cuota ${e.cuota}/${e.totales} pagada: <em>${e.item}</em> · $${fmt(e.monto)} · <em>${e.tarjeta}</em>`;
+          break;
+        case "pago_unico":
+          icon = "✅"; cls = "hist-unico";
+          desc = `<strong>${e.persona}</strong> — Pago único completado: <em>${e.item}</em> · <strong>$${fmt(e.monto)}</strong> · <em>${e.tarjeta}</em>`;
+          break;
+        case "deshacer_cuota":
+          icon = "↩️"; cls = "hist-danger";
+          desc = `<strong>${e.persona}</strong> — Cuota ${e.cuota}/${e.totales} deshecha: <em>${e.item}</em> · $${fmt(e.monto)} · <em>${e.tarjeta}</em>`;
+          break;
         default:
           icon = "ℹ️"; cls = "";
           desc = `Evento: ${e.tipo}`;
@@ -1351,6 +1363,10 @@
     it.factor = calcFactor(it.pagadas, it.totales);
     it.total  = it.monto * it.factor;
     it.completedAt = it.pagadas >= it.totales ? Date.now() : null;
+    logEvento(it.pagoUnico ? "pago_unico" : "pago_cuota", {
+      persona: it.persona, item: it.item, monto: it.monto,
+      cuota: it.pagadas, totales: it.totales, tarjeta: it.tarjeta
+    });
     showLoading(); try { await save(); } finally { hideLoading(); }
     updateSaldoUI(); renderTabla();
     toast(it.pagadas >= it.totales
@@ -1365,6 +1381,10 @@
     it.factor = calcFactor(it.pagadas, it.totales);
     it.total  = it.monto * it.factor;
     if (it.pagadas < it.totales) it.completedAt = null;
+    logEvento("deshacer_cuota", {
+      persona: it.persona, item: it.item, monto: it.monto,
+      cuota: it.pagadas + 1, totales: it.totales, tarjeta: it.tarjeta
+    });
     showLoading(); try { await save(); } finally { hideLoading(); }
     updateSaldoUI(); renderTabla(); toast("Cuota deshecha. Saldo devuelto.", "info");
   }
