@@ -442,6 +442,18 @@
     .hist-meta { font-size: 11px; color: var(--text-3); margin-top: 3px; }
     .hist-empty { text-align: center; padding: 32px; color: var(--text-3); font-size: 13px; }
 
+    /* ── RECUPERAR FECHAS ── */
+    .bf-list { max-height: 320px; overflow-y: auto; margin: 4px 0 14px; }
+    .bf-row { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: var(--radius-sm);
+      background: var(--surface-2); border: 1px solid var(--border); margin-bottom: 6px; font-size: 12px; flex-wrap: wrap; }
+    .bf-item { flex: 1; min-width: 120px; color: var(--text); font-weight: 700; }
+    .bf-item small { display: block; font-weight: 500; color: var(--text-3); font-size: 11px; }
+    .bf-fecha { color: var(--text-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .bf-venc { color: var(--success-text); background: var(--success-soft); padding: 3px 8px;
+      border-radius: 999px; white-space: nowrap; font-weight: 700; font-size: 11px; }
+    .bf-nota { font-size: 11px; color: var(--text-3); line-height: 1.6; background: var(--warning-soft);
+      border-left: 3px solid var(--warning); padding: 9px 11px; border-radius: var(--radius-sm); margin-bottom: 12px; }
+
     /* ── LOADING ── */
     #loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(2px); z-index: 7000; display: flex; align-items: center; justify-content: center; }
     .spinner-ring { width: 40px; height: 40px; border: 3px solid rgba(59,130,246,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
@@ -648,6 +660,7 @@
             <option value="proximo">⏳ Vencen pronto</option>
             <option value="aldia">✓ Al día</option>
           </select>
+          <button class="btn btn-warning btn-sm hidden" id="recuperarFechasBtn">🕘 Recuperar fechas</button>
           <button class="btn btn-ghost btn-sm" id="historialBtn">📋 Historial</button>
           <button class="btn btn-ghost btn-sm" id="exportBtn">⬇ Exportar</button>
           <button class="btn btn-ghost btn-sm" id="importBtn">⬆ Importar</button>
@@ -1072,6 +1085,10 @@
           icon = "↩️"; cls = "hist-danger";
           desc = `<strong>${e.persona}</strong> — Cuota ${e.cuota}/${e.totales} deshecha: <em>${e.item}</em> · $${fmt(e.monto)} · <em>${e.tarjeta}</em>`;
           break;
+        case "fechas_recuperadas":
+          icon = "🕘"; cls = "hist-compra";
+          desc = `Se recuperaron <strong>${e.cantidad}</strong> fecha${e.cantidad !== 1 ? "s" : ""} de compra desde el historial`;
+          break;
         default:
           icon = "ℹ️"; cls = "";
           desc = `Evento: ${e.tipo}`;
@@ -1265,6 +1282,87 @@
       return va < vb ? -sortDir : va > vb ? sortDir : 0;
     });
     return list;
+  }
+
+  // ── Recuperar fechas desde el historial ──
+  // Los eventos de compra guardan el momento en que se registró el ítem en la app,
+  // así que sirven para rellenar la fecha de los ítems antiguos que no la tienen.
+  function buscarFechasEnHistorial() {
+    const pendientes = items
+      .map((it, idx) => ({ it, idx }))
+      .filter(({ it }) => !parseFecha(it.fechaCompra));
+    if (!pendientes.length) return [];
+
+    const compras = historial
+      .map((h, i) => ({ h, i }))
+      .filter(({ h }) => (h.tipo === "compra_cuotas" || h.tipo === "compra_unica") && h.fecha);
+    if (!compras.length) return [];
+
+    // De más estricto a más laxo; cada evento se usa una sola vez
+    const criterios = [
+      (it, h) => h.persona === it.persona && h.item === it.item && h.tarjeta === it.tarjeta && h.monto === it.monto,
+      (it, h) => h.persona === it.persona && h.item === it.item && h.tarjeta === it.tarjeta,
+      (it, h) => h.persona === it.persona && h.item === it.item
+    ];
+
+    const usados = new Set();
+    criterios.forEach(criterio => {
+      pendientes.forEach(p => {
+        if (p.fecha) return;
+        const m = compras.find(({ h, i }) => !usados.has(i) && criterio(p.it, h));
+        if (!m) return;
+        usados.add(m.i);
+        // Si el evento ya trae la fecha de compra declarada, esa manda
+        p.fecha  = parseFecha(m.h.fechaCompra) ? m.h.fechaCompra : toISO(new Date(m.h.fecha));
+        p.exacta = !!parseFecha(m.h.fechaCompra);
+      });
+    });
+
+    return pendientes.filter(p => p.fecha);
+  }
+
+  async function recuperarFechas() {
+    if (!requireLogin()) return;
+    const props = buscarFechasEnHistorial();
+    const sinFecha = items.filter(it => !parseFecha(it.fechaCompra)).length;
+
+    if (!props.length) {
+      await showModal({
+        title: "Sin coincidencias",
+        body: sinFecha
+          ? `Hay <strong>${sinFecha} ítem${sinFecha !== 1 ? "s" : ""}</strong> sin fecha, pero el historial no tiene la compra registrada. Podés ponerlas a mano con el botón ✎ de cada fila.`
+          : "Todos los ítems ya tienen fecha de compra.",
+        icon: "🕘", iconType: "info", confirm: "Entendido"
+      });
+      return;
+    }
+
+    const filas = props.map(p => {
+      const v = vencimientoCuota(p.fecha, (Number(p.it.pagadas) || 0) + 1);
+      const d = parseFecha(p.fecha);
+      return `<div class="bf-row">
+          <span class="bf-item">${p.it.item}<small>${p.it.persona} · ${p.it.tarjeta}</small></span>
+          <span class="bf-fecha">${d.getDate()} ${MESES_CORTOS[d.getMonth()]} ${d.getFullYear()}</span>
+          <span class="bf-venc">→ ${v ? fmtFechaCorta(v) : "—"}</span>
+        </div>`;
+    }).join("");
+
+    const restantes = sinFecha - props.length;
+    const ok = await showModal({
+      title: `Recuperar ${props.length} fecha${props.length !== 1 ? "s" : ""}`,
+      body: `<div class="bf-nota">Es la fecha en que <strong>registraste la compra en la app</strong>, que puede no ser el día exacto en que compraste. Revisá que calcen y corregí las que no con el botón ✎.</div>
+        <div class="bf-list">${filas}</div>
+        <div style="font-size:12px;color:var(--text-3)">La flecha marca cuándo vence la próxima cuota.${
+          restantes > 0 ? ` Quedan ${restantes} ítem${restantes !== 1 ? "s" : ""} sin coincidencia en el historial.` : ""}</div>`,
+      icon: "🕘", iconType: "info", confirm: "Aplicar fechas", cancel: "Cancelar"
+    });
+    if (!ok) return;
+
+    props.forEach(p => { items[p.idx].fechaCompra = p.fecha; });
+    logEvento("fechas_recuperadas", { persona: props[0].it.persona, cantidad: props.length });
+    showLoading(); try { await save(); } finally { hideLoading(); }
+    renderTabla();
+    toast(`${props.length} fecha${props.length !== 1 ? "s" : ""} recuperada${props.length !== 1 ? "s" : ""} del historial.`);
   }
 
   // ── Celda de próximo pago ──
@@ -1467,6 +1565,12 @@
 
     document.getElementById("results-badge").textContent =
       list.length === 0 ? "Sin resultados" : `${list.length} ítem${list.length !== 1 ? "s" : ""}`;
+
+    // El botón de recuperar fechas solo aparece si el historial tiene algo que aportar
+    const recBtn = document.getElementById("recuperarFechasBtn");
+    const recup  = buscarFechasEnHistorial().length;
+    recBtn.classList.toggle("hidden", recup === 0);
+    if (recup) recBtn.textContent = `🕘 Recuperar ${recup} fecha${recup !== 1 ? "s" : ""}`;
   }
 
   function renderSummaryBlock(id, map, empty = "Sin datos todavía.") {
@@ -1868,6 +1972,7 @@
   });
   document.getElementById("filtro").addEventListener("input", renderTabla);
   document.getElementById("filtroEstado").addEventListener("change", renderTabla);
+  document.getElementById("recuperarFechasBtn").addEventListener("click", recuperarFechas);
   ["monto","cuotasTotales"].forEach(id => {
     document.getElementById(id).addEventListener("keypress", e => {
       if (e.key === "Enter") agregarItem();
