@@ -8,8 +8,19 @@
   <meta name="theme-color" content="#0b1120" />
   <script>
     if ("serviceWorker" in navigator) {
+      // Si ya había un service worker mandando, al entrar uno nuevo se recarga
+      // sola la página para mostrar la versión actualizada.
+      const habiaControl = !!navigator.serviceWorker.controller;
+      let recargando = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!habiaControl || recargando) return;
+        recargando = true;
+        location.reload();
+      });
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js").catch(() => {});
+        navigator.serviceWorker.register("./sw.js")
+          .then(reg => reg.update())
+          .catch(() => {});
       });
     }
     const saved = localStorage.getItem("theme");
