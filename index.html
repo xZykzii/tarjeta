@@ -190,7 +190,7 @@
     .card-tab-del:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 
     /* ── KPI CARDS ── */
-    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 24px; }
     .kpi-card {
       background: var(--kpi-bg); border: 1px solid var(--border);
       border-radius: var(--radius-lg); padding: 18px 20px;
@@ -205,6 +205,7 @@
     .kpi-card.kpi-paid::before    { background: linear-gradient(90deg, #22c55e, #4ade80); }
     .kpi-card.kpi-pending::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
     .kpi-card.kpi-monthly::before { background: linear-gradient(90deg, #a855f7, #c084fc); }
+    .kpi-card.kpi-overdue::before { background: linear-gradient(90deg, #ef4444, #f87171); }
     .kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-3); margin-bottom: 8px; }
     .kpi-value { font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 10px; }
     .kpi-value .currency { font-size: 14px; font-weight: 600; color: var(--text-2); margin-right: 1px; }
@@ -214,6 +215,7 @@
     .kpi-paid .kpi-bar-fill    { background: linear-gradient(90deg, #22c55e, #4ade80); }
     .kpi-pending .kpi-bar-fill { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
     .kpi-monthly .kpi-bar-fill { background: linear-gradient(90deg, #a855f7, #c084fc); }
+    .kpi-overdue .kpi-bar-fill { background: linear-gradient(90deg, #ef4444, #f87171); }
     .kpi-sub { margin-top: 6px; font-size: 11px; color: var(--text-3); }
 
     /* ── PANEL ── */
@@ -335,6 +337,20 @@
     .pill-near    { background: var(--warning-soft); color: var(--warning-text); }
     .pill-pending { background: var(--accent-soft);  color: var(--accent); }
     .pill-unico   { background: rgba(168,85,247,0.12); color: #c084fc; }
+    .pill-late    { background: var(--danger-soft);  color: var(--danger-text); }
+    .pill-soon    { background: var(--warning-soft); color: var(--warning-text); }
+    .pill-ok      { background: var(--success-soft); color: var(--success-text); }
+    .pill-nodate  { background: var(--surface-2); color: var(--text-3); border: 1px dashed var(--border-2); }
+
+    /* ── VENCIMIENTO ── */
+    .due-cell { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; min-width: 132px; }
+    .due-date { font-size: 12px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .due-date.late { color: var(--danger); }
+    .due-date.soon { color: var(--warning); }
+    .due-date.none { color: var(--text-3); font-weight: 600; }
+    .due-meta { font-size: 10px; color: var(--text-3); white-space: nowrap; }
+    .row-late td { background: var(--danger-soft); }
+    .dot-late { background: var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); }
     .row-actions  { display: flex; gap: 4px; align-items: center; }
     .amount-positive { color: var(--success); font-weight: 600; }
     .amount-pending  { color: var(--warning); }
@@ -423,6 +439,7 @@
     .divider { height: 1px; background: var(--border); margin: 20px 0; }
 
     /* ── RESPONSIVE ── */
+    @media (max-width: 1150px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 640px) {
       .main { padding: 16px 14px 32px; }
@@ -515,6 +532,12 @@
         <div class="kpi-bar"><div class="kpi-bar-fill" style="width:60%"></div></div>
         <div class="kpi-sub">Estimado este mes</div>
       </div>
+      <div class="kpi-card kpi-overdue">
+        <div class="kpi-label">Atrasado</div>
+        <div class="kpi-value"><span class="currency">$</span><span id="kpi-overdue">0</span></div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-overdue-bar" style="width:0%"></div></div>
+        <div class="kpi-sub" id="kpi-overdue-sub">Sin cuotas vencidas</div>
+      </div>
     </div>
 
     <!-- Add item form -->
@@ -563,6 +586,13 @@
               <input id="monto" type="number" min="0" step="1" placeholder="10000" />
             </div>
 
+            <!-- Fecha de compra -->
+            <div class="field">
+              <label>Fecha de compra</label>
+              <input id="fechaCompra" type="date" />
+              <span class="kpi-sub" id="primer-venc-hint" style="margin-top:0;"></span>
+            </div>
+
             <!-- Tipo de compra (nuevo) -->
             <div class="field" style="grid-column: 1 / -1;">
               <label>Tipo de compra</label>
@@ -601,6 +631,12 @@
           <input class="search-input" id="filtro" placeholder="Buscar por persona o ítem..." />
         </div>
         <div style="display:flex;gap:8px;margin-left:auto;align-items:center;flex-wrap:wrap;">
+          <select id="filtroEstado" class="btn btn-ghost btn-sm" style="padding:6px 10px;font-family:var(--font);cursor:pointer;">
+            <option value="">Todos los estados</option>
+            <option value="atrasado">⚠ Solo atrasados</option>
+            <option value="proximo">⏳ Vencen pronto</option>
+            <option value="aldia">✓ Al día</option>
+          </select>
           <button class="btn btn-ghost btn-sm" id="historialBtn">📋 Historial</button>
           <button class="btn btn-ghost btn-sm" id="exportBtn">⬇ Exportar</button>
           <button class="btn btn-ghost btn-sm" id="importBtn">⬆ Importar</button>
@@ -618,6 +654,7 @@
               <th data-col="item">Ítem <span class="sort-icon"></span></th>
               <th data-col="monto" class="td-right">Cuota <span class="sort-icon"></span></th>
               <th data-col="progreso">Progreso <span class="sort-icon"></span></th>
+              <th data-col="vencimiento">Próximo pago <span class="sort-icon"></span></th>
               <th data-col="totalContrato" class="td-right">Total <span class="sort-icon"></span></th>
               <th data-col="pagado" class="td-right">Pagado <span class="sort-icon"></span></th>
               <th data-col="pendiente" class="td-right">Pendiente <span class="sort-icon"></span></th>
@@ -642,6 +679,10 @@
       <div class="summary-card">
         <h3>📅 Cuota mensual por persona</h3>
         <div id="sum-mensual"></div>
+      </div>
+      <div class="summary-card">
+        <h3>⚠️ Atrasado por persona</h3>
+        <div id="sum-atraso"></div>
       </div>
     </div>
 
@@ -799,6 +840,11 @@
               <label>Cuotas totales</label>
               <input id="e-totales" type="number" min="1" value="${it.pagoUnico ? 1 : it.totales}" />
             </div>
+            <div class="field span-2">
+              <label>Fecha de compra</label>
+              <input id="e-fecha" type="date" value="${it.fechaCompra || ""}" />
+              <span class="due-meta" id="e-venc-hint"></span>
+            </div>
           </div>
           <div class="modal-actions">
             <button class="btn btn-ghost" id="e-cancel">Cancelar</button>
@@ -825,6 +871,19 @@
       btnCuotas.addEventListener("click", () => toggleEdit(false));
       btnUnico.addEventListener("click",  () => toggleEdit(true));
 
+      const fechaEl = ov.querySelector("#e-fecha");
+      const hintEl  = ov.querySelector("#e-venc-hint");
+      function updateHint() {
+        const pagadas = editPagoUnico ? 0 : (parseInt(ov.querySelector("#e-pagadas").value, 10) || 0);
+        const v = vencimientoCuota(fechaEl.value, pagadas + 1);
+        hintEl.textContent = v
+          ? `Próxima cuota: ${fmtFechaCorta(v)}`
+          : "Sin fecha no se puede calcular el vencimiento.";
+      }
+      fechaEl.addEventListener("input", updateHint);
+      ov.querySelector("#e-pagadas").addEventListener("input", updateHint);
+      updateHint();
+
       function close(val) {
         ov.classList.add("fade-out");
         setTimeout(() => ov.remove(), 160);
@@ -841,7 +900,8 @@
           persona: ov.querySelector("#e-persona").value,
           tarjeta: ov.querySelector("#e-tarjeta").value,
           item:    ov.querySelector("#e-item").value.trim() || "-",
-          monto, pagadas, totales, pagoUnico: editPagoUnico
+          monto, pagadas, totales, pagoUnico: editPagoUnico,
+          fechaCompra: parseFecha(fechaEl.value) ? fechaEl.value : null
         });
       });
       ov.querySelector("#e-cancel").addEventListener("click", () => close(null));
@@ -863,6 +923,86 @@
   function updateSaldoUI() {
     const s = personaSeleccionada ? (saldos[personaSeleccionada] || 0) : 0;
     document.getElementById("saldo-actual-persona").textContent = fmt(s);
+  }
+
+  // ── Fechas de facturación ──
+  // La tarjeta factura (cierra) el día 10 y se paga el día 25.
+  // Compra ANTES del día 10  → entra en el estado que se paga el 25 de ESE mes.
+  // Compra el día 10 o después → entra en el estado siguiente: se paga el 25 del mes siguiente.
+  const DIA_FACTURACION = 10;
+  const DIA_PAGO        = 25;
+  const DIA_MS          = 86400000;
+  const PRONTO_DIAS     = 7;   // margen para avisar "vence pronto"
+  const MESES_CORTOS    = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+
+  function hoyLocal() {
+    const n = new Date();
+    return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  }
+
+  function parseFecha(str) {
+    if (typeof str !== "string") return null;
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str.trim());
+    if (!m) return null;
+    const d = new Date(+m[1], +m[2] - 1, +m[3]);
+    if (isNaN(d.getTime()) || d.getMonth() !== +m[2] - 1) return null;
+    return d;
+  }
+
+  function toISO(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+
+  // Día de pago de un mes dado (mes 0-based, admite desborde: mes 13 = feb del año siguiente)
+  function fechaPago(anio, mes) {
+    const base   = new Date(anio, mes, 1);
+    const ultimo = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate();
+    return new Date(base.getFullYear(), base.getMonth(), Math.min(DIA_PAGO, ultimo));
+  }
+
+  // Vencimiento de la cuota n (1-based) según la fecha de compra
+  function vencimientoCuota(fechaCompra, n) {
+    const c = parseFecha(fechaCompra);
+    if (!c) return null;
+    const salto = c.getDate() >= DIA_FACTURACION ? 1 : 0;
+    return fechaPago(c.getFullYear(), c.getMonth() + salto + (n - 1));
+  }
+
+  function diasEntre(a, b) { return Math.round((b - a) / DIA_MS); }
+
+  function fmtFechaCorta(d) {
+    if (!d) return "—";
+    const txt = `${d.getDate()} ${MESES_CORTOS[d.getMonth()]}`;
+    return d.getFullYear() === hoyLocal().getFullYear() ? txt : `${txt} ${d.getFullYear()}`;
+  }
+
+  // Estado de pago de un ítem: qué cuota sigue, cuándo vence y cuántas están atrasadas
+  function estadoPago(it, hoy = hoyLocal()) {
+    const totales = Number(it.totales) || 1;
+    const pagadas = Number(it.pagadas) || 0;
+    const st = {
+      estado: "aldia", proxima: null, venc: null, dias: 0,
+      atrasadas: 0, montoAtrasado: 0
+    };
+    if (pagadas >= totales)          { st.estado = "completo"; return st; }
+    if (!parseFecha(it.fechaCompra)) { st.estado = "sinfecha"; return st; }
+
+    st.proxima = pagadas + 1;
+    st.venc    = vencimientoCuota(it.fechaCompra, st.proxima);
+    st.dias    = diasEntre(hoy, st.venc);   // negativo = ya venció
+
+    // Cuotas cuyo plazo ya pasó (el propio día 25 todavía es plazo, no atraso)
+    let vencidas = 0;
+    for (let n = 1; n <= totales; n++) {
+      if (vencimientoCuota(it.fechaCompra, n) < hoy) vencidas = n;
+      else break;
+    }
+    st.atrasadas     = Math.max(0, vencidas - pagadas);
+    st.montoAtrasado = st.atrasadas * (Number(it.monto) || 0);
+    st.estado = st.atrasadas > 0 ? "atrasado"
+              : st.dias <= PRONTO_DIAS ? "proximo"
+              : "aldia";
+    return st;
   }
 
   // ── Historial ──
@@ -895,14 +1035,20 @@
           icon = "🗑️"; cls = "hist-danger";
           desc = `<strong>${e.persona}</strong> — Saldo eliminado`;
           break;
-        case "compra_cuotas":
+        case "compra_cuotas": {
           icon = "📅"; cls = "hist-compra";
-          desc = `<strong>${e.persona}</strong> — Nueva compra: <em>${e.item}</em> · $${fmt(e.monto)} × ${e.totales} cuotas · <em>${e.tarjeta}</em>`;
+          const v = parseFecha(e.venc);
+          desc = `<strong>${e.persona}</strong> — Nueva compra: <em>${e.item}</em> · $${fmt(e.monto)} × ${e.totales} cuotas · <em>${e.tarjeta}</em>${
+            v ? ` · 1ª cuota el <strong>${fmtFechaCorta(v)}</strong>` : ""}`;
           break;
-        case "compra_unica":
+        }
+        case "compra_unica": {
           icon = "💵"; cls = "hist-unico";
-          desc = `<strong>${e.persona}</strong> — Pago único: <em>${e.item}</em> · <strong>$${fmt(e.monto)}</strong> · <em>${e.tarjeta}</em>`;
+          const v = parseFecha(e.venc);
+          desc = `<strong>${e.persona}</strong> — Pago único: <em>${e.item}</em> · <strong>$${fmt(e.monto)}</strong> · <em>${e.tarjeta}</em>${
+            v ? ` · vence el <strong>${fmtFechaCorta(v)}</strong>` : ""}`;
           break;
+        }
         case "pago_cuota":
           icon = "✅"; cls = "hist-saldo";
           desc = `<strong>${e.persona}</strong> — Cuota ${e.cuota}/${e.totales} pagada: <em>${e.item}</em> · $${fmt(e.monto)} · <em>${e.tarjeta}</em>`;
@@ -981,6 +1127,7 @@
       persona: it.persona, tarjeta: it.tarjeta, item: it.item,
       monto: it.monto, pagadas: it.pagadas, totales: it.totales,
       pagoUnico: it.pagoUnico || false,
+      fechaCompra: it.fechaCompra || null,
       completedAt: it.completedAt || null
     }));
     await setDoc(doc(db, "users", currentUser.uid),
@@ -1012,6 +1159,7 @@
         if (!it.totales || it.totales <= 0)  it.totales = 1;
         if (!it.monto)   it.monto = 0;
         if (typeof it.completedAt !== "number") it.completedAt = null;
+        if (!parseFecha(it.fechaCompra)) it.fechaCompra = null;
         it.pagoUnico = !!it.pagoUnico;
         it.factor = calcFactor(it.pagadas, it.totales);
         it.total  = it.monto * it.factor;
@@ -1086,20 +1234,59 @@
       case "totalContrato": return totalContrato;
       case "pagado":        return pagado;
       case "pendiente":     return it.total;
+      case "vencimiento": {
+        const st = estadoPago(it);
+        return st.venc ? st.venc.getTime() : Infinity;
+      }
       default: return 0;
     }
   }
 
   function getItems() {
-    const f = document.getElementById("filtro").value.toLowerCase().trim();
+    const f  = document.getElementById("filtro").value.toLowerCase().trim();
+    const fe = document.getElementById("filtroEstado").value;
     let list = items.filter(it => it.tarjeta === tarjetaActiva);
     if (f) list = list.filter(it =>
       (it.persona + " " + it.item + " " + it.tarjeta).toLowerCase().includes(f));
+    if (fe) list = list.filter(it => estadoPago(it).estado === fe);
     if (sortCol) list.sort((a, b) => {
       const va = sortVal(a), vb = sortVal(b);
       return va < vb ? -sortDir : va > vb ? sortDir : 0;
     });
     return list;
+  }
+
+  // ── Celda de próximo pago ──
+  function renderVencimiento(it, st) {
+    if (st.estado === "completo")
+      return `<div class="due-cell"><span class="due-date none">—</span>
+              <span class="pill pill-done">✓ Pagado</span></div>`;
+
+    if (st.estado === "sinfecha")
+      return `<div class="due-cell"><span class="due-date none">Sin fecha</span>
+              <span class="pill pill-nodate">Editar ítem</span></div>`;
+
+    const cuota = it.pagoUnico ? "Pago único" : `Cuota ${st.proxima}/${it.totales}`;
+
+    if (st.estado === "atrasado") {
+      const dias = Math.abs(st.dias);
+      return `<div class="due-cell">
+          <span class="due-date late">${fmtFechaCorta(st.venc)}</span>
+          <span class="pill pill-late">⚠ ${st.atrasadas} atrasada${st.atrasadas !== 1 ? "s" : ""} · $${fmt(st.montoAtrasado)}</span>
+          <span class="due-meta">${cuota} · venció hace ${dias} día${dias !== 1 ? "s" : ""}</span>
+        </div>`;
+    }
+
+    const cuando = st.dias === 0 ? "Vence hoy"
+                 : st.dias === 1 ? "Vence mañana"
+                 : `En ${st.dias} días`;
+    const pillCls = st.estado === "proximo" ? "pill-soon" : "pill-ok";
+    const dateCls = st.estado === "proximo" ? "soon" : "";
+    return `<div class="due-cell">
+        <span class="due-date ${dateCls}">${fmtFechaCorta(st.venc)}</span>
+        <span class="pill ${pillCls}">${st.estado === "proximo" ? "⏳ " : "✓ "}${cuando}</span>
+        <span class="due-meta">${cuota}</span>
+      </div>`;
   }
 
   // ── Render table ──
@@ -1109,8 +1296,8 @@
     tbody.innerHTML = "";
 
     const list = getItems();
-    let totContrato = 0, totPagado = 0, totPendiente = 0, totMensual = 0;
-    const porPersona = {}, porTarjeta = {}, porMensual = {};
+    let totContrato = 0, totPagado = 0, totPendiente = 0, totMensual = 0, totAtrasado = 0, itemsAtrasados = 0;
+    const porPersona = {}, porTarjeta = {}, porMensual = {}, porAtraso = {};
 
     list.forEach(it => {
       const idx           = items.indexOf(it);
@@ -1120,15 +1307,23 @@
       const pctN          = Math.round(pct * 100);
       const isDone        = it.pagadas >= it.totales;
       const isNear        = !isDone && pct >= 0.75;
-      const cls           = isDone ? "done" : isNear ? "near" : "active";
+      const st            = estadoPago(it);
+      const isLate        = st.estado === "atrasado";
+      const cls           = isDone ? "done" : isLate ? "late" : isNear ? "near" : "active";
 
       totContrato  += totalContrato;
       totPagado    += pagado;
       totPendiente += it.total;
       if (!isDone) { totMensual += it.monto; porMensual[it.persona] = (porMensual[it.persona]||0) + it.monto; }
+      if (isLate) {
+        itemsAtrasados++;
+        totAtrasado += st.montoAtrasado;
+        porAtraso[it.persona] = (porAtraso[it.persona] || 0) + st.montoAtrasado;
+      }
       porPersona[it.persona] = (porPersona[it.persona] || 0) + it.total;
 
       const tr = document.createElement("tr");
+      if (isLate) tr.className = "row-late";
 
       // Persona
       const tdP = document.createElement("td");
@@ -1164,6 +1359,11 @@
           </div>`;
       }
       tr.appendChild(tdPr);
+
+      // Próximo pago
+      const tdV = document.createElement("td");
+      tdV.innerHTML = renderVencimiento(it, st);
+      tr.appendChild(tdV);
 
       // Total contrato
       const tdTC = document.createElement("td");
@@ -1224,12 +1424,18 @@
     document.getElementById("kpi-paid").textContent    = fmt(totPagado);
     document.getElementById("kpi-pending").textContent = fmt(totPendiente);
     document.getElementById("kpi-monthly").textContent = fmt(totMensual);
+    document.getElementById("kpi-overdue").textContent = fmt(totAtrasado);
 
     const pct     = totContrato > 0 ? Math.round(totPagado    / totContrato * 100) : 0;
     const pendPct = totContrato > 0 ? Math.round(totPendiente / totContrato * 100) : 0;
+    const atrPct  = totPendiente > 0 ? Math.round(totAtrasado / totPendiente * 100) : 0;
     document.getElementById("kpi-paid-bar").style.width    = pct + "%";
     document.getElementById("kpi-pending-bar").style.width = pendPct + "%";
+    document.getElementById("kpi-overdue-bar").style.width = Math.min(atrPct, 100) + "%";
     document.getElementById("kpi-paid-pct").textContent    = pct + "% del total";
+    document.getElementById("kpi-overdue-sub").textContent = itemsAtrasados === 0
+      ? "Sin cuotas vencidas"
+      : `${itemsAtrasados} ítem${itemsAtrasados !== 1 ? "s" : ""} con atraso`;
 
     items.forEach(it => {
       const k = it.tarjeta || "Sin tarjeta";
@@ -1239,6 +1445,7 @@
     renderSummaryBlock("sum-persona", porPersona);
     renderSummaryBlock("sum-tarjeta", porTarjeta);
     renderSummaryBlock("sum-mensual", porMensual, "Sin cuotas pendientes.");
+    renderSummaryBlock("sum-atraso",  porAtraso,  "Nadie está atrasado. 🎉");
 
     document.querySelectorAll("thead th[data-col]").forEach(th => {
       const col = th.dataset.col;
@@ -1270,6 +1477,8 @@
     const persona = document.getElementById("personaSelect").value || personas[0];
     const item    = document.getElementById("item").value.trim() || "-";
     const monto   = parseInt(document.getElementById("monto").value, 10);
+    const fechaIn = document.getElementById("fechaCompra").value;
+    const fechaCompra = parseFecha(fechaIn) ? fechaIn : null;
 
     let pagadas, totales;
     if (esConCuotas) {
@@ -1287,21 +1496,25 @@
 
     const n = {
       persona, tarjeta: tarjetaActiva, item, monto, pagadas, totales,
-      pagoUnico: !esConCuotas, completedAt: null
+      pagoUnico: !esConCuotas, fechaCompra, completedAt: null
     };
     n.factor = calcFactor(n.pagadas, n.totales);
     n.total  = n.monto * n.factor;
     items.push(n);
 
+    const primerVenc = vencimientoCuota(fechaCompra, pagadas + 1);
     logEvento(esConCuotas ? "compra_cuotas" : "compra_unica", {
-      persona, item, monto, totales, tarjeta: tarjetaActiva
+      persona, item, monto, totales, tarjeta: tarjetaActiva,
+      fechaCompra, venc: primerVenc ? toISO(primerVenc) : null
     });
 
     showLoading(); try { await save(); } finally { hideLoading(); }
     renderTabla();
     ["item","monto","cuotasPagadas","cuotasTotales"].forEach(id => document.getElementById(id).value = "");
+    resetFechaCompra();
     document.getElementById("item").focus();
-    toast(`"${item}" agregado${esConCuotas ? ` (${totales} cuotas)` : " (pago único)"}.`);
+    toast(`"${item}" agregado${esConCuotas ? ` (${totales} cuotas)` : " (pago único)"}${
+      primerVenc ? ` · próximo pago ${fmtFechaCorta(primerVenc)}` : ""}.`);
   }
 
   async function editarFila(idx) {
@@ -1483,7 +1696,7 @@
 
   function exportar() {
     if (!requireLogin()) return;
-    const blob = new Blob([JSON.stringify({ version: 5, items, tarjetas, personas, tarjetaActiva, saldos, historial }, null, 2)],
+    const blob = new Blob([JSON.stringify({ version: 6, items, tarjetas, personas, tarjetaActiva, saldos, historial }, null, 2)],
       { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -1528,6 +1741,7 @@
             pagadas: Number(it.pagadas) || 0,
             totales: Number(it.totales) || 1,
             pagoUnico: !!it.pagoUnico,
+            fechaCompra: parseFecha(it.fechaCompra) ? it.fechaCompra.trim() : null,
             completedAt: typeof it.completedAt === "number" ? it.completedAt : null
           };
           if (o.totales <= 0) o.totales = 1;
@@ -1550,6 +1764,27 @@
     };
     reader.readAsText(file);
   }
+
+  // ── Fecha de compra (form) ──
+  const fechaCompraEl = document.getElementById("fechaCompra");
+  const vencHintEl    = document.getElementById("primer-venc-hint");
+
+  function updateVencHint() {
+    const v = vencimientoCuota(fechaCompraEl.value, 1);
+    if (!v) { vencHintEl.textContent = "Sin fecha: no se calcula el vencimiento."; return; }
+    const c = parseFecha(fechaCompraEl.value);
+    vencHintEl.textContent = c.getDate() >= DIA_FACTURACION
+      ? `Entra en el próximo estado → 1ª cuota el ${fmtFechaCorta(v)}`
+      : `1ª cuota el ${fmtFechaCorta(v)}`;
+  }
+
+  function resetFechaCompra() {
+    fechaCompraEl.value = toISO(hoyLocal());
+    updateVencHint();
+  }
+  fechaCompraEl.addEventListener("change", updateVencHint);
+  fechaCompraEl.addEventListener("input", updateVencHint);
+  resetFechaCompra();
 
   // ── Tipo de compra toggle ──
   function setCuotasVisible(visible) {
@@ -1621,6 +1856,7 @@
     personaSeleccionada = e.target.value; updateSaldoUI();
   });
   document.getElementById("filtro").addEventListener("input", renderTabla);
+  document.getElementById("filtroEstado").addEventListener("change", renderTabla);
   ["monto","cuotasTotales"].forEach(id => {
     document.getElementById(id).addEventListener("keypress", e => {
       if (e.key === "Enter") agregarItem();
