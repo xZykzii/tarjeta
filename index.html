@@ -348,6 +348,7 @@
     .pill-near    { background: var(--warning-soft); color: var(--warning-text); }
     .pill-pending { background: var(--accent-soft);  color: var(--accent); }
     .pill-unico   { background: rgba(168,85,247,0.12); color: #c084fc; }
+    .pill-abono   { background: rgba(56,189,248,0.14); color: #38bdf8; }
     .pill-late    { background: var(--danger-soft);  color: var(--danger-text); }
     .pill-soon    { background: var(--warning-soft); color: var(--warning-text); }
     .pill-ok      { background: var(--success-soft); color: var(--success-text); }
@@ -778,12 +779,17 @@
 
   // ── Modal ──
   function showModal({ title, body = "", icon = "ℹ", iconType = "info",
-    confirm = "Aceptar", cancel = null, danger = false, prompt = null }) {
+    confirm = "Aceptar", cancel = null, danger = false, prompt = null,
+    promptValue = "", promptType = "text", promptMax = null }) {
     return new Promise(resolve => {
       const ov = document.createElement("div");
       ov.className = "modal-overlay";
       const cancelHtml = cancel ? `<button class="btn btn-ghost" id="m-cancel">${cancel}</button>` : "";
-      const inputHtml  = prompt !== null ? `<input class="modal-input" id="m-input" placeholder="${prompt}" />` : "";
+      const inputHtml  = prompt !== null
+        ? `<input class="modal-input" id="m-input" type="${promptType}" placeholder="${prompt}"
+             value="${promptValue}"${promptType === "number" ? ` min="1" step="1"` : ""}${
+             promptMax !== null ? ` max="${promptMax}"` : ""} />`
+        : "";
       ov.innerHTML = `
         <div class="modal-box">
           <div class="modal-header">
@@ -801,7 +807,7 @@
       const inputEl   = ov.querySelector("#m-input");
       const confirmEl = ov.querySelector("#m-confirm");
       const cancelEl  = ov.querySelector("#m-cancel");
-      if (inputEl) setTimeout(() => inputEl.focus(), 60);
+      if (inputEl) setTimeout(() => { inputEl.focus(); inputEl.select(); }, 60);
       else setTimeout(() => confirmEl.focus(), 60);
       function close(val) {
         ov.classList.add("fade-out");
@@ -944,6 +950,28 @@
     const f = (Number(totales) || 0) - (Number(pagadas) || 0);
     return f > 0 ? f : 0;
   }
+
+  // ── Abonos parciales ──
+  // it.abonado = plata ya puesta sobre la cuota EN CURSO. Siempre menor que la cuota
+  // completa: apenas la cubre, la cuota se marca pagada y el abono vuelve a cero.
+  function abonoDe(it) {
+    const m = Number(it.monto) || 0, a = Number(it.abonado) || 0;
+    return (a > 0 && a < m) ? a : 0;
+  }
+  function restanteCuota(it) { return (Number(it.monto) || 0) - abonoDe(it); }
+  function pagadoDe(it)      { return (Number(it.monto) || 0) * (Number(it.pagadas) || 0) + abonoDe(it); }
+
+  // Recalcula factor/total/abono de un ítem tras cualquier cambio
+  function recalcItem(it) {
+    it.pagadas = Number(it.pagadas) || 0;
+    it.totales = Number(it.totales) || 1;
+    it.monto   = Number(it.monto)   || 0;
+    it.abonado = abonoDe(it);
+    if (it.pagadas >= it.totales) it.abonado = 0;
+    it.factor  = calcFactor(it.pagadas, it.totales);
+    it.total   = it.monto * it.factor - it.abonado;
+    return it;
+  }
   function updateSaldoUI() {
     const s = personaSeleccionada ? (saldos[personaSeleccionada] || 0) : 0;
     document.getElementById("saldo-actual-persona").textContent = fmt(s);
@@ -1022,7 +1050,7 @@
       else break;
     }
     st.atrasadas     = Math.max(0, vencidas - pagadas);
-    st.montoAtrasado = st.atrasadas * (Number(it.monto) || 0);
+    st.montoAtrasado = Math.max(0, st.atrasadas * (Number(it.monto) || 0) - abonoDe(it));
     st.estado = st.atrasadas > 0 ? "atrasado"
               : st.dias <= PRONTO_DIAS ? "proximo"
               : "aldia";
@@ -1075,7 +1103,16 @@
         }
         case "pago_cuota":
           icon = "✅"; cls = "hist-saldo";
-          desc = `<strong>${e.persona}</strong> — Cuota ${e.cuota}/${e.totales} pagada: <em>${e.item}</em> · $${fmt(e.monto)} · <em>${e.tarjeta}</em>`;
+          desc = `<strong>${e.persona}</strong> — Cuota ${e.cuota}/${e.totales} pagada: <em>${e.item}</em> · $${fmt(e.monto)} · <em>${e.tarjeta}</em>${
+            e.abonoPrevio ? ` <span style="opacity:.75">(se descontaron $${fmt(e.pagadoAhora)}; $${fmt(e.abonoPrevio)} ya estaban abonados)</span>` : ""}`;
+          break;
+        case "abono":
+          icon = "💸"; cls = "hist-saldo";
+          desc = `<strong>${e.persona}</strong> — Abono parcial a la cuota ${e.cuota}/${e.totales}: <em>${e.item}</em> · <strong>$${fmt(e.monto)}</strong> · <em>${e.tarjeta}</em> · queda debiendo <strong>$${fmt(e.restante)}</strong>`;
+          break;
+        case "deshacer_abono":
+          icon = "↩️"; cls = "hist-danger";
+          desc = `<strong>${e.persona}</strong> — Abono deshecho en la cuota ${e.cuota}/${e.totales}: <em>${e.item}</em> · $${fmt(e.monto)} devueltos al saldo · <em>${e.tarjeta}</em>`;
           break;
         case "pago_unico":
           icon = "✅"; cls = "hist-unico";
@@ -1154,6 +1191,7 @@
     const clean = items.map(it => ({
       persona: it.persona, tarjeta: it.tarjeta, item: it.item,
       monto: it.monto, pagadas: it.pagadas, totales: it.totales,
+      abonado: abonoDe(it),
       pagoUnico: it.pagoUnico || false,
       fechaCompra: it.fechaCompra || null,
       completedAt: it.completedAt || null
@@ -1189,8 +1227,7 @@
         if (typeof it.completedAt !== "number") it.completedAt = null;
         if (!parseFecha(it.fechaCompra)) it.fechaCompra = null;
         it.pagoUnico = !!it.pagoUnico;
-        it.factor = calcFactor(it.pagadas, it.totales);
-        it.total  = it.monto * it.factor;
+        recalcItem(it);
       });
       cleanupCompleted();
       if (!tarjetas.length) tarjetas = ["Tarjeta 1"];
@@ -1252,8 +1289,8 @@
   // ── Sort ──
   function sortVal(it) {
     const totalContrato = it.monto * it.totales;
-    const pagado        = it.monto * it.pagadas;
-    const pct = it.totales > 0 ? it.pagadas / it.totales : 0;
+    const pagado        = pagadoDe(it);
+    const pct = (it.totales > 0 && totalContrato > 0) ? pagado / totalContrato : 0;
     switch (sortCol) {
       case "persona":       return it.persona.toLowerCase();
       case "item":          return it.item.toLowerCase();
@@ -1375,7 +1412,9 @@
       return `<div class="due-cell"><span class="due-date none">Sin fecha</span>
               <span class="pill pill-nodate">Editar ítem</span></div>`;
 
-    const cuota = it.pagoUnico ? "Pago único" : `Cuota ${st.proxima}/${it.totales}`;
+    const ab    = abonoDe(it);
+    const cuota = (it.pagoUnico ? "Pago único" : `Cuota ${st.proxima}/${it.totales}`)
+                + (ab > 0 ? ` · falta $${fmt(restanteCuota(it))}` : "");
 
     if (st.estado === "atrasado") {
       const dias = Math.abs(st.dias);
@@ -1411,8 +1450,10 @@
     list.forEach(it => {
       const idx           = items.indexOf(it);
       const totalContrato = it.monto * it.totales;
-      const pagado        = it.monto * it.pagadas;
-      const pct           = it.totales > 0 ? it.pagadas / it.totales : 0;
+      const abonado       = abonoDe(it);
+      const restante      = restanteCuota(it);
+      const pagado        = pagadoDe(it);
+      const pct           = totalContrato > 0 ? pagado / totalContrato : 0;
       const pctN          = Math.round(pct * 100);
       const isDone        = it.pagadas >= it.totales;
       const isNear        = !isDone && pct >= 0.75;
@@ -1452,12 +1493,16 @@
 
       // Progreso
       const tdPr = document.createElement("td");
+      const pillAbono = abonado > 0
+        ? `<span class="pill pill-abono" title="Abonado $${fmt(abonado)} · debe $${fmt(restante)}">💸 Abonado $${fmt(abonado)} · debe $${fmt(restante)}</span>`
+        : "";
       if (it.pagoUnico) {
         tdPr.innerHTML = `
           <div class="progress-cell">
             <div class="prog-bar"><div class="prog-fill ${cls}" style="width:${pctN}%"></div></div>
             <span class="prog-label">${isDone ? "✓" : "—"}</span>
             ${isDone ? '<span class="pill pill-done">✓ Listo</span>' : '<span class="pill pill-unico">💵 Único</span>'}
+            ${pillAbono}
           </div>`;
       } else {
         tdPr.innerHTML = `
@@ -1465,6 +1510,7 @@
             <div class="prog-bar"><div class="prog-fill ${cls}" style="width:${pctN}%"></div></div>
             <span class="prog-label">${it.pagadas}/${it.totales}</span>
             ${isDone ? '<span class="pill pill-done">✓ Listo</span>' : isNear ? '<span class="pill pill-near">↑ Casi</span>' : '<span class="pill pill-pending">En curso</span>'}
+            ${pillAbono}
           </div>`;
       }
       tr.appendChild(tdPr);
@@ -1497,17 +1543,24 @@
       const divA = document.createElement("div");
       divA.className = "row-actions";
 
+      // Si el saldo no alcanza la cuota completa, el botón ofrece abonar una parte
+      const dispPersona = saldos[it.persona] || 0;
+      const esAbono     = !isDone && dispPersona > 0 && dispPersona < restante;
+
       const btnPagar = document.createElement("button");
       btnPagar.className = "btn btn-success btn-sm";
-      btnPagar.textContent = it.pagoUnico ? "Pagar" : "Pagar";
+      btnPagar.textContent = esAbono ? "Abonar" : "Pagar";
+      btnPagar.title = esAbono
+        ? `Saldo $${fmt(dispPersona)} · falta $${fmt(restante)}: paga una parte y queda debiendo el resto`
+        : `Pagar $${fmt(restante)}`;
       btnPagar.disabled = isDone;
       btnPagar.addEventListener("click", async () => { if (requireLogin()) await pagarCuota(idx); });
 
       const btnUndo = document.createElement("button");
       btnUndo.className = "btn btn-warning btn-sm btn-icon";
       btnUndo.textContent = "↩";
-      btnUndo.title = "Deshacer";
-      btnUndo.disabled = it.pagadas <= 0;
+      btnUndo.title = abonado > 0 ? "Deshacer abono" : "Deshacer";
+      btnUndo.disabled = it.pagadas <= 0 && abonado <= 0;
       btnUndo.addEventListener("click", async () => { if (requireLogin()) await deshacerCuota(idx); });
 
       const btnEdit = document.createElement("button");
@@ -1610,11 +1663,10 @@
     if (!tarjetaActiva)                        { toast("Crea o selecciona una tarjeta primero.", "error"); return; }
 
     const n = {
-      persona, tarjeta: tarjetaActiva, item, monto, pagadas, totales,
+      persona, tarjeta: tarjetaActiva, item, monto, pagadas, totales, abonado: 0,
       pagoUnico: !esConCuotas, fechaCompra, completedAt: null
     };
-    n.factor = calcFactor(n.pagadas, n.totales);
-    n.total  = n.monto * n.factor;
+    recalcItem(n);
     items.push(n);
 
     const primerVenc = vencimientoCuota(fechaCompra, pagadas + 1);
@@ -1636,14 +1688,18 @@
     const it = items[idx]; if (!it) return;
     const result = await showEditModal({ ...it });
     if (!result) return;
-    items[idx] = {
+    const abonoPrevio = abonoDe(items[idx]);
+    items[idx] = recalcItem({
       ...items[idx], ...result,
-      factor: calcFactor(result.pagadas, result.totales),
-      total:  result.monto * calcFactor(result.pagadas, result.totales),
       completedAt: result.pagadas >= result.totales ? (items[idx].completedAt || Date.now()) : null
-    };
+    });
+    // Si la cuota quedó igual o menor al abono, el abono ya no cabe: se descarta y se avisa
+    const abonoPerdido = abonoPrevio > 0 && abonoDe(items[idx]) === 0;
     showLoading(); try { await save(); } finally { hideLoading(); }
-    renderTabla(); toast("Ítem actualizado.");
+    renderTabla();
+    toast(abonoPerdido
+      ? `Ítem actualizado. El abono de $${fmt(abonoPrevio)} se descartó: ya no cabe en la cuota nueva.`
+      : "Ítem actualizado.", abonoPerdido ? "info" : "success");
   }
 
   async function agregarSaldo() {
@@ -1676,23 +1732,64 @@
 
   async function pagarCuota(idx) {
     const it = items[idx]; if (!it || it.pagadas >= it.totales) return;
-    const disp = saldos[it.persona] || 0;
-    if (disp < it.monto) {
+    const disp     = saldos[it.persona] || 0;
+    const abonado  = abonoDe(it);
+    const restante = restanteCuota(it);
+
+    if (restante <= 0) return;
+
+    // Sin saldo: no hay nada que abonar
+    if (disp <= 0) {
       await showModal({
-        title: "Saldo insuficiente",
-        body: `<strong>${it.persona}</strong> no tiene saldo suficiente.<br>
-          Disponible: <strong>$${fmt(disp)}</strong> · Cuota: <strong>$${fmt(it.monto)}</strong>`,
+        title: "Sin saldo",
+        body: `<strong>${it.persona}</strong> no tiene saldo disponible.<br>
+          Falta por pagar de esta cuota: <strong>$${fmt(restante)}</strong>`,
         icon: "⚠️", iconType: "danger", confirm: "Entendido"
       });
       return;
     }
-    saldos[it.persona] = disp - it.monto;
+
+    // Saldo insuficiente: se ofrece abonar una parte y quedar debiendo el resto
+    if (disp < restante) {
+      const val = await showModal({
+        title: "Pago parcial",
+        body: `<strong>${it.persona}</strong> no alcanza a cubrir la cuota completa.<br>
+          Disponible: <strong>$${fmt(disp)}</strong> · Falta por pagar: <strong>$${fmt(restante)}</strong>
+          ${abonado ? `<br>Ya abonado a esta cuota: <strong>$${fmt(abonado)}</strong>` : ""}
+          <br><br>¿Cuánto quieres abonar? Queda debiendo la diferencia.`,
+        icon: "💸", iconType: "info",
+        confirm: "Abonar", cancel: "Cancelar",
+        prompt: "Monto a abonar", promptType: "number",
+        promptValue: disp, promptMax: disp
+      });
+      if (val === false || val === null) return;
+      const monto = parseInt(val, 10);
+      if (isNaN(monto) || monto <= 0)  { toast("Monto inválido.", "error"); return; }
+      if (monto > disp)                { toast("No hay saldo suficiente para ese abono.", "error"); return; }
+
+      saldos[it.persona] = disp - monto;
+      it.abonado = abonado + monto;
+      recalcItem(it);
+      logEvento("abono", {
+        persona: it.persona, item: it.item, monto,
+        abonado: it.abonado, restante: restanteCuota(it),
+        cuota: it.pagadas + 1, totales: it.totales, tarjeta: it.tarjeta
+      });
+      showLoading(); try { await save(); } finally { hideLoading(); }
+      updateSaldoUI(); renderTabla();
+      toast(`Abono de $${fmt(monto)} registrado. Queda debiendo $${fmt(restanteCuota(it))} de esta cuota.`, "info");
+      return;
+    }
+
+    // Saldo suficiente: se completa la cuota (descontando lo ya abonado)
+    saldos[it.persona] = disp - restante;
     it.pagadas++;
-    it.factor = calcFactor(it.pagadas, it.totales);
-    it.total  = it.monto * it.factor;
+    it.abonado = 0;
+    recalcItem(it);
     it.completedAt = it.pagadas >= it.totales ? Date.now() : null;
     logEvento(it.pagoUnico ? "pago_unico" : "pago_cuota", {
       persona: it.persona, item: it.item, monto: it.monto,
+      pagadoAhora: restante, abonoPrevio: abonado,
       cuota: it.pagadas, totales: it.totales, tarjeta: it.tarjeta
     });
     showLoading(); try { await save(); } finally { hideLoading(); }
@@ -1703,11 +1800,28 @@
   }
 
   async function deshacerCuota(idx) {
-    const it = items[idx]; if (!it || it.pagadas <= 0) return;
+    const it = items[idx]; if (!it) return;
+    const abonado = abonoDe(it);
+
+    // Lo último que se hizo fue un abono parcial: se devuelve ese abono
+    if (abonado > 0) {
+      saldos[it.persona] = (saldos[it.persona] || 0) + abonado;
+      it.abonado = 0;
+      recalcItem(it);
+      logEvento("deshacer_abono", {
+        persona: it.persona, item: it.item, monto: abonado,
+        cuota: it.pagadas + 1, totales: it.totales, tarjeta: it.tarjeta
+      });
+      showLoading(); try { await save(); } finally { hideLoading(); }
+      updateSaldoUI(); renderTabla();
+      toast(`Abono deshecho. $${fmt(abonado)} devueltos al saldo.`, "info");
+      return;
+    }
+
+    if (it.pagadas <= 0) return;
     saldos[it.persona] = (saldos[it.persona] || 0) + it.monto;
     it.pagadas--;
-    it.factor = calcFactor(it.pagadas, it.totales);
-    it.total  = it.monto * it.factor;
+    recalcItem(it);
     if (it.pagadas < it.totales) it.completedAt = null;
     logEvento("deshacer_cuota", {
       persona: it.persona, item: it.item, monto: it.monto,
@@ -1855,6 +1969,7 @@
             monto:   Number(it.monto)   || 0,
             pagadas: Number(it.pagadas) || 0,
             totales: Number(it.totales) || 1,
+            abonado: Number(it.abonado) || 0,
             pagoUnico: !!it.pagoUnico,
             fechaCompra: parseFecha(it.fechaCompra) ? it.fechaCompra.trim() : null,
             completedAt: typeof it.completedAt === "number" ? it.completedAt : null
@@ -1862,8 +1977,7 @@
           if (o.totales <= 0) o.totales = 1;
           if (o.pagadas < 0)  o.pagadas = 0;
           if (o.pagadas > o.totales) o.pagadas = o.totales;
-          o.factor = calcFactor(o.pagadas, o.totales);
-          o.total  = o.monto * o.factor;
+          recalcItem(o);
           return o;
         });
         tarjetas      = imp.tarjetas.length  ? imp.tarjetas  : ["Tarjeta 1"];
