@@ -336,7 +336,9 @@
     .dot-done    { background: var(--success); }
     .dot-near    { background: var(--warning); }
     .dot-active  { background: var(--accent); }
-    .progress-cell { display: flex; align-items: center; gap: 8px; }
+    .progress-cell { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; row-gap: 5px; }
+    /* El aviso de abono baja a su propia línea: así no ensancha la columna */
+    .prog-abono { flex-basis: 100%; }
     .prog-bar { width: 70px; height: 5px; border-radius: 999px; background: var(--border); overflow: hidden; flex-shrink: 0; }
     .prog-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
     .prog-fill.done   { background: var(--success); }
@@ -1494,7 +1496,8 @@
       // Progreso
       const tdPr = document.createElement("td");
       const pillAbono = abonado > 0
-        ? `<span class="pill pill-abono" title="Abonado $${fmt(abonado)} · debe $${fmt(restante)}">💸 Abonado $${fmt(abonado)} · debe $${fmt(restante)}</span>`
+        ? `<div class="prog-abono"><span class="pill pill-abono"
+             title="Abonado $${fmt(abonado)} · falta $${fmt(restante)} para cerrar la cuota">💸 Abonado $${fmt(abonado)}</span></div>`
         : "";
       if (it.pagoUnico) {
         tdPr.innerHTML = `
