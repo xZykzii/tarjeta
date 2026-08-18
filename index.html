@@ -109,7 +109,12 @@
       color: var(--text);
       min-height: 100vh;
       transition: background var(--transition), color var(--transition);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
     }
+    /* Foco visible y consistente para teclado, sin ensuciar el clic con mouse */
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 
     /* ── HEADER ── */
     .app-header {
@@ -147,20 +152,23 @@
       font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
     }
 
-    /* ── THEME TOGGLE ── */
-    .theme-toggle {
+    /* ── ACCIONES DEL HEADER (historial + tema) ── */
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .header-btn {
       background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.12);
       border-radius: 999px;
-      padding: 5px 10px;
+      padding: 0 13px;
+      height: 34px;
       cursor: pointer;
       color: var(--header-muted);
-      font-size: 13px;
-      display: flex; align-items: center; gap: 6px;
-      transition: background var(--transition), color var(--transition);
+      font-size: 13px; font-weight: 600; font-family: var(--font);
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: background var(--transition), color var(--transition), border-color var(--transition);
       white-space: nowrap;
     }
-    .theme-toggle:hover { background: rgba(255,255,255,0.14); color: var(--header-text); }
+    .header-btn:hover { background: rgba(255,255,255,0.16); color: var(--header-text); border-color: rgba(255,255,255,0.22); }
+    .header-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
     /* ── MAIN ── */
     .main { max-width: 1200px; margin: 0 auto; padding: 28px 24px 40px; }
@@ -201,7 +209,7 @@
     .card-tab-del:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 
     /* ── KPI CARDS ── */
-    .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 24px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
     .kpi-card {
       background: var(--kpi-bg); border: 1px solid var(--border);
       border-radius: var(--radius-lg); padding: 18px 20px;
@@ -212,8 +220,6 @@
       content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
       border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     }
-    .kpi-card.kpi-total::before   { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
-    .kpi-card.kpi-paid::before    { background: linear-gradient(90deg, #22c55e, #4ade80); }
     .kpi-card.kpi-pending::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
     .kpi-card.kpi-monthly::before { background: linear-gradient(90deg, #a855f7, #c084fc); }
     .kpi-card.kpi-overdue::before { background: linear-gradient(90deg, #ef4444, #f87171); }
@@ -222,12 +228,11 @@
     .kpi-value .currency { font-size: 14px; font-weight: 600; color: var(--text-2); margin-right: 1px; }
     .kpi-bar { height: 4px; border-radius: 999px; background: var(--border); overflow: hidden; }
     .kpi-bar-fill { height: 100%; border-radius: 999px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
-    .kpi-total .kpi-bar-fill   { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
-    .kpi-paid .kpi-bar-fill    { background: linear-gradient(90deg, #22c55e, #4ade80); }
     .kpi-pending .kpi-bar-fill { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
     .kpi-monthly .kpi-bar-fill { background: linear-gradient(90deg, #a855f7, #c084fc); }
     .kpi-overdue .kpi-bar-fill { background: linear-gradient(90deg, #ef4444, #f87171); }
-    .kpi-sub { margin-top: 6px; font-size: 11px; color: var(--text-3); }
+    .kpi-sub { margin-top: 6px; font-size: 11px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+    .kpi-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.22); border-color: var(--border-2); }
 
     /* ── PANEL ── */
     .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 16px; box-shadow: var(--shadow-card); overflow: hidden; }
@@ -314,6 +319,8 @@
     .search-input::placeholder { color: var(--text-3); }
     .search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
     .results-badge { font-size: 12px; color: var(--text-3); margin-left: auto; white-space: nowrap; }
+    /* El selector de orden solo sirve cuando la cabecera de la tabla no se ve */
+    .sort-mobile { display: none; }
 
     /* ── TABLE ── */
     .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -465,22 +472,108 @@
     .divider { height: 1px; background: var(--border); margin: 20px 0; }
 
     /* ── RESPONSIVE ── */
-    @media (max-width: 1150px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Notebook: la tabla no entra entera. "Total" es la columna más prescindible
+       (Pagado y Pendiente ya cuentan la historia), así que se oculta antes de
+       obligar a arrastrar en horizontal. */
+    @media (max-width: 1150px) and (min-width: 901px) {
+      .main { padding: 24px 18px 36px; }
+      thead th[data-col="totalContrato"], .cell-total { display: none; }
+    }
+
+    /* Tablet y móvil: la tabla deja de ser tabla y pasa a tarjetas.
+       Antes obligaba a arrastrar en horizontal 720px para ver una fila entera. */
+    @media (max-width: 900px) {
+      .main { padding: 22px 16px 36px; }
+      .kpi-value { font-size: 22px; }
+      .table-wrap { overflow-x: visible; padding: 12px; background: var(--surface-2); }
+      table { min-width: 0; display: block; width: 100%; }
+      thead { display: none; }
+      tbody { display: flex; flex-direction: column; gap: 10px; }
+
+      tbody tr {
+        display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 0 12px;
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: var(--radius-md); padding: 13px 15px;
+        box-shadow: var(--shadow-card);
+      }
+      tbody tr:hover td, tbody tr:last-child td { background: transparent; }
+
+      tbody td {
+        grid-column: 1 / -1;
+        display: flex; align-items: center; justify-content: space-between; gap: 14px;
+        padding: 8px 0; border-bottom: 1px solid var(--border);
+        white-space: normal; text-align: right;
+      }
+      tbody td::before {
+        content: attr(data-label);
+        font-size: 11px; font-weight: 600; text-transform: uppercase;
+        letter-spacing: 0.06em; color: var(--text-3); flex-shrink: 0; text-align: left;
+      }
+
+      /* Persona e ítem forman el encabezado de la tarjeta, sin etiqueta */
+      .cell-persona, .cell-item { grid-column: auto; border-bottom: none; padding: 0 0 9px; }
+      .cell-persona::before, .cell-item::before { display: none; }
+      .cell-persona { font-size: 14px; font-weight: 700; justify-content: flex-start; }
+      .cell-item    { font-size: 13px; color: var(--text-2); justify-content: flex-end; }
+
+      /* Contenido complejo alineado a la derecha, contra su etiqueta */
+      .progress-cell { justify-content: flex-end; }
+      .prog-abono    { display: flex; justify-content: flex-end; }
+      .due-cell      { min-width: 0; align-items: flex-end; }
+      .due-meta      { white-space: normal; }
+
+      /* Botones a lo ancho: objetivos táctiles de verdad */
+      .cell-acciones { border-bottom: none; padding: 12px 0 0; }
+      .cell-acciones::before { display: none; }
+      .row-actions { width: 100%; gap: 8px; }
+      .row-actions .btn { flex: 1; justify-content: center; min-height: 40px; font-size: 13px; }
+
+      /* La fila atrasada se tiñe como tarjeta completa */
+      .row-late td { background: transparent; }
+      tbody tr.row-late { border-color: var(--danger); background: var(--danger-soft); }
+
+      /* Barra de filtros apilada */
+      .sort-mobile { display: inline-flex; }
+      .filter-row { padding: 12px 14px; gap: 8px; }
+      .search-wrap { max-width: none; flex-basis: 100%; }
+      .filter-row .btn, .filter-row select { min-height: 36px; }
+      .results-badge { margin-left: 0; }
+    }
+
     @media (max-width: 640px) {
-      .main { padding: 16px 14px 32px; }
-      .header-inner { padding: 0 14px; }
-      .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-      .kpi-value { font-size: 18px; }
+      .main { padding: 16px 13px 32px; }
+      .header-inner { padding: 0 14px; gap: 10px; }
+      .kpi-grid { grid-template-columns: 1fr; gap: 10px; }
+      .kpi-card { padding: 14px 16px; }
+      .kpi-value { font-size: 22px; }
       .logo-text span { display: none; }
       .summary-grid { grid-template-columns: 1fr; }
       .edit-grid { grid-template-columns: 1fr; }
       .edit-grid .span-2 { grid-column: 1; }
-      table { font-size: 12px; }
-      thead th, tbody td { padding: 9px 10px; }
       .header-user .email-text { display: none; }
+      .header-btn-text { display: none; }
+      .header-btn { padding: 0 11px; }
+      .modal-box { padding: 22px 20px; }
+      #toast-root { top: auto; bottom: 16px; right: 12px; left: 12px; }
+      .toast { max-width: none; }
     }
-    @media (max-width: 420px) { .kpi-grid { grid-template-columns: 1fr 1fr; } .kpi-value { font-size: 16px; } }
+
+    /* Pantallas muy angostas: los KPI se apilan de a uno y bajan de tamaño */
+    @media (max-width: 420px) {
+      .kpi-value { font-size: 20px; }
+      .card-tab { padding: 7px 11px; font-size: 12px; }
+      .tipo-compra-row { flex-direction: column; }
+    }
+
+    /* Respetar a quien pide menos movimiento en el sistema */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important; scroll-behavior: auto !important;
+      }
+      .btn:hover:not(:disabled) { transform: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -496,10 +589,16 @@
       <div class="logo-text">Cuotas <span>/ Control</span></div>
     </div>
     <div class="header-spacer"></div>
-    <button class="theme-toggle" id="themeToggle">
-      <span id="themeIcon">☀️</span>
-      <span id="themeLabel">Claro</span>
-    </button>
+    <div class="header-actions">
+      <button class="header-btn hidden" id="historialBtn" title="Historial de actividad">
+        <span aria-hidden="true">📋</span>
+        <span class="header-btn-text">Historial</span>
+      </button>
+      <button class="header-btn" id="themeToggle" title="Cambiar tema">
+        <span id="themeIcon">☀️</span>
+        <span class="header-btn-text" id="themeLabel">Claro</span>
+      </button>
+    </div>
     <div class="header-user hidden" id="headerUser">
       <div class="header-avatar" id="headerAvatar">?</div>
       <span class="email-text" id="headerEmail"></span>
@@ -536,21 +635,11 @@
 
     <!-- KPI cards -->
     <div class="kpi-grid">
-      <div class="kpi-card kpi-total">
-        <div class="kpi-label">Total contrato</div>
-        <div class="kpi-value"><span class="currency">$</span><span id="kpi-total">0</span></div>
-        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:100%"></div></div>
-      </div>
-      <div class="kpi-card kpi-paid">
-        <div class="kpi-label">Total pagado</div>
-        <div class="kpi-value"><span class="currency">$</span><span id="kpi-paid">0</span></div>
-        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-paid-bar" style="width:0%"></div></div>
-        <div class="kpi-sub" id="kpi-paid-pct">0% del total</div>
-      </div>
       <div class="kpi-card kpi-pending">
         <div class="kpi-label">Pendiente</div>
         <div class="kpi-value"><span class="currency">$</span><span id="kpi-pending">0</span></div>
         <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-pending-bar" style="width:0%"></div></div>
+        <div class="kpi-sub" id="kpi-pending-sub">Sin ítems activos</div>
       </div>
       <div class="kpi-card kpi-monthly">
         <div class="kpi-label">Cuota mensual</div>
@@ -663,8 +752,17 @@
             <option value="proximo">⏳ Vencen pronto</option>
             <option value="aldia">✓ Al día</option>
           </select>
+          <!-- En móvil la cabecera de la tabla no se ve, así que el orden va acá -->
+          <select id="ordenMovil" class="btn btn-ghost btn-sm sort-mobile" style="padding:6px 10px;font-family:var(--font);cursor:pointer;">
+            <option value="">Sin orden</option>
+            <option value="vencimiento:1">↑ Próximo a vencer</option>
+            <option value="pendiente:-1">↓ Mayor pendiente</option>
+            <option value="monto:-1">↓ Mayor cuota</option>
+            <option value="progreso:-1">↓ Más avanzado</option>
+            <option value="persona:1">↑ Persona A-Z</option>
+            <option value="item:1">↑ Ítem A-Z</option>
+          </select>
           <button class="btn btn-warning btn-sm hidden" id="recuperarFechasBtn">🕘 Recuperar fechas</button>
-          <button class="btn btn-ghost btn-sm" id="historialBtn">📋 Historial</button>
           <button class="btn btn-ghost btn-sm" id="exportBtn">⬇ Exportar</button>
           <button class="btn btn-ghost btn-sm" id="importBtn">⬆ Importar</button>
           <input id="importFile" type="file" accept="application/json" style="display:none" />
@@ -1479,22 +1577,29 @@
 
       // Persona
       const tdP = document.createElement("td");
+      tdP.className = "cell-persona";
+      tdP.dataset.label = "Persona";
       tdP.innerHTML = `<span class="status-dot dot-${cls}"></span>${it.persona}`;
       tr.appendChild(tdP);
 
       // Item
       const tdI = document.createElement("td");
+      tdI.className = "cell-item";
+      tdI.dataset.label = "Ítem";
       tdI.textContent = it.item;
       tr.appendChild(tdI);
 
       // Monto
       const tdM = document.createElement("td");
-      tdM.className = "td-right amount-neutral";
+      tdM.className = "td-right amount-neutral cell-monto";
+      tdM.dataset.label = it.pagoUnico ? "Monto" : "Cuota";
       tdM.textContent = "$" + fmt(it.monto);
       tr.appendChild(tdM);
 
       // Progreso
       const tdPr = document.createElement("td");
+      tdPr.className = "cell-progreso";
+      tdPr.dataset.label = "Progreso";
       const pillAbono = abonado > 0
         ? `<div class="prog-abono"><span class="pill pill-abono"
              title="Abonado $${fmt(abonado)} · falta $${fmt(restante)} para cerrar la cuota">💸 $${fmt(abonado)} · falta $${fmt(restante)}</span></div>`
@@ -1520,29 +1625,35 @@
 
       // Próximo pago
       const tdV = document.createElement("td");
+      tdV.className = "cell-venc";
+      tdV.dataset.label = "Próximo pago";
       tdV.innerHTML = renderVencimiento(it, st);
       tr.appendChild(tdV);
 
       // Total contrato
       const tdTC = document.createElement("td");
-      tdTC.className = "td-right amount-neutral";
+      tdTC.className = "td-right amount-neutral cell-total";
+      tdTC.dataset.label = "Total";
       tdTC.textContent = "$" + fmt(totalContrato);
       tr.appendChild(tdTC);
 
       // Pagado
       const tdPag = document.createElement("td");
-      tdPag.className = "td-right amount-positive";
+      tdPag.className = "td-right amount-positive cell-pagado";
+      tdPag.dataset.label = "Pagado";
       tdPag.textContent = "$" + fmt(pagado);
       tr.appendChild(tdPag);
 
       // Pendiente
       const tdPend = document.createElement("td");
-      tdPend.className = "td-right amount-pending";
+      tdPend.className = "td-right amount-pending cell-pendiente";
+      tdPend.dataset.label = "Pendiente";
       tdPend.textContent = "$" + fmt(it.total);
       tr.appendChild(tdPend);
 
       // Actions
       const tdA  = document.createElement("td");
+      tdA.className = "cell-acciones";
       const divA = document.createElement("div");
       divA.className = "row-actions";
 
@@ -1585,19 +1696,18 @@
     });
 
     // KPIs
-    document.getElementById("kpi-total").textContent   = fmt(totContrato);
-    document.getElementById("kpi-paid").textContent    = fmt(totPagado);
     document.getElementById("kpi-pending").textContent = fmt(totPendiente);
     document.getElementById("kpi-monthly").textContent = fmt(totMensual);
     document.getElementById("kpi-overdue").textContent = fmt(totAtrasado);
 
-    const pct     = totContrato > 0 ? Math.round(totPagado    / totContrato * 100) : 0;
-    const pendPct = totContrato > 0 ? Math.round(totPendiente / totContrato * 100) : 0;
-    const atrPct  = totPendiente > 0 ? Math.round(totAtrasado / totPendiente * 100) : 0;
-    document.getElementById("kpi-paid-bar").style.width    = pct + "%";
+    const pagadoPct = totContrato > 0 ? Math.round(totPagado    / totContrato * 100) : 0;
+    const pendPct   = totContrato > 0 ? Math.round(totPendiente / totContrato * 100) : 0;
+    const atrPct    = totPendiente > 0 ? Math.round(totAtrasado / totPendiente * 100) : 0;
     document.getElementById("kpi-pending-bar").style.width = pendPct + "%";
     document.getElementById("kpi-overdue-bar").style.width = Math.min(atrPct, 100) + "%";
-    document.getElementById("kpi-paid-pct").textContent    = pct + "% del total";
+    document.getElementById("kpi-pending-sub").textContent = totContrato === 0
+      ? "Sin ítems activos"
+      : `${pagadoPct}% ya pagado de $${fmt(totContrato)}`;
     document.getElementById("kpi-overdue-sub").textContent = itemsAtrasados === 0
       ? "Sin cuotas vencidas"
       : `${itemsAtrasados} ítem${itemsAtrasados !== 1 ? "s" : ""} con atraso`;
@@ -2059,9 +2169,24 @@
       const col = th.dataset.col;
       sortDir = sortCol === col ? sortDir * -1 : 1;
       sortCol = col;
+      sincronizarOrdenMovil();
       renderTabla();
     });
   });
+
+  // En móvil la tabla se dibuja como tarjetas y la cabecera queda oculta,
+  // así que el mismo orden se maneja desde este selector.
+  const ordenMovil = document.getElementById("ordenMovil");
+  ordenMovil.addEventListener("change", () => {
+    const [col, dir] = ordenMovil.value.split(":");
+    sortCol = col || null;
+    sortDir = dir === "-1" ? -1 : 1;
+    renderTabla();
+  });
+  function sincronizarOrdenMovil() {
+    const valor = sortCol ? `${sortCol}:${sortDir}` : "";
+    ordenMovil.value = [...ordenMovil.options].some(o => o.value === valor) ? valor : "";
+  }
 
   // ── Events ──
   document.getElementById("addBtn").addEventListener("click", agregarItem);
@@ -2112,10 +2237,12 @@
     const loginBox   = document.getElementById("login-box");
     const contenido  = document.getElementById("contenido");
     const headerUser = document.getElementById("headerUser");
+    const histBtn    = document.getElementById("historialBtn");
     if (user) {
       loginBox.classList.add("hidden");
       contenido.classList.remove("hidden");
       headerUser.classList.remove("hidden");
+      histBtn.classList.remove("hidden");
       document.getElementById("headerEmail").textContent = user.email || "";
       const initial = (user.displayName || user.email || "?")[0].toUpperCase();
       document.getElementById("headerAvatar").textContent = initial;
@@ -2125,6 +2252,7 @@
       loginBox.classList.remove("hidden");
       contenido.classList.add("hidden");
       headerUser.classList.add("hidden");
+      histBtn.classList.add("hidden");
     }
   });
 </script>
