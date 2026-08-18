@@ -398,7 +398,8 @@
     .due-date.soon { color: var(--warning); }
     .due-date.none { color: var(--text-3); font-weight: 600; }
     .due-meta { font-size: 10px; color: var(--text-3); white-space: nowrap; }
-    .row-late td { background: var(--danger-soft); }
+    /* El atraso se marca solo con el punto rojo del inicio de la fila. Teñir la
+       fila entera de rojo ahogaba el resto de la tabla cuando hay muchas. */
     .dot-late { background: var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); }
     .row-actions  { display: flex; gap: 4px; align-items: center; }
     .amount-positive { color: var(--success); font-weight: 600; }
@@ -556,10 +557,6 @@
       .cell-acciones::before { display: none; }
       .row-actions { width: 100%; gap: 8px; }
       .row-actions .btn { flex: 1; justify-content: center; min-height: 40px; font-size: 13px; }
-
-      /* La fila atrasada se tiñe como tarjeta completa */
-      .row-late td { background: transparent; }
-      tbody tr.row-late { border-color: var(--danger); background: var(--danger-soft); }
 
       /* Barra de filtros apilada */
       .sort-mobile { display: inline-flex; }
