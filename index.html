@@ -1497,7 +1497,7 @@
       const tdPr = document.createElement("td");
       const pillAbono = abonado > 0
         ? `<div class="prog-abono"><span class="pill pill-abono"
-             title="Abonado $${fmt(abonado)} · falta $${fmt(restante)} para cerrar la cuota">💸 Abonado $${fmt(abonado)}</span></div>`
+             title="Abonado $${fmt(abonado)} · falta $${fmt(restante)} para cerrar la cuota">💸 $${fmt(abonado)} · falta $${fmt(restante)}</span></div>`
         : "";
       if (it.pagoUnico) {
         tdPr.innerHTML = `
