@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <title>Control de cuotas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Controla tus compras, cuotas y próximos pagos en un solo lugar." />
+  <meta name="color-scheme" content="dark light" />
   <link rel="manifest" href="./manifest.json" />
   <meta name="theme-color" content="#000000" />
   <script>
@@ -30,10 +32,10 @@
   <style>
     /* ── TOKENS ── */
     :root {
-      --radius-sm: 6px;
-      --radius-md: 10px;
-      --radius-lg: 14px;
-      --radius-xl: 20px;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
       --font: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       --transition: 0.18s ease;
     }
@@ -44,6 +46,7 @@
       --bg:           #f4f4f5;
       --surface:      #ffffff;
       --surface-2:    #fafafa;
+      --surface-3:    #f1f1f3;
       --border:       #e4e4e7;
       --border-2:     #d0d0d6;
       --text:         #101012;
@@ -70,12 +73,14 @@
       --tab-active-bg: #101012;
       --tab-active-text: #ffffff;
       --glow: rgba(0,0,0,0.16);
+      --hero-glow: rgba(0,0,0,0.05);
     }
 
     [data-theme="dark"] {
       --bg:           #000000;
       --surface:      #0c0c0e;
       --surface-2:    #141417;
+      --surface-3:    #1a1a1e;
       --border:       #232326;
       --border-2:     #35353b;
       --text:         #f4f4f5;
@@ -102,6 +107,7 @@
       --tab-active-bg: #f4f4f5;
       --tab-active-text: #000000;
       --glow: rgba(255,255,255,0.14);
+      --hero-glow: rgba(255,255,255,0.055);
     }
 
     /* ── RESET ── */
@@ -116,6 +122,10 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       text-rendering: optimizeLegibility;
+      background-image:
+        radial-gradient(circle at 15% -10%, var(--hero-glow), transparent 28rem),
+        radial-gradient(circle at 92% 18%, var(--hero-glow), transparent 24rem);
+      background-attachment: fixed;
     }
     /* Foco visible y consistente para teclado, sin ensuciar el clic con mouse */
     :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
@@ -128,6 +138,7 @@
       top: 0;
       z-index: 100;
       box-shadow: 0 2px 16px rgba(0,0,0,0.35);
+      backdrop-filter: blur(18px);
     }
     .header-inner {
       max-width: 1200px;
@@ -174,9 +185,33 @@
     }
     .header-btn:hover { background: rgba(255,255,255,0.16); color: var(--header-text); border-color: rgba(255,255,255,0.22); }
     .header-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .header-signout {
+      height: 30px; padding: 0 10px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.1); background: transparent;
+      color: var(--header-muted); font: 600 12px var(--font); cursor: pointer;
+      transition: color var(--transition), background var(--transition), border-color var(--transition);
+    }
+    .header-signout:hover { color: #fff; background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); }
 
     /* ── MAIN ── */
-    .main { max-width: 1200px; margin: 0 auto; padding: 28px 24px 40px; }
+    .main { max-width: 1240px; margin: 0 auto; padding: 32px 24px 48px; }
+
+    /* ── PAGE INTRO ── */
+    .page-intro {
+      display: flex; justify-content: space-between; align-items: flex-end; gap: 24px;
+      margin-bottom: 26px; padding: 8px 2px 0;
+    }
+    .page-eyebrow {
+      display: inline-flex; align-items: center; gap: 7px; margin-bottom: 8px;
+      color: var(--text-3); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.11em; text-transform: uppercase;
+    }
+    .page-eyebrow::before { content: ""; width: 18px; height: 1px; background: var(--text-3); }
+    .page-intro h1 { font-size: clamp(25px, 3vw, 36px); letter-spacing: -0.045em; line-height: 1.08; }
+    .page-intro p { margin-top: 8px; max-width: 620px; color: var(--text-2); font-size: 13px; line-height: 1.6; }
+    .page-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .btn-soft { background: var(--surface); color: var(--text); border-color: var(--border); box-shadow: var(--shadow-card); }
+    .btn-soft:hover:not(:disabled) { background: var(--surface-2); border-color: var(--border-2); transform: translateY(-1px); }
 
     /* ── LOGIN ── */
     .login-card {
@@ -191,12 +226,23 @@
     #login-info { margin-top: 12px; font-size: 12px; color: var(--text-3); }
 
     /* ── CARD TABS ── */
-    .card-tabs-section { margin-bottom: 24px; }
+    .card-tabs-section {
+      margin-bottom: 18px; padding: 15px 16px;
+      border: 1px solid var(--border); border-radius: var(--radius-lg);
+      background: var(--surface);
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      box-shadow: var(--shadow-card);
+    }
+    .card-tabs-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 11px; }
+    .card-tabs-head .section-label { margin-bottom: 0; }
+    .active-card-label { margin-top: 4px; color: var(--text-2); font-size: 13px; font-weight: 600; }
+    .card-tabs-layout { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+    .card-tabs-actions { display: flex; gap: 7px; align-items: center; flex-shrink: 0; }
     .section-label {
       font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
       text-transform: uppercase; color: var(--text-3); margin-bottom: 10px;
     }
-    .card-tabs-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .card-tabs-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; min-width: 0; }
     .card-tab {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 7px 14px; border-radius: var(--radius-sm);
@@ -220,6 +266,11 @@
       border-radius: var(--radius-lg); padding: 18px 20px;
       box-shadow: var(--shadow-card); transition: box-shadow var(--transition);
       position: relative; overflow: hidden;
+      isolation: isolate;
+    }
+    .kpi-card::after {
+      content: ""; position: absolute; width: 110px; height: 110px; right: -42px; top: -54px;
+      border-radius: 50%; background: var(--accent-soft); filter: blur(2px); z-index: -1;
     }
     .kpi-card::before {
       content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
@@ -339,16 +390,43 @@
     .btn-icon { padding: 7px 9px; font-size: 14px; }
     .btn-sm { padding: 6px 11px; font-size: 12px; }
 
-    /* ── FILTER BAR ── */
-    .filter-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 14px 20px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
-    .search-wrap { position: relative; flex: 1; min-width: 180px; max-width: 320px; }
+    /* ── FILTERS + DATA ACTIONS ── */
+    .list-toolbar { background: var(--surface-2); border-bottom: 1px solid var(--border); }
+    .filter-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 14px 18px 10px; }
+    .search-wrap { position: relative; flex: 1; min-width: 220px; max-width: 420px; }
     .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-3); font-size: 14px; pointer-events: none; }
-    .search-input { width: 100%; padding: 8px 12px 8px 34px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 13px; font-family: var(--font); transition: border-color var(--transition), box-shadow var(--transition); }
+    .search-input { width: 100%; padding: 9px 38px 9px 34px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 13px; font-family: var(--font); transition: border-color var(--transition), box-shadow var(--transition); }
     .search-input::placeholder { color: var(--text-3); }
     .search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .search-clear {
+      position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
+      width: 26px; height: 26px; border: 0; border-radius: 50%;
+      background: transparent; color: var(--text-3); cursor: pointer; font-size: 15px;
+    }
+    .search-clear:hover { color: var(--text); background: var(--accent-soft); }
     .results-badge { font-size: 12px; color: var(--text-3); margin-left: auto; white-space: nowrap; }
+    .toolbar-secondary {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 0 18px 13px;
+    }
+    .quick-filters { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .quick-filter {
+      padding: 6px 10px; border-radius: 999px; border: 1px solid transparent;
+      background: transparent; color: var(--text-3); font: 600 11px var(--font); cursor: pointer;
+      transition: all var(--transition);
+    }
+    .quick-filter:hover { color: var(--text); background: var(--surface-3); }
+    .quick-filter.active { color: var(--tab-active-text); background: var(--tab-active-bg); box-shadow: 0 2px 10px var(--glow); }
+    .data-actions { display: flex; align-items: center; justify-content: flex-end; gap: 7px; flex-wrap: wrap; }
+    .data-actions::before { content: "Datos"; margin-right: 3px; color: var(--text-3); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
     /* El selector de orden solo sirve cuando la cabecera de la tabla no se ve */
     .sort-mobile { display: none; }
+
+    .empty-table td { padding: 42px 20px; text-align: center; white-space: normal; }
+    .empty-state { display: grid; justify-items: center; gap: 7px; color: var(--text-3); }
+    .empty-state-icon { font-size: 24px; filter: grayscale(1); opacity: .7; }
+    .empty-state strong { color: var(--text-2); font-size: 13px; }
+    .empty-state span { font-size: 12px; }
 
     /* ── TABLE ── */
     .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -565,10 +643,15 @@
 
       /* Barra de filtros apilada */
       .sort-mobile { display: inline-flex; }
-      .filter-row { padding: 12px 14px; gap: 8px; }
+      .filter-row { padding: 12px 14px 9px; gap: 8px; }
       .search-wrap { max-width: none; flex-basis: 100%; }
       .filter-row .btn, .filter-row select { min-height: 36px; }
       .results-badge { margin-left: 0; }
+      .toolbar-secondary { padding: 0 14px 12px; align-items: flex-start; flex-direction: column; }
+      .data-actions { width: 100%; justify-content: flex-start; padding-top: 10px; border-top: 1px solid var(--border); }
+      .empty-table { display: block; padding: 0; }
+      .empty-table td { display: block; border: 0; text-align: center; }
+      .empty-table td::before { display: none; }
     }
 
     /* El formulario baja de 4 a 2 y a 1 columna antes que el resto del layout */
@@ -605,6 +688,17 @@
       .header-user .email-text { display: none; }
       .header-btn-text { display: none; }
       .header-btn { padding: 0 11px; }
+      .header-signout { width: 30px; padding: 0; font-size: 0; }
+      .header-signout::before { content: "↗"; font-size: 14px; transform: rotate(45deg); display: inline-block; }
+      .page-intro { align-items: stretch; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+      .page-intro p { font-size: 12px; }
+      .page-actions { justify-content: stretch; }
+      .page-actions .btn { flex: 1; justify-content: center; }
+      .card-tabs-section { padding: 14px; }
+      .card-tabs-layout { align-items: stretch; flex-direction: column; }
+      .card-tabs-row { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 3px; scrollbar-width: thin; }
+      .card-tabs-actions { display: grid; grid-template-columns: 1fr 1fr; }
+      .card-tabs-actions .btn { justify-content: center; min-height: 38px; }
       .modal-box { padding: 22px 20px; }
       #toast-root { top: auto; bottom: 16px; right: 12px; left: 12px; }
       .toast { max-width: none; }
@@ -615,6 +709,13 @@
       .kpi-value { font-size: 20px; }
       .card-tab { padding: 7px 11px; font-size: 12px; }
       .tipo-compra-row { flex-direction: column; }
+      .quick-filters { flex-wrap: nowrap; width: 100%; overflow-x: auto; padding-bottom: 3px; }
+      .quick-filter { flex-shrink: 0; }
+      .data-actions { display: grid; grid-template-columns: 1fr 1fr; }
+      .data-actions::before { grid-column: 1 / -1; }
+      .data-actions .btn { justify-content: center; min-height: 38px; }
+      .data-actions #recuperarFechasBtn { grid-column: 1 / -1; }
+      .data-actions #clearBtn { grid-column: 1 / -1; }
     }
 
     /* Respetar a quien pide menos movimiento en el sistema */
@@ -653,6 +754,7 @@
     <div class="header-user hidden" id="headerUser">
       <div class="header-avatar" id="headerAvatar">?</div>
       <span class="email-text" id="headerEmail"></span>
+      <button class="header-signout" id="logoutBtn" title="Cerrar sesión">Salir</button>
     </div>
   </div>
 </header>
@@ -675,12 +777,32 @@
   <!-- App content -->
   <div id="contenido" class="hidden">
 
+    <section class="page-intro" aria-labelledby="pageTitle">
+      <div>
+        <div class="page-eyebrow">Panel financiero</div>
+        <h1 id="pageTitle">Tus cuotas, bajo control.</h1>
+        <p>Revisa lo pendiente, detecta atrasos y registra pagos sin perder de vista el mes completo.</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-soft btn-sm" id="copySummaryBtn">⧉ Copiar resumen</button>
+        <button class="btn btn-primary btn-sm hidden" id="installAppBtn">＋ Instalar app</button>
+      </div>
+    </section>
+
     <!-- Card tabs -->
     <div class="card-tabs-section">
-      <div class="section-label">Tarjetas</div>
-      <div class="card-tabs-row" id="cardTabsRow">
-        <button class="btn btn-ghost btn-sm card-tab card-tab-add" id="addTarjetaBtn">+ Nueva tarjeta</button>
-        <button class="btn btn-sm card-tab card-tab-del" id="delTarjetaBtn">Eliminar activa</button>
+      <div class="card-tabs-head">
+        <div>
+          <div class="section-label">Tarjetas</div>
+          <div class="active-card-label" id="activeCardLabel">Selecciona una tarjeta</div>
+        </div>
+      </div>
+      <div class="card-tabs-layout">
+        <div class="card-tabs-row" id="cardTabsRow"></div>
+        <div class="card-tabs-actions">
+          <button class="btn btn-ghost btn-sm card-tab card-tab-add" id="addTarjetaBtn">＋ Nueva tarjeta</button>
+          <button class="btn btn-sm card-tab card-tab-del" id="delTarjetaBtn">Eliminar activa</button>
+        </div>
       </div>
     </div>
 
@@ -780,7 +902,6 @@
 
             <!-- Acciones -->
             <div class="field field-acciones">
-              <button class="btn btn-danger" id="clearBtn">Borrar todo</button>
               <button class="btn btn-primary" id="addBtn">Agregar ítem</button>
             </div>
 
@@ -791,17 +912,19 @@
 
     <!-- Table panel -->
     <div class="panel">
-      <div class="filter-row">
-        <div class="search-wrap">
-          <span class="search-icon">🔍</span>
-          <input class="search-input" id="filtro" placeholder="Buscar por persona o ítem..." />
-        </div>
-        <div style="display:flex;gap:8px;margin-left:auto;align-items:center;flex-wrap:wrap;">
+      <div class="list-toolbar">
+        <div class="filter-row">
+          <div class="search-wrap">
+            <span class="search-icon">⌕</span>
+            <input class="search-input" id="filtro" placeholder="Buscar por persona o ítem..." aria-label="Buscar cuotas" />
+            <button class="search-clear hidden" id="clearSearchBtn" title="Limpiar búsqueda" aria-label="Limpiar búsqueda">×</button>
+          </div>
           <select id="filtroEstado" class="btn btn-ghost btn-sm" style="padding:6px 10px;font-family:var(--font);cursor:pointer;">
             <option value="">Todos los estados</option>
             <option value="atrasado">⚠ Solo atrasados</option>
             <option value="proximo">⏳ Vencen pronto</option>
             <option value="aldia">✓ Al día</option>
+            <option value="sinfecha">Sin fecha</option>
           </select>
           <!-- En móvil la cabecera de la tabla no se ve, así que el orden va acá -->
           <select id="ordenMovil" class="btn btn-ghost btn-sm sort-mobile" style="padding:6px 10px;font-family:var(--font);cursor:pointer;">
@@ -813,12 +936,23 @@
             <option value="persona:1">↑ Persona A-Z</option>
             <option value="item:1">↑ Ítem A-Z</option>
           </select>
-          <button class="btn btn-warning btn-sm hidden" id="recuperarFechasBtn">🕘 Recuperar fechas</button>
-          <button class="btn btn-ghost btn-sm" id="exportBtn">⬇ Exportar</button>
-          <button class="btn btn-ghost btn-sm" id="importBtn">⬆ Importar</button>
-          <input id="importFile" type="file" accept="application/json" style="display:none" />
           <span class="results-badge" id="results-badge"></span>
-          <button class="btn btn-ghost btn-sm" id="logoutBtn">Cerrar sesión</button>
+        </div>
+        <div class="toolbar-secondary">
+          <div class="quick-filters" aria-label="Filtros rápidos">
+            <button class="quick-filter active" data-filter="" aria-pressed="true">Todos</button>
+            <button class="quick-filter" data-filter="atrasado" aria-pressed="false">Atrasados</button>
+            <button class="quick-filter" data-filter="proximo" aria-pressed="false">Próximos</button>
+            <button class="quick-filter" data-filter="aldia" aria-pressed="false">Al día</button>
+            <button class="quick-filter" data-filter="sinfecha" aria-pressed="false">Sin fecha</button>
+          </div>
+          <div class="data-actions">
+            <button class="btn btn-warning btn-sm hidden" id="recuperarFechasBtn">🕘 Recuperar fechas</button>
+            <button class="btn btn-ghost btn-sm" id="exportBtn">↓ Exportar</button>
+            <button class="btn btn-ghost btn-sm" id="importBtn">↑ Importar</button>
+            <button class="btn btn-danger btn-sm" id="clearBtn">Borrar datos</button>
+            <input id="importFile" type="file" accept="application/json" style="display:none" />
+          </div>
         </div>
       </div>
 
@@ -913,6 +1047,27 @@
     applyTheme(current === "dark" ? "light" : "dark");
   });
   applyTheme(document.documentElement.getAttribute("data-theme") || "dark");
+
+  // ── Instalación PWA ──
+  const installAppBtn = document.getElementById("installAppBtn");
+  let deferredInstallPrompt = null;
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    installAppBtn.classList.remove("hidden");
+  });
+  installAppBtn.addEventListener("click", async () => {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    installAppBtn.classList.add("hidden");
+  });
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    installAppBtn.classList.add("hidden");
+    toast("Aplicación instalada correctamente.");
+  });
 
   // ── Toast ──
   function toast(msg, type = "success", dur = 3200) {
@@ -1410,7 +1565,6 @@
   function renderCardTabs() {
     const row = document.getElementById("cardTabsRow");
     row.querySelectorAll(".dyn-tab").forEach(el => el.remove());
-    const addBtn = document.getElementById("addTarjetaBtn");
     tarjetas.forEach(t => {
       const tab = document.createElement("button");
       tab.className = "btn btn-sm card-tab dyn-tab" + (t === tarjetaActiva ? " active" : "");
@@ -1420,8 +1574,12 @@
         showLoading(); try { await save(); } finally { hideLoading(); }
         renderCardTabs(); renderTabla();
       });
-      row.insertBefore(tab, addBtn);
+      row.appendChild(tab);
     });
+    document.getElementById("activeCardLabel").textContent = tarjetaActiva ? `Activa: ${tarjetaActiva}` : "Sin tarjeta activa";
+    const delBtn = document.getElementById("delTarjetaBtn");
+    delBtn.disabled = tarjetas.length <= 1;
+    delBtn.title = tarjetas.length <= 1 ? "Debe quedar al menos una tarjeta" : `Eliminar ${tarjetaActiva}`;
   }
 
   function renderPersonaSelect() {
@@ -1470,6 +1628,52 @@
       return va < vb ? -sortDir : va > vb ? sortDir : 0;
     });
     return list;
+  }
+
+  function syncFilterControls() {
+    const estado = document.getElementById("filtroEstado").value;
+    document.querySelectorAll(".quick-filter").forEach(btn => {
+      const active = btn.dataset.filter === estado;
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    const search = document.getElementById("filtro").value.trim();
+    document.getElementById("clearSearchBtn").classList.toggle("hidden", !search);
+  }
+
+  async function copiarResumen() {
+    if (!requireLogin()) return;
+    const list = items.filter(it => it.tarjeta === tarjetaActiva);
+    let pendiente = 0, mensual = 0, atrasado = 0, atrasados = 0;
+    const personasMap = {};
+    list.forEach(it => {
+      pendiente += Number(it.total) || 0;
+      if (it.pagadas < it.totales) mensual += Number(it.monto) || 0;
+      const st = estadoPago(it);
+      if (st.estado === "atrasado") { atrasado += st.montoAtrasado; atrasados++; }
+      personasMap[it.persona] = (personasMap[it.persona] || 0) + (Number(it.total) || 0);
+    });
+    const detalle = Object.entries(personasMap)
+      .sort((a, b) => b[1] - a[1])
+      .map(([persona, monto]) => `• ${persona}: $${fmt(monto)} pendiente`);
+    const texto = [
+      `Resumen · ${tarjetaActiva || "Tarjeta"}`,
+      `Pendiente total: $${fmt(pendiente)}`,
+      `Cuota mensual estimada: $${fmt(mensual)}`,
+      `Atrasado: $${fmt(atrasado)}${atrasados ? ` (${atrasados} ítem${atrasados !== 1 ? "s" : ""})` : ""}`,
+      `Compras registradas: ${list.length}`,
+      ...(detalle.length ? ["", "Por persona:", ...detalle] : [])
+    ].join("\n");
+
+    try {
+      await navigator.clipboard.writeText(texto);
+    } catch {
+      const area = document.createElement("textarea");
+      area.value = texto; area.style.position = "fixed"; area.style.opacity = "0";
+      document.body.appendChild(area); area.select();
+      document.execCommand("copy"); area.remove();
+    }
+    toast("Resumen copiado al portapapeles.");
   }
 
   // ── Recuperar fechas desde el historial ──
@@ -1750,6 +1954,20 @@
       tbody.appendChild(tr);
     });
 
+    if (!list.length) {
+      const tr = document.createElement("tr");
+      tr.className = "empty-table";
+      const td = document.createElement("td");
+      td.colSpan = 9;
+      td.innerHTML = `<div class="empty-state">
+        <span class="empty-state-icon">◇</span>
+        <strong>No hay cuotas para mostrar</strong>
+        <span>Prueba otro filtro o agrega un nuevo ítem.</span>
+      </div>`;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+
     // KPIs
     document.getElementById("kpi-pending").textContent = fmt(totPendiente);
     document.getElementById("kpi-monthly").textContent = fmt(totMensual);
@@ -1786,6 +2004,7 @@
 
     document.getElementById("results-badge").textContent =
       list.length === 0 ? "Sin resultados" : `${list.length} ítem${list.length !== 1 ? "s" : ""}`;
+    syncFilterControls();
 
     // El botón de recuperar fechas solo aparece si el historial tiene algo que aportar
     const recBtn = document.getElementById("recuperarFechasBtn");
@@ -2253,6 +2472,7 @@
   document.getElementById("addSaldoBtn").addEventListener("click", agregarSaldo);
   document.getElementById("delSaldoBtn").addEventListener("click", borrarSaldo);
   document.getElementById("exportBtn").addEventListener("click", exportar);
+  document.getElementById("copySummaryBtn").addEventListener("click", copiarResumen);
   document.getElementById("historialBtn").addEventListener("click", () => {
     if (!requireLogin()) return;
     showHistorial();
@@ -2267,8 +2487,26 @@
   document.getElementById("personaSelect").addEventListener("change", e => {
     personaSeleccionada = e.target.value; updateSaldoUI();
   });
-  document.getElementById("filtro").addEventListener("input", renderTabla);
+  const filtroInput = document.getElementById("filtro");
+  filtroInput.addEventListener("input", renderTabla);
+  filtroInput.addEventListener("keydown", e => {
+    if (e.key === "Escape" && filtroInput.value) {
+      filtroInput.value = "";
+      renderTabla();
+    }
+  });
+  document.getElementById("clearSearchBtn").addEventListener("click", () => {
+    filtroInput.value = "";
+    filtroInput.focus();
+    renderTabla();
+  });
   document.getElementById("filtroEstado").addEventListener("change", renderTabla);
+  document.querySelectorAll(".quick-filter").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.getElementById("filtroEstado").value = btn.dataset.filter;
+      renderTabla();
+    });
+  });
   document.getElementById("recuperarFechasBtn").addEventListener("click", recuperarFechas);
   ["monto","cuotasTotales"].forEach(id => {
     document.getElementById(id).addEventListener("keypress", e => {
