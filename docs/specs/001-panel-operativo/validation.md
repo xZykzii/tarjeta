@@ -20,7 +20,11 @@
 - Servidor local respondió 200 para app, lógica, manifest, service worker y tarjeta social.
 - La pantalla de acceso cargó sin errores ni advertencias de consola.
 
-## Pendiente antes de publicar
+## Publicación
 
-- Inspeccionar el panel con una sesión autenticada y datos reales en escritorio y móvil.
-- Publicar `main` solo con autorización explícita, porque GitHub Pages despliega esa rama.
+- GitHub Pages publicó correctamente `main` y sirvió la página, `logic.mjs` y `og.png` con estado 200.
+- La compilación de Pages terminó correctamente y el repositorio quedó sincronizado con `origin/main`.
+
+## Limitación conocida de la validación
+
+- La inspección visual del panel con una sesión autenticada y datos reales a 375/1280 px no se realizó; la pantalla de acceso, la carga pública y las reglas responsive sí quedaron comprobadas.

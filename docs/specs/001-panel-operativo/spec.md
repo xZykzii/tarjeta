@@ -1,6 +1,6 @@
 ---
 id: 001-panel-operativo
-estado: implementado-pendiente-publicacion
+estado: publicado
 ---
 
 # Panel operativo y rediseño de Control de cuotas
