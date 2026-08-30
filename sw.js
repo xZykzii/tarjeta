@@ -1,8 +1,9 @@
-const CACHE_NAME = "cuotas-v11";
+const CACHE_NAME = "cuotas-v12";
 
 const urlsToCache = [
   "./",
   "./index.html",
+  "./logic.mjs",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png"

@@ -5,9 +5,19 @@
   <title>Control de cuotas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Controla tus compras, cuotas y próximos pagos en un solo lugar." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Control de cuotas" />
+  <meta property="og:description" content="Tus pagos, bajo control." />
+  <meta property="og:image" content="https://xzykzii.github.io/tarjeta/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Control de cuotas" />
+  <meta name="twitter:description" content="Tus pagos, bajo control." />
+  <meta name="twitter:image" content="https://xzykzii.github.io/tarjeta/og.png" />
   <meta name="color-scheme" content="dark light" />
   <link rel="manifest" href="./manifest.json" />
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#0a0a0b" />
   <script>
     if ("serviceWorker" in navigator) {
       // Si ya había un service worker mandando, al entrar uno nuevo se recarga
@@ -34,10 +44,11 @@
     :root {
       --radius-sm: 8px;
       --radius-md: 12px;
-      --radius-lg: 16px;
-      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-xl: 26px;
       --font: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       --transition: 0.18s ease;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     /* Paleta neutra: gris puro, sin tinte azul. El negro manda en oscuro y el
@@ -52,9 +63,12 @@
       --text:         #101012;
       --text-2:       #5b5b66;
       --text-3:       #8e8e99;
-      --accent:       #1c1c1f;
-      --accent-hover: #000000;
-      --accent-soft:  rgba(20,20,23,0.07);
+      --accent:       #242d00;
+      --accent-hover: #101500;
+      --accent-soft:  rgba(123,156,0,0.12);
+      --brand:        #627d00;
+      --brand-ink:    #ffffff;
+      --brand-soft:   rgba(123,156,0,0.12);
       --success:      #157f3d;
       --success-soft: rgba(21,127,61,0.09);
       --success-text: #106931;
@@ -70,10 +84,11 @@
       --kpi-bg:       #ffffff;
       --shadow-card:  0 1px 2px rgba(0,0,0,0.05), 0 4px 14px rgba(0,0,0,0.05);
       --shadow-hover: 0 2px 6px rgba(0,0,0,0.08), 0 10px 28px rgba(0,0,0,0.08);
-      --tab-active-bg: #101012;
+      --tab-active-bg: #242d00;
       --tab-active-text: #ffffff;
-      --glow: rgba(0,0,0,0.16);
-      --hero-glow: rgba(0,0,0,0.05);
+      --glow: rgba(93,119,0,0.22);
+      --hero-glow: rgba(114,145,0,0.09);
+      --grid-line: rgba(16,16,18,0.045);
     }
 
     [data-theme="dark"] {
@@ -86,9 +101,12 @@
       --text:         #f4f4f5;
       --text-2:       #9c9ca6;
       --text-3:       #63636d;
-      --accent:       #f4f4f5;
-      --accent-hover: #ffffff;
-      --accent-soft:  rgba(244,244,245,0.09);
+      --accent:       #d7ff4b;
+      --accent-hover: #c5ef38;
+      --accent-soft:  rgba(215,255,75,0.11);
+      --brand:        #d7ff4b;
+      --brand-ink:    #0a0d00;
+      --brand-soft:   rgba(215,255,75,0.11);
       --success:      #3fb950;
       --success-soft: rgba(63,185,80,0.13);
       --success-text: #6cd67c;
@@ -104,10 +122,11 @@
       --kpi-bg:       #0c0c0e;
       --shadow-card:  0 1px 2px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.45);
       --shadow-hover: 0 2px 8px rgba(0,0,0,0.7), 0 12px 32px rgba(0,0,0,0.55);
-      --tab-active-bg: #f4f4f5;
+      --tab-active-bg: #d7ff4b;
       --tab-active-text: #000000;
-      --glow: rgba(255,255,255,0.14);
-      --hero-glow: rgba(255,255,255,0.055);
+      --glow: rgba(215,255,75,0.2);
+      --hero-glow: rgba(215,255,75,0.07);
+      --grid-line: rgba(255,255,255,0.026);
     }
 
     /* ── RESET ── */
@@ -124,7 +143,10 @@
       text-rendering: optimizeLegibility;
       background-image:
         radial-gradient(circle at 15% -10%, var(--hero-glow), transparent 28rem),
-        radial-gradient(circle at 92% 18%, var(--hero-glow), transparent 24rem);
+        radial-gradient(circle at 92% 18%, var(--hero-glow), transparent 24rem),
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+      background-size: auto, auto, 42px 42px, 42px 42px;
       background-attachment: fixed;
     }
     /* Foco visible y consistente para teclado, sin ensuciar el clic con mouse */
@@ -152,11 +174,12 @@
     .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
     .logo-icon {
       width: 34px; height: 34px;
-      background: linear-gradient(135deg, #3f3f46, #18181b);
-      border: 1px solid rgba(255,255,255,0.12);
+      background: var(--brand);
+      border: 1px solid rgba(255,255,255,0.22);
       border-radius: var(--radius-md);
       display: flex; align-items: center; justify-content: center;
-      font-size: 17px; flex-shrink: 0;
+      color: var(--brand-ink); font-size: 12px; font-weight: 900; letter-spacing: -0.05em; flex-shrink: 0;
+      box-shadow: 0 0 26px var(--glow);
     }
     .logo-text { font-size: 15px; font-weight: 700; color: var(--header-text); letter-spacing: -0.01em; }
     .logo-text span { font-weight: 400; color: var(--header-muted); }
@@ -259,14 +282,86 @@
     .card-tab-del { border-style: solid; border-color: var(--danger-soft); color: var(--danger); background: var(--danger-soft); }
     .card-tab-del:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 
+    /* ── PANEL OPERATIVO ── */
+    .operations-grid {
+      display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+      gap: 14px; margin-bottom: 14px;
+    }
+    .cycle-card, .agenda-card {
+      position: relative; overflow: hidden;
+      border: 1px solid var(--border); border-radius: var(--radius-xl);
+      background: color-mix(in srgb, var(--surface) 94%, transparent);
+      box-shadow: var(--shadow-card);
+      animation: rise-in 0.56s var(--ease-out) both;
+    }
+    .cycle-card {
+      min-height: 240px; padding: 24px;
+      background:
+        radial-gradient(circle at 100% 0, var(--brand-soft), transparent 46%),
+        color-mix(in srgb, var(--surface) 96%, transparent);
+    }
+    .cycle-card::after {
+      content: ""; position: absolute; width: 220px; height: 220px; right: -96px; top: -118px;
+      border: 1px solid color-mix(in srgb, var(--brand) 24%, transparent); border-radius: 50%;
+      box-shadow: 0 0 0 34px color-mix(in srgb, var(--brand) 4%, transparent),
+                  0 0 0 68px color-mix(in srgb, var(--brand) 2%, transparent);
+      pointer-events: none;
+    }
+    .cycle-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .signal-pill {
+      display: inline-flex; align-items: center; gap: 7px; padding: 5px 9px;
+      border: 1px solid color-mix(in srgb, var(--brand) 32%, var(--border));
+      border-radius: 999px; color: var(--brand); background: var(--brand-soft);
+      font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .signal-pill::before { content: ""; width: 6px; height: 6px; background: var(--brand); border-radius: 50%; box-shadow: 0 0 12px var(--brand); }
+    .cycle-card-name { color: var(--text-3); font-size: 12px; font-weight: 700; }
+    .cycle-lead { margin: 24px 0 26px; max-width: 520px; }
+    .cycle-lead span { display: block; color: var(--text-3); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .cycle-lead strong { display: block; margin-top: 7px; font-size: clamp(27px, 4vw, 42px); line-height: 1; letter-spacing: -0.055em; font-variant-numeric: tabular-nums; }
+    .cycle-lead small { display: block; margin-top: 8px; color: var(--text-2); font-size: 13px; }
+    .cycle-milestones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .milestone {
+      display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: center;
+      border-top: 1px solid var(--border); padding-top: 13px;
+    }
+    .milestone-day {
+      width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px;
+      color: var(--brand-ink); background: var(--brand); font-size: 12px; font-weight: 900;
+    }
+    .milestone:nth-child(2) .milestone-day { background: var(--surface-3); color: var(--text); border: 1px solid var(--border-2); }
+    .milestone-label { display: block; color: var(--text-3); font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+    .milestone-date { display: block; margin-top: 3px; color: var(--text); font-size: 13px; font-weight: 700; }
+
+    .agenda-card { padding: 20px; animation-delay: 0.06s; }
+    .agenda-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+    .agenda-head h2 { font-size: 15px; letter-spacing: -0.02em; }
+    .agenda-head p { margin-top: 4px; color: var(--text-3); font-size: 11px; }
+    .agenda-count { color: var(--brand); background: var(--brand-soft); border-radius: 999px; padding: 4px 8px; font-size: 10px; font-weight: 800; }
+    .agenda-list { display: flex; flex-direction: column; }
+    .agenda-item {
+      display: grid; grid-template-columns: 9px minmax(0,1fr) auto; gap: 10px; align-items: center;
+      padding: 12px 0; border-top: 1px solid var(--border);
+    }
+    .agenda-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 12px var(--glow); }
+    .agenda-item.late .agenda-dot { background: var(--danger); box-shadow: 0 0 10px var(--danger-soft); }
+    .agenda-main { min-width: 0; }
+    .agenda-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-size: 12px; font-weight: 750; }
+    .agenda-meta { display: block; margin-top: 3px; color: var(--text-3); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .agenda-amount { text-align: right; font-variant-numeric: tabular-nums; }
+    .agenda-amount strong { display: block; color: var(--text); font-size: 12px; }
+    .agenda-amount span { display: block; margin-top: 3px; color: var(--text-3); font-size: 10px; }
+    .agenda-empty { min-height: 145px; display: grid; place-items: center; text-align: center; color: var(--text-3); font-size: 12px; line-height: 1.55; }
+
     /* ── KPI CARDS ── */
     .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
     .kpi-card {
       background: var(--kpi-bg); border: 1px solid var(--border);
       border-radius: var(--radius-lg); padding: 18px 20px;
-      box-shadow: var(--shadow-card); transition: box-shadow var(--transition);
+      box-shadow: var(--shadow-card); transition: box-shadow var(--transition), transform var(--transition);
       position: relative; overflow: hidden;
       isolation: isolate;
+      animation: rise-in 0.56s var(--ease-out) both;
     }
     .kpi-card::after {
       content: ""; position: absolute; width: 110px; height: 110px; right: -42px; top: -54px;
@@ -277,7 +372,7 @@
       border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     }
     .kpi-card.kpi-pending::before { background: linear-gradient(90deg, var(--warning), var(--warning-text)); }
-    .kpi-card.kpi-monthly::before { background: linear-gradient(90deg, var(--text-3), var(--text-2)); }
+    .kpi-card.kpi-monthly::before { background: linear-gradient(90deg, var(--brand), color-mix(in srgb, var(--brand) 42%, var(--text))); }
     .kpi-card.kpi-overdue::before { background: linear-gradient(90deg, var(--danger), var(--danger-text)); }
     .kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-3); margin-bottom: 8px; }
     .kpi-value { font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 10px; }
@@ -285,15 +380,20 @@
     .kpi-bar { height: 4px; border-radius: 999px; background: var(--border); overflow: hidden; }
     .kpi-bar-fill { height: 100%; border-radius: 999px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
     .kpi-pending .kpi-bar-fill { background: linear-gradient(90deg, var(--warning), var(--warning-text)); }
-    .kpi-monthly .kpi-bar-fill { background: linear-gradient(90deg, var(--text-3), var(--text-2)); }
+    .kpi-monthly .kpi-bar-fill { background: linear-gradient(90deg, var(--brand), color-mix(in srgb, var(--brand) 55%, var(--text))); }
     .kpi-overdue .kpi-bar-fill { background: linear-gradient(90deg, var(--danger), var(--danger-text)); }
     .kpi-sub { margin-top: 6px; font-size: 11px; color: var(--text-3); font-variant-numeric: tabular-nums; }
-    .kpi-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.22); border-color: var(--border-2); }
+    .kpi-card:nth-child(1) { animation-delay: 0.1s; }
+    .kpi-card:nth-child(2) { animation-delay: 0.14s; }
+    .kpi-card:nth-child(3) { animation-delay: 0.18s; }
+    .kpi-card:hover { box-shadow: var(--shadow-hover); border-color: var(--border-2); transform: translateY(-2px); }
+    @keyframes rise-in { from { opacity: 0; transform: translateY(12px) scale(0.99); } to { opacity: 1; transform: none; } }
 
     /* ── PANEL ── */
     .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 16px; box-shadow: var(--shadow-card); overflow: hidden; }
     .panel-header {
       display: flex; align-items: center; justify-content: space-between;
+      width: 100%; background: transparent; color: inherit; font: inherit; text-align: left;
       padding: 14px 20px; cursor: pointer; user-select: none;
       border-bottom: 1px solid transparent;
       transition: border-color var(--transition), background var(--transition);
@@ -597,6 +697,8 @@
        Antes obligaba a arrastrar en horizontal 720px para ver una fila entera. */
     @media (max-width: 900px) {
       .main { padding: 22px 16px 36px; }
+      .operations-grid { grid-template-columns: 1fr; }
+      .agenda-card { min-height: auto; }
       .kpi-value { font-size: 22px; }
       .table-wrap { overflow-x: visible; padding: 12px; background: var(--surface-2); }
       table { min-width: 0; display: block; width: 100%; }
@@ -678,6 +780,14 @@
     @media (max-width: 640px) {
       .main { padding: 16px 13px 32px; }
       .header-inner { padding: 0 14px; gap: 10px; }
+      .cycle-card { min-height: 0; padding: 19px; }
+      .cycle-top { align-items: flex-start; }
+      .cycle-card-name { max-width: 42%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .cycle-lead { margin: 21px 0 23px; }
+      .cycle-milestones { gap: 8px; }
+      .milestone { grid-template-columns: 32px 1fr; gap: 8px; }
+      .milestone-day { width: 31px; height: 31px; }
+      .agenda-card { padding: 18px; }
       .kpi-grid { grid-template-columns: 1fr; gap: 10px; }
       .kpi-card { padding: 14px 16px; }
       .kpi-value { font-size: 22px; }
@@ -707,6 +817,7 @@
     /* Pantallas muy angostas: los KPI se apilan de a uno y bajan de tamaño */
     @media (max-width: 420px) {
       .kpi-value { font-size: 20px; }
+      .cycle-milestones { grid-template-columns: 1fr; }
       .card-tab { padding: 7px 11px; font-size: 12px; }
       .tipo-compra-row { flex-direction: column; }
       .quick-filters { flex-wrap: nowrap; width: 100%; overflow-x: auto; padding-bottom: 3px; }
@@ -730,14 +841,14 @@
 </head>
 <body>
 
-<div id="loading-overlay" class="hidden"><div class="spinner-ring"></div></div>
-<div id="toast-root"></div>
+<div id="loading-overlay" class="hidden" role="status" aria-label="Sincronizando datos"><div class="spinner-ring"></div></div>
+<div id="toast-root" aria-live="polite" aria-atomic="true"></div>
 
 <!-- ── HEADER ── -->
 <header class="app-header">
   <div class="header-inner">
     <div class="logo">
-      <div class="logo-icon">💳</div>
+      <div class="logo-icon" aria-hidden="true">C²</div>
       <div class="logo-text">Cuotas <span>/ Control</span></div>
     </div>
     <div class="header-spacer"></div>
@@ -806,6 +917,42 @@
       </div>
     </div>
 
+    <!-- Operational overview -->
+    <section class="operations-grid" aria-label="Resumen operativo de la tarjeta">
+      <article class="cycle-card">
+        <div class="cycle-top">
+          <span class="signal-pill">Ciclo activo</span>
+          <span class="cycle-card-name" id="cycleCardName">Sin tarjeta</span>
+        </div>
+        <div class="cycle-lead">
+          <span>Próximo compromiso</span>
+          <strong id="nextCommitmentDate">Sin pagos pendientes</strong>
+          <small id="nextCommitmentMeta">Agrega una compra para comenzar.</small>
+        </div>
+        <div class="cycle-milestones" aria-label="Próximos hitos del ciclo">
+          <div class="milestone">
+            <span class="milestone-day" aria-hidden="true">10</span>
+            <span><span class="milestone-label">Próximo cierre</span><span class="milestone-date" id="nextClosingDate">—</span></span>
+          </div>
+          <div class="milestone">
+            <span class="milestone-day" aria-hidden="true">25</span>
+            <span><span class="milestone-label">Próximo pago</span><span class="milestone-date" id="nextPaymentDate">—</span></span>
+          </div>
+        </div>
+      </article>
+
+      <aside class="agenda-card" aria-labelledby="agendaTitle">
+        <div class="agenda-head">
+          <div>
+            <h2 id="agendaTitle">En agenda</h2>
+            <p>Los tres compromisos más urgentes</p>
+          </div>
+          <span class="agenda-count" id="agendaCount">0</span>
+        </div>
+        <div class="agenda-list" id="agendaList" aria-live="polite"></div>
+      </aside>
+    </section>
+
     <!-- KPI cards -->
     <div class="kpi-grid">
       <div class="kpi-card kpi-pending">
@@ -817,8 +964,8 @@
       <div class="kpi-card kpi-monthly">
         <div class="kpi-label">Cuota mensual</div>
         <div class="kpi-value"><span class="currency">$</span><span id="kpi-monthly">0</span></div>
-        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:60%"></div></div>
-        <div class="kpi-sub">Estimado este mes</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-monthly-bar" style="width:0%"></div></div>
+        <div class="kpi-sub" id="kpi-monthly-sub">Sin cuotas pendientes</div>
       </div>
       <div class="kpi-card kpi-overdue">
         <div class="kpi-label">Atrasado</div>
@@ -830,28 +977,29 @@
 
     <!-- Add item form -->
     <div class="panel" id="formPanel">
-      <div class="panel-header" id="formToggle">
+      <button type="button" class="panel-header" id="formToggle" aria-expanded="false" aria-controls="formBody">
         <div class="panel-title">＋ Agregar nuevo ítem</div>
-        <span class="panel-icon" id="formToggleIcon">▼</span>
-      </div>
+        <span class="panel-icon" id="formToggleIcon" aria-hidden="true">▼</span>
+      </button>
       <div class="panel-body" id="formBody">
         <div class="panel-body-inner">
           <div class="form-grid">
 
             <!-- Persona -->
             <div class="field field-persona">
-              <label>Persona</label>
+              <label for="personaSelect">Persona</label>
               <div class="persona-section">
                 <div class="persona-manage">
                   <select id="personaSelect" style="flex:1;"></select>
-                  <button class="btn btn-ghost btn-sm btn-icon" id="addPersonaBtn" title="Agregar persona">＋</button>
-                  <button class="btn btn-danger btn-sm btn-icon" id="delPersonaBtn" title="Eliminar persona">−</button>
+                  <button class="btn btn-ghost btn-sm btn-icon" id="addPersonaBtn" title="Agregar persona" aria-label="Agregar persona">＋</button>
+                  <button class="btn btn-danger btn-sm btn-icon" id="delPersonaBtn" title="Eliminar persona" aria-label="Eliminar persona">−</button>
                 </div>
                 <div class="persona-balance">
                   Saldo disponible: <strong>$<span id="saldo-actual-persona">0</span></strong>
                 </div>
                 <div class="persona-row">
                   <input id="saldoMonto" type="number" min="0" step="1"
+                    aria-label="Monto de saldo a agregar"
                     style="flex:1;padding:7px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:var(--font);font-size:13px;"
                     placeholder="Agregar saldo..." />
                   <button class="btn btn-success btn-sm" id="addSaldoBtn">＋ Saldo</button>
@@ -864,39 +1012,39 @@
 
             <!-- Ítem -->
             <div class="field field-item">
-              <label>Ítem</label>
+              <label for="item">Ítem</label>
               <input id="item" placeholder="PS5, notebook, smart TV..." />
             </div>
 
             <!-- Monto -->
             <div class="field field-monto">
-              <label id="monto-label">Monto por cuota</label>
+              <label id="monto-label" for="monto">Monto por cuota</label>
               <input id="monto" type="number" min="0" step="1" placeholder="10000" />
             </div>
 
             <!-- Fecha de compra -->
             <div class="field field-fecha">
-              <label>Fecha de compra</label>
+              <label for="fechaCompra">Fecha de compra</label>
               <input id="fechaCompra" type="date" />
               <span class="kpi-sub" id="primer-venc-hint" style="margin-top:0;"></span>
             </div>
 
             <!-- Tipo de compra (nuevo) -->
             <div class="field field-tipo">
-              <label>Tipo de compra</label>
+              <label id="tipo-compra-label">Tipo de compra</label>
               <div class="tipo-compra-row">
-                <button type="button" class="tipo-btn active" id="btnConCuotas">📅 Con cuotas</button>
-                <button type="button" class="tipo-btn" id="btnSinCuotas">💵 Pago único</button>
+                <button type="button" class="tipo-btn active" id="btnConCuotas" aria-pressed="true">📅 Con cuotas</button>
+                <button type="button" class="tipo-btn" id="btnSinCuotas" aria-pressed="false">💵 Pago único</button>
               </div>
             </div>
 
             <!-- Cuotas (se ocultan con pago único) -->
             <div class="field" id="campo-cuotas-pagadas">
-              <label>Cuotas pagadas</label>
+              <label for="cuotasPagadas">Cuotas pagadas</label>
               <input id="cuotasPagadas" type="number" min="0" step="1" placeholder="0" />
             </div>
             <div class="field" id="campo-cuotas-totales">
-              <label>Cuotas totales</label>
+              <label for="cuotasTotales">Cuotas totales</label>
               <input id="cuotasTotales" type="number" min="1" step="1" placeholder="12" />
             </div>
 
@@ -919,7 +1067,7 @@
             <input class="search-input" id="filtro" placeholder="Buscar por persona o ítem..." aria-label="Buscar cuotas" />
             <button class="search-clear hidden" id="clearSearchBtn" title="Limpiar búsqueda" aria-label="Limpiar búsqueda">×</button>
           </div>
-          <select id="filtroEstado" class="btn btn-ghost btn-sm" style="padding:6px 10px;font-family:var(--font);cursor:pointer;">
+          <select id="filtroEstado" class="btn btn-ghost btn-sm" aria-label="Filtrar por estado" style="padding:6px 10px;font-family:var(--font);cursor:pointer;">
             <option value="">Todos los estados</option>
             <option value="atrasado">⚠ Solo atrasados</option>
             <option value="proximo">⏳ Vencen pronto</option>
@@ -927,7 +1075,7 @@
             <option value="sinfecha">Sin fecha</option>
           </select>
           <!-- En móvil la cabecera de la tabla no se ve, así que el orden va acá -->
-          <select id="ordenMovil" class="btn btn-ghost btn-sm sort-mobile" style="padding:6px 10px;font-family:var(--font);cursor:pointer;">
+          <select id="ordenMovil" class="btn btn-ghost btn-sm sort-mobile" aria-label="Ordenar cuotas" style="padding:6px 10px;font-family:var(--font);cursor:pointer;">
             <option value="">Sin orden</option>
             <option value="vencimiento:1">↑ Próximo a vencer</option>
             <option value="pendiente:-1">↓ Mayor pendiente</option>
@@ -936,7 +1084,7 @@
             <option value="persona:1">↑ Persona A-Z</option>
             <option value="item:1">↑ Ítem A-Z</option>
           </select>
-          <span class="results-badge" id="results-badge"></span>
+          <span class="results-badge" id="results-badge" aria-live="polite"></span>
         </div>
         <div class="toolbar-secondary">
           <div class="quick-filters" aria-label="Filtros rápidos">
@@ -1000,6 +1148,7 @@
 </main>
 
 <script type="module">
+  import { crearAgenda, filtrarItems, proximosHitosCiclo, resumirTarjeta } from "./logic.mjs";
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
     getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
@@ -1070,12 +1219,23 @@
   });
 
   // ── Toast ──
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[char]);
+  }
+
   function toast(msg, type = "success", dur = 3200) {
     const root = document.getElementById("toast-root");
     const el = document.createElement("div");
     el.className = `toast ${type}`;
     const icons = { success: "✓", error: "✕", info: "ℹ" };
-    el.innerHTML = `<span class="toast-icon">${icons[type] || "ℹ"}</span><span>${msg}</span>`;
+    const icon = document.createElement("span");
+    icon.className = "toast-icon";
+    icon.textContent = icons[type] || "ℹ";
+    const text = document.createElement("span");
+    text.textContent = msg;
+    el.append(icon, text);
     root.appendChild(el);
     setTimeout(() => {
       el.classList.add("fade-out");
@@ -1090,23 +1250,23 @@
     return new Promise(resolve => {
       const ov = document.createElement("div");
       ov.className = "modal-overlay";
-      const cancelHtml = cancel ? `<button class="btn btn-ghost" id="m-cancel">${cancel}</button>` : "";
+      const cancelHtml = cancel ? `<button class="btn btn-ghost" id="m-cancel">${escapeHtml(cancel)}</button>` : "";
       const inputHtml  = prompt !== null
-        ? `<input class="modal-input" id="m-input" type="${promptType}" placeholder="${prompt}"
-             value="${promptValue}"${promptType === "number" ? ` min="1" step="1"` : ""}${
-             promptMax !== null ? ` max="${promptMax}"` : ""} />`
+        ? `<input class="modal-input" id="m-input" type="${escapeHtml(promptType)}" placeholder="${escapeHtml(prompt)}"
+             value="${escapeHtml(promptValue)}"${promptType === "number" ? ` min="1" step="1"` : ""}${
+             promptMax !== null ? ` max="${escapeHtml(promptMax)}"` : ""} />`
         : "";
       ov.innerHTML = `
         <div class="modal-box">
           <div class="modal-header">
             <div class="modal-header-icon ${iconType}">${icon}</div>
-            <div class="modal-title">${title}</div>
+            <div class="modal-title">${escapeHtml(title)}</div>
           </div>
           ${body ? `<div class="modal-body">${body}</div>` : ""}
           ${inputHtml}
           <div class="modal-actions">
             ${cancelHtml}
-            <button class="btn ${danger ? "btn-danger" : "btn-primary"}" id="m-confirm">${confirm}</button>
+            <button class="btn ${danger ? "btn-danger" : "btn-primary"}" id="m-confirm">${escapeHtml(confirm)}</button>
           </div>
         </div>`;
       document.body.appendChild(ov);
@@ -1135,8 +1295,8 @@
     return new Promise(resolve => {
       const ov = document.createElement("div");
       ov.className = "modal-overlay";
-      const pOpts = personas.map(p => `<option value="${p}" ${p === it.persona ? "selected" : ""}>${p}</option>`).join("");
-      const tOpts = tarjetas.map(t => `<option value="${t}" ${t === it.tarjeta ? "selected" : ""}>${t}</option>`).join("");
+      const pOpts = personas.map(p => `<option value="${escapeHtml(p)}" ${p === it.persona ? "selected" : ""}>${escapeHtml(p)}</option>`).join("");
+      const tOpts = tarjetas.map(t => `<option value="${escapeHtml(t)}" ${t === it.tarjeta ? "selected" : ""}>${escapeHtml(t)}</option>`).join("");
       const esSinCuotas = it.totales === 1 && !it.cuotas;
       ov.innerHTML = `
         <div class="modal-box wide">
@@ -1155,7 +1315,7 @@
             </div>
             <div class="field span-2">
               <label>Ítem</label>
-              <input id="e-item" value="${it.item || ""}" />
+              <input id="e-item" value="${escapeHtml(it.item || "")}" />
             </div>
             <div class="field span-2">
               <label>Tipo de compra</label>
@@ -1334,6 +1494,14 @@
     return d.getFullYear() === hoyLocal().getFullYear() ? txt : `${txt} ${d.getFullYear()}`;
   }
 
+  function fmtFechaLarga(d) {
+    if (!d) return "—";
+    return new Intl.DateTimeFormat("es-CL", {
+      day: "numeric", month: "long",
+      year: d.getFullYear() === hoyLocal().getFullYear() ? undefined : "numeric"
+    }).format(d);
+  }
+
   // Estado de pago de un ítem: qué cuota sigue, cuándo vence y cuántas están atrasadas
   function estadoPago(it, hoy = hoyLocal()) {
     const totales = Number(it.totales) || 1;
@@ -1387,46 +1555,46 @@
       switch (e.tipo) {
         case "saldo":
           icon = "💰"; cls = "hist-saldo";
-          desc = `<strong>${e.persona}</strong> — Saldo agregado: <strong>$${fmt(e.monto)}</strong>`;
+          desc = `<strong>${escapeHtml(e.persona)}</strong> — Saldo agregado: <strong>$${fmt(e.monto)}</strong>`;
           break;
         case "saldo_borrado":
           icon = "🗑️"; cls = "hist-danger";
-          desc = `<strong>${e.persona}</strong> — Saldo eliminado`;
+          desc = `<strong>${escapeHtml(e.persona)}</strong> — Saldo eliminado`;
           break;
         case "compra_cuotas": {
           icon = "📅"; cls = "hist-compra";
           const v = parseFecha(e.venc);
-          desc = `<strong>${e.persona}</strong> — Nueva compra: <em>${e.item}</em> · $${fmt(e.monto)} × ${e.totales} cuotas · <em>${e.tarjeta}</em>${
+          desc = `<strong>${escapeHtml(e.persona)}</strong> — Nueva compra: <em>${escapeHtml(e.item)}</em> · $${fmt(e.monto)} × ${e.totales} cuotas · <em>${escapeHtml(e.tarjeta)}</em>${
             v ? ` · 1ª cuota el <strong>${fmtFechaCorta(v)}</strong>` : ""}`;
           break;
         }
         case "compra_unica": {
           icon = "💵"; cls = "hist-unico";
           const v = parseFecha(e.venc);
-          desc = `<strong>${e.persona}</strong> — Pago único: <em>${e.item}</em> · <strong>$${fmt(e.monto)}</strong> · <em>${e.tarjeta}</em>${
+          desc = `<strong>${escapeHtml(e.persona)}</strong> — Pago único: <em>${escapeHtml(e.item)}</em> · <strong>$${fmt(e.monto)}</strong> · <em>${escapeHtml(e.tarjeta)}</em>${
             v ? ` · vence el <strong>${fmtFechaCorta(v)}</strong>` : ""}`;
           break;
         }
         case "pago_cuota":
           icon = "✅"; cls = "hist-saldo";
-          desc = `<strong>${e.persona}</strong> — Cuota ${e.cuota}/${e.totales} pagada: <em>${e.item}</em> · $${fmt(e.monto)} · <em>${e.tarjeta}</em>${
+          desc = `<strong>${escapeHtml(e.persona)}</strong> — Cuota ${e.cuota}/${e.totales} pagada: <em>${escapeHtml(e.item)}</em> · $${fmt(e.monto)} · <em>${escapeHtml(e.tarjeta)}</em>${
             e.abonoPrevio ? ` <span style="opacity:.75">(se descontaron $${fmt(e.pagadoAhora)}; $${fmt(e.abonoPrevio)} ya estaban abonados)</span>` : ""}`;
           break;
         case "abono":
           icon = "💸"; cls = "hist-saldo";
-          desc = `<strong>${e.persona}</strong> — Abono parcial a la cuota ${e.cuota}/${e.totales}: <em>${e.item}</em> · <strong>$${fmt(e.monto)}</strong> · <em>${e.tarjeta}</em> · queda debiendo <strong>$${fmt(e.restante)}</strong>`;
+          desc = `<strong>${escapeHtml(e.persona)}</strong> — Abono parcial a la cuota ${e.cuota}/${e.totales}: <em>${escapeHtml(e.item)}</em> · <strong>$${fmt(e.monto)}</strong> · <em>${escapeHtml(e.tarjeta)}</em> · queda debiendo <strong>$${fmt(e.restante)}</strong>`;
           break;
         case "deshacer_abono":
           icon = "↩️"; cls = "hist-danger";
-          desc = `<strong>${e.persona}</strong> — Abono deshecho en la cuota ${e.cuota}/${e.totales}: <em>${e.item}</em> · $${fmt(e.monto)} devueltos al saldo · <em>${e.tarjeta}</em>`;
+          desc = `<strong>${escapeHtml(e.persona)}</strong> — Abono deshecho en la cuota ${e.cuota}/${e.totales}: <em>${escapeHtml(e.item)}</em> · $${fmt(e.monto)} devueltos al saldo · <em>${escapeHtml(e.tarjeta)}</em>`;
           break;
         case "pago_unico":
           icon = "✅"; cls = "hist-unico";
-          desc = `<strong>${e.persona}</strong> — Pago único completado: <em>${e.item}</em> · <strong>$${fmt(e.monto)}</strong> · <em>${e.tarjeta}</em>`;
+          desc = `<strong>${escapeHtml(e.persona)}</strong> — Pago único completado: <em>${escapeHtml(e.item)}</em> · <strong>$${fmt(e.monto)}</strong> · <em>${escapeHtml(e.tarjeta)}</em>`;
           break;
         case "deshacer_cuota":
           icon = "↩️"; cls = "hist-danger";
-          desc = `<strong>${e.persona}</strong> — Cuota ${e.cuota}/${e.totales} deshecha: <em>${e.item}</em> · $${fmt(e.monto)} · <em>${e.tarjeta}</em>`;
+          desc = `<strong>${escapeHtml(e.persona)}</strong> — Cuota ${e.cuota}/${e.totales} deshecha: <em>${escapeHtml(e.item)}</em> · $${fmt(e.monto)} · <em>${escapeHtml(e.tarjeta)}</em>`;
           break;
         case "fechas_recuperadas":
           icon = "🕘"; cls = "hist-compra";
@@ -1434,7 +1602,7 @@
           break;
         default:
           icon = "ℹ️"; cls = "";
-          desc = `Evento: ${e.tipo}`;
+          desc = `Evento: ${escapeHtml(e.tipo)}`;
       }
       return `<div class="hist-row ${cls}">
         <span class="hist-icon">${icon}</span>
@@ -1619,15 +1787,16 @@
   function getItems() {
     const f  = document.getElementById("filtro").value.toLowerCase().trim();
     const fe = document.getElementById("filtroEstado").value;
-    let list = items.filter(it => it.tarjeta === tarjetaActiva);
-    if (f) list = list.filter(it =>
-      (it.persona + " " + it.item + " " + it.tarjeta).toLowerCase().includes(f));
-    if (fe) list = list.filter(it => estadoPago(it).estado === fe);
+    const list = filtrarItems(itemsTarjeta(), f, fe, estadoPago);
     if (sortCol) list.sort((a, b) => {
       const va = sortVal(a), vb = sortVal(b);
       return va < vb ? -sortDir : va > vb ? sortDir : 0;
     });
     return list;
+  }
+
+  function itemsTarjeta() {
+    return items.filter(it => it.tarjeta === tarjetaActiva);
   }
 
   function syncFilterControls() {
@@ -1639,6 +1808,78 @@
     });
     const search = document.getElementById("filtro").value.trim();
     document.getElementById("clearSearchBtn").classList.toggle("hidden", !search);
+  }
+
+  function renderPanelOperativo(dataTarjeta, resumen) {
+    const hoy = hoyLocal();
+    const hitos = proximosHitosCiclo(hoy, DIA_FACTURACION, DIA_PAGO);
+    document.getElementById("cycleCardName").textContent = tarjetaActiva || "Sin tarjeta";
+    document.getElementById("nextClosingDate").textContent = fmtFechaLarga(hitos.cierre);
+    document.getElementById("nextPaymentDate").textContent = fmtFechaLarga(hitos.pago);
+
+    const agendaCompleta = crearAgenda(dataTarjeta, estadoPago, Number.MAX_SAFE_INTEGER);
+    const agendaVisible = agendaCompleta.slice(0, 3);
+    const agendaList = document.getElementById("agendaList");
+    agendaList.innerHTML = "";
+    document.getElementById("agendaCount").textContent = agendaCompleta.length;
+
+    if (!agendaVisible.length) {
+      const pendientesSinFecha = dataTarjeta.filter(it => estadoPago(it).estado === "sinfecha").length;
+      const vacio = document.createElement("div");
+      vacio.className = "agenda-empty";
+      vacio.textContent = pendientesSinFecha
+        ? `${pendientesSinFecha} compromiso${pendientesSinFecha !== 1 ? "s" : ""} necesita${pendientesSinFecha === 1 ? "" : "n"} fecha para entrar en la agenda.`
+        : dataTarjeta.length ? "No hay compromisos pendientes con fecha." : "Agrega una compra para construir tu agenda.";
+      agendaList.appendChild(vacio);
+    } else {
+      agendaVisible.forEach(({ item, estado }) => {
+        const row = document.createElement("div");
+        row.className = "agenda-item" + (estado.estado === "atrasado" ? " late" : "");
+
+        const dot = document.createElement("span");
+        dot.className = "agenda-dot";
+        dot.setAttribute("aria-hidden", "true");
+
+        const main = document.createElement("span");
+        main.className = "agenda-main";
+        const title = document.createElement("span");
+        title.className = "agenda-title";
+        title.textContent = item.item;
+        const meta = document.createElement("span");
+        meta.className = "agenda-meta";
+        meta.textContent = `${item.persona} · ${item.pagoUnico ? "Pago único" : `cuota ${estado.proxima}/${item.totales}`}`;
+        main.append(title, meta);
+
+        const amount = document.createElement("span");
+        amount.className = "agenda-amount";
+        const value = document.createElement("strong");
+        value.textContent = `$${fmt(estado.estado === "atrasado" ? estado.montoAtrasado : restanteCuota(item))}`;
+        const date = document.createElement("span");
+        date.textContent = estado.estado === "atrasado" ? `Venció ${fmtFechaCorta(estado.venc)}` : fmtFechaCorta(estado.venc);
+        amount.append(value, date);
+
+        row.append(dot, main, amount);
+        agendaList.appendChild(row);
+      });
+    }
+
+    const primerCompromiso = agendaCompleta[0];
+    const leadDate = document.getElementById("nextCommitmentDate");
+    const leadMeta = document.getElementById("nextCommitmentMeta");
+    if (primerCompromiso) {
+      const { item, estado } = primerCompromiso;
+      leadDate.textContent = estado.estado === "atrasado" ? `Vencido · ${fmtFechaLarga(estado.venc)}` : fmtFechaLarga(estado.venc);
+      leadMeta.textContent = `${item.item} · ${item.persona} · $${fmt(estado.estado === "atrasado" ? estado.montoAtrasado : restanteCuota(item))}`;
+    } else if (dataTarjeta.some(it => estadoPago(it).estado === "sinfecha")) {
+      leadDate.textContent = "Fechas pendientes";
+      leadMeta.textContent = "Edita los ítems sin fecha para calcular sus vencimientos.";
+    } else if (resumen.pendiente > 0) {
+      leadDate.textContent = "Sin fecha calculable";
+      leadMeta.textContent = "Revisa la fecha de compra de tus compromisos.";
+    } else {
+      leadDate.textContent = dataTarjeta.length ? "Todo al día" : "Sin pagos pendientes";
+      leadMeta.textContent = dataTarjeta.length ? "No hay cuotas abiertas en esta tarjeta." : "Agrega una compra para comenzar.";
+    }
   }
 
   async function copiarResumen() {
@@ -1733,7 +1974,7 @@
       const v = vencimientoCuota(p.fecha, (Number(p.it.pagadas) || 0) + 1);
       const d = parseFecha(p.fecha);
       return `<div class="bf-row">
-          <span class="bf-item">${p.it.item}<small>${p.it.persona} · ${p.it.tarjeta}</small></span>
+          <span class="bf-item">${escapeHtml(p.it.item)}<small>${escapeHtml(p.it.persona)} · ${escapeHtml(p.it.tarjeta)}</small></span>
           <span class="bf-fecha">${d.getDate()} ${MESES_CORTOS[d.getMonth()]} ${d.getFullYear()}</span>
           <span class="bf-venc">→ ${v ? fmtFechaCorta(v) : "—"}</span>
         </div>`;
@@ -1798,9 +2039,31 @@
     const tbody = document.getElementById("tabla-body");
     tbody.innerHTML = "";
 
+    const dataTarjeta = itemsTarjeta();
     const list = getItems();
-    let totContrato = 0, totPagado = 0, totPendiente = 0, totMensual = 0, totAtrasado = 0, itemsAtrasados = 0;
+    const filtrosActivos = Boolean(
+      document.getElementById("filtro").value.trim() || document.getElementById("filtroEstado").value
+    );
+    const resumen = resumirTarjeta(dataTarjeta, estadoPago, pagadoDe);
+    const {
+      totalContrato: totContrato,
+      pagado: totPagado,
+      pendiente: totPendiente,
+      mensual: totMensual,
+      atrasado: totAtrasado,
+      itemsAtrasados
+    } = resumen;
     const porPersona = {}, porTarjeta = {}, porMensual = {}, porAtraso = {};
+
+    dataTarjeta.forEach(it => {
+      const st = estadoPago(it);
+      const isDone = it.pagadas >= it.totales;
+      porPersona[it.persona] = (porPersona[it.persona] || 0) + it.total;
+      if (!isDone) porMensual[it.persona] = (porMensual[it.persona] || 0) + it.monto;
+      if (st.estado === "atrasado") {
+        porAtraso[it.persona] = (porAtraso[it.persona] || 0) + st.montoAtrasado;
+      }
+    });
 
     list.forEach(it => {
       const idx           = items.indexOf(it);
@@ -1816,17 +2079,6 @@
       const isLate        = st.estado === "atrasado";
       const cls           = isDone ? "done" : isLate ? "late" : isNear ? "near" : "active";
 
-      totContrato  += totalContrato;
-      totPagado    += pagado;
-      totPendiente += it.total;
-      if (!isDone) { totMensual += it.monto; porMensual[it.persona] = (porMensual[it.persona]||0) + it.monto; }
-      if (isLate) {
-        itemsAtrasados++;
-        totAtrasado += st.montoAtrasado;
-        porAtraso[it.persona] = (porAtraso[it.persona] || 0) + st.montoAtrasado;
-      }
-      porPersona[it.persona] = (porPersona[it.persona] || 0) + it.total;
-
       const tr = document.createElement("tr");
       if (isLate) tr.className = "row-late";
 
@@ -1834,7 +2086,10 @@
       const tdP = document.createElement("td");
       tdP.className = "cell-persona";
       tdP.dataset.label = "Persona";
-      tdP.innerHTML = `<span class="status-dot dot-${cls}"></span>${it.persona}`;
+      const statusDot = document.createElement("span");
+      statusDot.className = `status-dot dot-${cls}`;
+      statusDot.setAttribute("aria-hidden", "true");
+      tdP.append(statusDot, document.createTextNode(it.persona));
       tr.appendChild(tdP);
 
       // Item
@@ -1961,9 +2216,21 @@
       td.colSpan = 9;
       td.innerHTML = `<div class="empty-state">
         <span class="empty-state-icon">◇</span>
-        <strong>No hay cuotas para mostrar</strong>
-        <span>Prueba otro filtro o agrega un nuevo ítem.</span>
+        <strong>${filtrosActivos ? "No hay coincidencias" : "Esta tarjeta todavía está vacía"}</strong>
+        <span>${filtrosActivos ? "Limpia los filtros para volver a ver todos los ítems." : "Agrega la primera compra para comenzar a seguir sus cuotas."}</span>
+        <button class="btn ${filtrosActivos ? "btn-ghost" : "btn-primary"} btn-sm empty-action">${filtrosActivos ? "Limpiar filtros" : "Agregar compra"}</button>
       </div>`;
+      td.querySelector(".empty-action").addEventListener("click", () => {
+        if (filtrosActivos) {
+          document.getElementById("filtro").value = "";
+          document.getElementById("filtroEstado").value = "";
+          renderTabla();
+        } else {
+          setForm(true);
+          document.getElementById("item").focus();
+          document.getElementById("formPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
       tr.appendChild(td);
       tbody.appendChild(tr);
     }
@@ -1977,6 +2244,7 @@
     const pendPct   = totContrato > 0 ? Math.round(totPendiente / totContrato * 100) : 0;
     const atrPct    = totPendiente > 0 ? Math.round(totAtrasado / totPendiente * 100) : 0;
     document.getElementById("kpi-pending-bar").style.width = pendPct + "%";
+    document.getElementById("kpi-monthly-bar").style.width = Math.min(totPendiente > 0 ? Math.round(totMensual / totPendiente * 100) : 0, 100) + "%";
     document.getElementById("kpi-overdue-bar").style.width = Math.min(atrPct, 100) + "%";
     document.getElementById("kpi-pending-sub").textContent = totContrato === 0
       ? "Sin ítems activos"
@@ -1984,6 +2252,12 @@
     document.getElementById("kpi-overdue-sub").textContent = itemsAtrasados === 0
       ? "Sin cuotas vencidas"
       : `${itemsAtrasados} ítem${itemsAtrasados !== 1 ? "s" : ""} con atraso`;
+    const compromisosActivos = dataTarjeta.filter(it => it.pagadas < it.totales).length;
+    document.getElementById("kpi-monthly-sub").textContent = totMensual === 0
+      ? "Sin cuotas pendientes"
+      : `${compromisosActivos} compromiso${compromisosActivos !== 1 ? "s" : ""} activo${compromisosActivos !== 1 ? "s" : ""}`;
+
+    renderPanelOperativo(dataTarjeta, resumen);
 
     items.forEach(it => {
       const k = it.tarjeta || "Sin tarjeta";
@@ -2000,10 +2274,14 @@
       const ic  = th.querySelector(".sort-icon");
       th.classList.toggle("sorted", col === sortCol);
       ic.textContent = col === sortCol ? (sortDir === 1 ? " ↑" : " ↓") : "";
+      th.setAttribute("aria-sort", col === sortCol ? (sortDir === 1 ? "ascending" : "descending") : "none");
     });
 
-    document.getElementById("results-badge").textContent =
-      list.length === 0 ? "Sin resultados" : `${list.length} ítem${list.length !== 1 ? "s" : ""}`;
+    document.getElementById("results-badge").textContent = list.length === 0
+      ? (dataTarjeta.length ? "Sin coincidencias" : "Sin ítems")
+      : filtrosActivos
+        ? `${list.length} de ${dataTarjeta.length}`
+        : `${list.length} ítem${list.length !== 1 ? "s" : ""}`;
     syncFilterControls();
 
     // El botón de recuperar fechas solo aparece si el historial tiene algo que aportar
@@ -2021,7 +2299,13 @@
     entries.forEach(([k, v]) => {
       const r = document.createElement("div");
       r.className = "summary-row";
-      r.innerHTML = `<span class="name">${k}</span><span class="val">$${fmt(v)}</span>`;
+      const name = document.createElement("span");
+      name.className = "name";
+      name.textContent = k;
+      const val = document.createElement("span");
+      val.className = "val";
+      val.textContent = `$${fmt(v)}`;
+      r.append(name, val);
       el.appendChild(r);
     });
   }
@@ -2106,7 +2390,7 @@
     if (!requireLogin()) return;
     const ok = await showModal({
       title: "Borrar saldo",
-      body: `¿Eliminar todo el saldo de <strong>${personaSeleccionada}</strong>?`,
+      body: `¿Eliminar todo el saldo de <strong>${escapeHtml(personaSeleccionada)}</strong>?`,
       icon: "⚠️", iconType: "danger",
       confirm: "Borrar", cancel: "Cancelar", danger: true
     });
@@ -2129,7 +2413,7 @@
     if (disp <= 0) {
       await showModal({
         title: "Sin saldo",
-        body: `<strong>${it.persona}</strong> no tiene saldo disponible.<br>
+        body: `<strong>${escapeHtml(it.persona)}</strong> no tiene saldo disponible.<br>
           Falta por pagar de esta cuota: <strong>$${fmt(restante)}</strong>`,
         icon: "⚠️", iconType: "danger", confirm: "Entendido"
       });
@@ -2140,7 +2424,7 @@
     if (disp < restante) {
       const val = await showModal({
         title: "Pago parcial",
-        body: `<strong>${it.persona}</strong> no alcanza a cubrir la cuota completa.<br>
+        body: `<strong>${escapeHtml(it.persona)}</strong> no alcanza a cubrir la cuota completa.<br>
           Disponible: <strong>$${fmt(disp)}</strong> · Falta por pagar: <strong>$${fmt(restante)}</strong>
           ${abonado ? `<br>Ya abonado a esta cuota: <strong>$${fmt(abonado)}</strong>` : ""}
           <br><br>¿Cuánto quieres abonar? Queda debiendo la diferencia.`,
@@ -2222,7 +2506,7 @@
     const it = items[idx];
     const ok = await showModal({
       title: "Borrar ítem",
-      body: `¿Eliminar <strong>${it?.item || "este ítem"}</strong>? No se puede deshacer.`,
+      body: `¿Eliminar <strong>${escapeHtml(it?.item || "este ítem")}</strong>? No se puede deshacer.`,
       icon: "🗑️", iconType: "danger",
       confirm: "Borrar", cancel: "Cancelar", danger: true
     });
@@ -2413,6 +2697,8 @@
     esConCuotas = true;
     document.getElementById("btnConCuotas").classList.add("active");
     document.getElementById("btnSinCuotas").classList.remove("active");
+    document.getElementById("btnConCuotas").setAttribute("aria-pressed", "true");
+    document.getElementById("btnSinCuotas").setAttribute("aria-pressed", "false");
     setCuotasVisible(true);
   });
 
@@ -2420,6 +2706,8 @@
     esConCuotas = false;
     document.getElementById("btnSinCuotas").classList.add("active");
     document.getElementById("btnConCuotas").classList.remove("active");
+    document.getElementById("btnSinCuotas").setAttribute("aria-pressed", "true");
+    document.getElementById("btnConCuotas").setAttribute("aria-pressed", "false");
     setCuotasVisible(false);
   });
 
@@ -2433,18 +2721,28 @@
     formBody.classList.toggle("open", open);
     formIcon.classList.toggle("open", open);
     formToggle.classList.toggle("open", open);
+    formToggle.setAttribute("aria-expanded", open ? "true" : "false");
   }
   setForm(formOpen);
   formToggle.addEventListener("click", () => setForm(!formOpen));
 
   // ── Sort ──
   document.querySelectorAll("thead th[data-col]").forEach(th => {
-    th.addEventListener("click", () => {
+    th.tabIndex = 0;
+    th.setAttribute("role", "button");
+    const ordenar = () => {
       const col = th.dataset.col;
       sortDir = sortCol === col ? sortDir * -1 : 1;
       sortCol = col;
       sincronizarOrdenMovil();
       renderTabla();
+    };
+    th.addEventListener("click", ordenar);
+    th.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        ordenar();
+      }
     });
   });
 

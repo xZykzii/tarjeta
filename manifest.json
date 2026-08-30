@@ -1,10 +1,10 @@
 {
-  "name": "Control de cuotas",
+  "name": "Control de cuotas · Panel financiero",
   "short_name": "Cuotas",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#000000",
+  "theme_color": "#0a0a0b",
   "icons": [
     {
       "src": "./icons/icon-192.png",
