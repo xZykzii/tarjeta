@@ -60,3 +60,45 @@ export function resumirTarjeta(items, estadoDe, pagadoDe) {
     itemsAtrasados: 0
   });
 }
+
+function crearFilaReporte(item, estadoDe, pagadoDe, incluyeIdentidad) {
+  const estado = estadoDe(item);
+  const totalContrato = Number(item.monto || 0) * Number(item.totales || 0);
+  const fila = {
+    item: String(item.item || "-"),
+    tipo: item.pagoUnico ? "Pago único" : "Cuotas",
+    montoCuota: Number(item.monto) || 0,
+    cuotasPagadas: Number(item.pagadas) || 0,
+    cuotasTotales: Number(item.totales) || 1,
+    totalContrato,
+    pagado: pagadoDe(item),
+    pendiente: Math.max(0, Number(item.total) || 0),
+    estado: estado.estado,
+    vencimiento: estado.venc || null,
+    montoAtrasado: Number(estado.montoAtrasado) || 0
+  };
+  if (incluyeIdentidad) {
+    fila.persona = String(item.persona || "-");
+    fila.tarjeta = String(item.tarjeta || "-");
+  }
+  return fila;
+}
+
+export function crearReportePersona(items, persona, estadoDe, pagadoDe) {
+  const nombre = String(persona || "").trim();
+  const pendientes = items.filter((item) => (
+    item.persona === nombre && Math.max(0, Number(item.total) || 0) > 0
+  ));
+  return {
+    persona: nombre,
+    filas: pendientes.map((item) => crearFilaReporte(item, estadoDe, pagadoDe, false)),
+    resumen: resumirTarjeta(pendientes, estadoDe, pagadoDe)
+  };
+}
+
+export function crearReporteGeneral(items, estadoDe, pagadoDe) {
+  return {
+    filas: items.map((item) => crearFilaReporte(item, estadoDe, pagadoDe, true)),
+    resumen: resumirTarjeta(items, estadoDe, pagadoDe)
+  };
+}

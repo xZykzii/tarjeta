@@ -16,6 +16,7 @@ cuánto queda pendiente y cuánto se estima pagar en el mes en curso.
 - Historial de actividad, con opción de deshacer una cuota marcada por error.
 - Búsqueda, filtros rápidos por estado y orden adaptable para móvil.
 - Resumen de la tarjeta listo para copiar y compartir.
+- PDFs individuales de deuda sin datos de tarjetas ni de otras personas, y reporte PDF general.
 - Exportación e importación de backups en JSON.
 - Tema claro y oscuro.
 

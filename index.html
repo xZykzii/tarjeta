@@ -629,6 +629,13 @@
     .modal-input { width: 100%; padding: 10px 13px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font-size: 14px; font-family: var(--font); margin-top: 12px; }
     .modal-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
     .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .export-options { display: grid; gap: 12px; margin-top: 14px; }
+    .export-person { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+    .export-person select { min-width: 0; }
+    .export-option { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); }
+    .export-option-copy { display: grid; gap: 2px; }
+    .export-option-copy strong { color: var(--text); font-size: 13px; }
+    .export-option-copy small { color: var(--text-3); font-size: 11px; line-height: 1.4; }
     .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
     .edit-grid .span-2 { grid-column: 1 / -1; }
     .edit-grid .field input, .edit-grid .field select { background: var(--surface-2); border: 1px solid var(--border); }
@@ -827,6 +834,9 @@
       .data-actions .btn { justify-content: center; min-height: 38px; }
       .data-actions #recuperarFechasBtn { grid-column: 1 / -1; }
       .data-actions #clearBtn { grid-column: 1 / -1; }
+      .export-person { grid-template-columns: 1fr; }
+      .export-option { align-items: stretch; flex-direction: column; }
+      .export-option .btn { justify-content: center; }
     }
 
     /* Respetar a quien pide menos movimiento en el sistema */
@@ -1148,7 +1158,11 @@
 </main>
 
 <script type="module">
-  import { crearAgenda, filtrarItems, proximosHitosCiclo, resumirTarjeta } from "./logic.mjs";
+  import {
+    crearAgenda, crearReporteGeneral, crearReportePersona,
+    filtrarItems, proximosHitosCiclo, resumirTarjeta
+  } from "./logic.mjs";
+  import { generarPdfGeneral, generarPdfPersona } from "./pdf-export.mjs";
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
     getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
@@ -1178,6 +1192,8 @@
   let saldos = {};
   let sortCol = null, sortDir = 1;
   let esConCuotas = true;
+  let pdfModulePromise = null;
+  const PDF_MODULE_URL = "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/+esm";
 
   // ── Theme ──
   const themeToggle = document.getElementById("themeToggle");
@@ -2594,7 +2610,7 @@
     renderPersonaSelect(); toast("Persona eliminada.", "info");
   }
 
-  function exportar() {
+  function exportarBackup() {
     if (!requireLogin()) return;
     const blob = new Blob([JSON.stringify({ version: 6, items, tarjetas, personas, tarjetaActiva, saldos, historial }, null, 2)],
       { type: "application/json" });
@@ -2604,6 +2620,91 @@
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(a.href);
     toast("Backup exportado.");
+  }
+
+  async function cargarGeneradorPdf() {
+    if (!pdfModulePromise) {
+      pdfModulePromise = import(PDF_MODULE_URL)
+        .then(modulo => {
+          if (typeof modulo.jsPDF !== "function") throw new TypeError("Módulo PDF inválido.");
+          return modulo.jsPDF;
+        })
+        .catch(error => {
+          pdfModulePromise = null;
+          throw error;
+        });
+    }
+    return pdfModulePromise;
+  }
+
+  async function exportarPdfPersona(persona) {
+    try {
+      const JsPdf = await cargarGeneradorPdf();
+      const reporte = crearReportePersona(items, persona, estadoPago, pagadoDe);
+      const { doc, filename } = generarPdfPersona(JsPdf, reporte);
+      doc.save(filename);
+      toast(`PDF de ${persona} exportado.`);
+    } catch (error) {
+      console.error("No se pudo generar el PDF individual.", error);
+      toast("No se pudo crear el PDF. Revisa tu conexión e inténtalo de nuevo.", "error");
+    }
+  }
+
+  async function exportarPdfGeneral() {
+    try {
+      const JsPdf = await cargarGeneradorPdf();
+      const reporte = crearReporteGeneral(items, estadoPago, pagadoDe);
+      const { doc, filename } = generarPdfGeneral(JsPdf, reporte);
+      doc.save(filename);
+      toast("PDF general exportado.");
+    } catch (error) {
+      console.error("No se pudo generar el PDF general.", error);
+      toast("No se pudo crear el PDF. Revisa tu conexión e inténtalo de nuevo.", "error");
+    }
+  }
+
+  function showExportModal() {
+    if (!requireLogin()) return;
+    const ov = document.createElement("div");
+    ov.className = "modal-overlay";
+    ov.innerHTML = `
+      <div class="modal-box wide">
+        <div class="modal-header">
+          <div class="modal-header-icon info">PDF</div>
+          <div class="modal-title">Exportar información</div>
+        </div>
+        <div class="modal-body">El PDF personal oculta tarjetas, otras personas y totales globales. El reporte general incluye toda la información.</div>
+        <div class="export-options">
+          <div class="export-option export-person">
+            <select id="export-persona" aria-label="Persona para el PDF"></select>
+            <button class="btn btn-primary btn-sm" id="export-persona-btn">PDF de esta persona</button>
+          </div>
+          <div class="export-option">
+            <span class="export-option-copy"><strong>Reporte general</strong><small>Todas las personas, tarjetas y compras.</small></span>
+            <button class="btn btn-ghost btn-sm" id="export-general-btn">PDF general</button>
+          </div>
+          <div class="export-option">
+            <span class="export-option-copy"><strong>Respaldo de datos</strong><small>Archivo JSON para restaurar la aplicación.</small></span>
+            <button class="btn btn-ghost btn-sm" id="export-backup-btn">Backup JSON</button>
+          </div>
+        </div>
+        <div class="modal-actions" style="margin-top:16px"><button class="btn btn-ghost" id="export-close-btn">Cerrar</button></div>
+      </div>`;
+    document.body.appendChild(ov);
+    configurarExportModal(ov);
+  }
+
+  function configurarExportModal(ov) {
+    const select = ov.querySelector("#export-persona");
+    personas.forEach(persona => select.add(new Option(persona, persona)));
+    select.value = personas.includes(personaSeleccionada) ? personaSeleccionada : personas[0];
+    const cerrar = () => { ov.classList.add("fade-out"); setTimeout(() => ov.remove(), 160); };
+    ov.querySelector("#export-persona-btn").addEventListener("click", () => exportarPdfPersona(select.value));
+    ov.querySelector("#export-general-btn").addEventListener("click", exportarPdfGeneral);
+    ov.querySelector("#export-backup-btn").addEventListener("click", exportarBackup);
+    ov.querySelector("#export-close-btn").addEventListener("click", cerrar);
+    ov.addEventListener("click", e => { if (e.target === ov) cerrar(); });
+    ov.addEventListener("keydown", e => { if (e.key === "Escape") cerrar(); });
   }
 
   function importar(file) {
@@ -2769,7 +2870,7 @@
   document.getElementById("delPersonaBtn").addEventListener("click", eliminarPersona);
   document.getElementById("addSaldoBtn").addEventListener("click", agregarSaldo);
   document.getElementById("delSaldoBtn").addEventListener("click", borrarSaldo);
-  document.getElementById("exportBtn").addEventListener("click", exportar);
+  document.getElementById("exportBtn").addEventListener("click", showExportModal);
   document.getElementById("copySummaryBtn").addEventListener("click", copiarResumen);
   document.getElementById("historialBtn").addEventListener("click", () => {
     if (!requireLogin()) return;
