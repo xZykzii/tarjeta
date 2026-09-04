@@ -34,6 +34,39 @@ export function filtrarItems(items, texto, estado, estadoDe) {
   });
 }
 
+export function calcularMontoExigibleMes(item, hoy, vencimientoDe) {
+  const monto = Math.max(0, Number(item.monto) || 0);
+  const totales = Math.max(1, Number(item.totales) || 1);
+  const pagadas = Math.max(0, Math.min(totales, Number(item.pagadas) || 0));
+  const abonadoRegistrado = Number(item.abonado) || 0;
+  const abonado = abonadoRegistrado > 0 && abonadoRegistrado < monto
+    ? abonadoRegistrado
+    : 0;
+  if (pagadas >= totales || monto === 0) return 0;
+
+  const fechaReferencia = hoy instanceof Date && !Number.isNaN(hoy.getTime())
+    ? hoy
+    : new Date();
+  const finDeMes = new Date(
+    fechaReferencia.getFullYear(),
+    fechaReferencia.getMonth() + 1,
+    0
+  );
+  let cuotasExigibles = 0;
+
+  for (let numero = 1; numero <= totales; numero++) {
+    const vencimiento = vencimientoDe(item.fechaCompra, numero);
+    if (!(vencimiento instanceof Date) || Number.isNaN(vencimiento.getTime())) {
+      return Math.max(0, monto - abonado);
+    }
+    if (vencimiento > finDeMes) break;
+    cuotasExigibles = numero;
+  }
+
+  const cuotasPendientes = Math.max(0, cuotasExigibles - pagadas);
+  return Math.max(0, cuotasPendientes * monto - abonado);
+}
+
 export function resumirTarjeta(items, estadoDe, pagadoDe) {
   return items.reduce((resumen, item) => {
     const totalContrato = Number(item.monto || 0) * Number(item.totales || 0);
@@ -45,7 +78,12 @@ export function resumirTarjeta(items, estadoDe, pagadoDe) {
     resumen.totalContrato += totalContrato;
     resumen.pagado += pagado;
     resumen.pendiente += pendiente;
-    if (!completo) resumen.mensual += Number(item.monto) || 0;
+    if (!completo) {
+      const montoExigible = Number(estado.montoExigibleMes);
+      resumen.mensual += Number.isFinite(montoExigible)
+        ? Math.max(0, montoExigible)
+        : Number(item.monto) || 0;
+    }
     if (estado.estado === "atrasado") {
       resumen.atrasado += estado.montoAtrasado;
       resumen.itemsAtrasados++;

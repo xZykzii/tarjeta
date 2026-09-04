@@ -1159,7 +1159,7 @@
 
 <script type="module">
   import {
-    crearAgenda, crearReporteGeneral, crearReportePersona,
+    calcularMontoExigibleMes, crearAgenda, crearReporteGeneral, crearReportePersona,
     filtrarItems, proximosHitosCiclo, resumirTarjeta
   } from "./logic.mjs";
   import { generarPdfGeneral, generarPdfPersona } from "./pdf-export.mjs";
@@ -1524,7 +1524,8 @@
     const pagadas = Number(it.pagadas) || 0;
     const st = {
       estado: "aldia", proxima: null, venc: null, dias: 0,
-      atrasadas: 0, montoAtrasado: 0
+      atrasadas: 0, montoAtrasado: 0,
+      montoExigibleMes: calcularMontoExigibleMes(it, hoy, vencimientoCuota)
     };
     if (pagadas >= totales)          { st.estado = "completo"; return st; }
     if (!parseFecha(it.fechaCompra)) { st.estado = "sinfecha"; return st; }
@@ -1901,13 +1902,13 @@
   async function copiarResumen() {
     if (!requireLogin()) return;
     const list = items.filter(it => it.tarjeta === tarjetaActiva);
-    let pendiente = 0, mensual = 0, atrasado = 0, atrasados = 0;
+    const resumen = resumirTarjeta(list, estadoPago, pagadoDe);
+    const {
+      pendiente, mensual, atrasado,
+      itemsAtrasados: atrasados
+    } = resumen;
     const personasMap = {};
     list.forEach(it => {
-      pendiente += Number(it.total) || 0;
-      if (it.pagadas < it.totales) mensual += Number(it.monto) || 0;
-      const st = estadoPago(it);
-      if (st.estado === "atrasado") { atrasado += st.montoAtrasado; atrasados++; }
       personasMap[it.persona] = (personasMap[it.persona] || 0) + (Number(it.total) || 0);
     });
     const detalle = Object.entries(personasMap)
@@ -1916,7 +1917,7 @@
     const texto = [
       `Resumen · ${tarjetaActiva || "Tarjeta"}`,
       `Pendiente total: $${fmt(pendiente)}`,
-      `Cuota mensual estimada: $${fmt(mensual)}`,
+      `Cuota mensual (incluye atrasos): $${fmt(mensual)}`,
       `Atrasado: $${fmt(atrasado)}${atrasados ? ` (${atrasados} ítem${atrasados !== 1 ? "s" : ""})` : ""}`,
       `Compras registradas: ${list.length}`,
       ...(detalle.length ? ["", "Por persona:", ...detalle] : [])
@@ -2075,7 +2076,9 @@
       const st = estadoPago(it);
       const isDone = it.pagadas >= it.totales;
       porPersona[it.persona] = (porPersona[it.persona] || 0) + it.total;
-      if (!isDone) porMensual[it.persona] = (porMensual[it.persona] || 0) + it.monto;
+      if (!isDone && st.montoExigibleMes > 0) {
+        porMensual[it.persona] = (porMensual[it.persona] || 0) + st.montoExigibleMes;
+      }
       if (st.estado === "atrasado") {
         porAtraso[it.persona] = (porAtraso[it.persona] || 0) + st.montoAtrasado;
       }
@@ -2270,8 +2273,8 @@
       : `${itemsAtrasados} ítem${itemsAtrasados !== 1 ? "s" : ""} con atraso`;
     const compromisosActivos = dataTarjeta.filter(it => it.pagadas < it.totales).length;
     document.getElementById("kpi-monthly-sub").textContent = totMensual === 0
-      ? "Sin cuotas pendientes"
-      : `${compromisosActivos} compromiso${compromisosActivos !== 1 ? "s" : ""} activo${compromisosActivos !== 1 ? "s" : ""}`;
+      ? "Sin pagos exigibles este mes"
+      : `${compromisosActivos} compromiso${compromisosActivos !== 1 ? "s" : ""} activo${compromisosActivos !== 1 ? "s" : ""} · incluye atrasos`;
 
     renderPanelOperativo(dataTarjeta, resumen);
 
@@ -2282,7 +2285,7 @@
 
     renderSummaryBlock("sum-persona", porPersona);
     renderSummaryBlock("sum-tarjeta", porTarjeta);
-    renderSummaryBlock("sum-mensual", porMensual, "Sin cuotas pendientes.");
+    renderSummaryBlock("sum-mensual", porMensual, "Sin pagos exigibles este mes.");
     renderSummaryBlock("sum-atraso",  porAtraso,  "Nadie está atrasado. 🎉");
 
     document.querySelectorAll("thead th[data-col]").forEach(th => {

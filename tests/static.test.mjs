@@ -37,5 +37,5 @@ test("la exportación ofrece PDF personal, PDF general y conserva el backup", ()
   assert.match(html, /id="export-backup-btn"/);
   assert.match(html, /crearReportePersona\(items, persona, estadoPago, pagadoDe\)/);
   assert.match(html, /crearReporteGeneral\(items, estadoPago, pagadoDe\)/);
-  assert.match(sw, /const CACHE_NAME = "cuotas-v13"/);
+  assert.match(sw, /const CACHE_NAME = "cuotas-v14"/);
 });

@@ -1,9 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  crearAgenda, crearReporteGeneral, crearReportePersona,
+  calcularMontoExigibleMes, crearAgenda, crearReporteGeneral, crearReportePersona,
   filtrarItems, proximosHitosCiclo, resumirTarjeta
 } from "../logic.mjs";
+
+function vencimientoMensual(fechaCompra, numero) {
+  const compra = new Date(`${fechaCompra}T00:00:00`);
+  const salto = compra.getDate() >= 10 ? 1 : 0;
+  return new Date(compra.getFullYear(), compra.getMonth() + salto + numero - 1, 25);
+}
 
 test("calcula los próximos hitos antes y después del cierre", () => {
   const antes = proximosHitosCiclo(new Date(2026, 7, 9), 10, 25);
@@ -27,18 +33,56 @@ test("la agenda prioriza atrasos, ordena por fecha y limita resultados", () => {
   assert.deepEqual(agenda.map(({ item }) => item.item), ["Atrasado antiguo", "Atrasado reciente", "Próximo"]);
 });
 
+test("acumula las cuotas impagas hasta el mes actual sin sumar meses futuros", () => {
+  const item = {
+    monto: 2000,
+    totales: 8,
+    pagadas: 2,
+    abonado: 0,
+    fechaCompra: "2026-05-01"
+  };
+
+  assert.equal(
+    calcularMontoExigibleMes(item, new Date(2026, 8, 3), vencimientoMensual),
+    6000
+  );
+  assert.equal(
+    calcularMontoExigibleMes(item, new Date(2026, 8, 26), vencimientoMensual),
+    6000
+  );
+  assert.equal(
+    calcularMontoExigibleMes({ ...item, abonado: 500 }, new Date(2026, 8, 3), vencimientoMensual),
+    5500
+  );
+});
+
+test("omite una cuota que comienza el mes siguiente", () => {
+  const item = {
+    monto: 2000,
+    totales: 3,
+    pagadas: 0,
+    abonado: 0,
+    fechaCompra: "2026-09-10"
+  };
+
+  assert.equal(
+    calcularMontoExigibleMes(item, new Date(2026, 8, 30), vencimientoMensual),
+    0
+  );
+});
+
 test("resume toda la tarjeta sin depender del subconjunto visible", () => {
   const items = [
-    { monto: 10000, totales: 3, pagadas: 1, total: 20000, estado: "aldia", montoAtrasado: 0 },
-    { monto: 5000, totales: 2, pagadas: 0, total: 10000, estado: "atrasado", montoAtrasado: 5000 },
-    { monto: 7000, totales: 1, pagadas: 1, total: 0, estado: "completo", montoAtrasado: 0 }
+    { monto: 10000, totales: 3, pagadas: 1, total: 20000, estado: "aldia", montoAtrasado: 0, montoExigibleMes: 10000 },
+    { monto: 5000, totales: 2, pagadas: 0, total: 10000, estado: "atrasado", montoAtrasado: 5000, montoExigibleMes: 10000 },
+    { monto: 7000, totales: 1, pagadas: 1, total: 0, estado: "completo", montoAtrasado: 0, montoExigibleMes: 0 }
   ];
   const resumen = resumirTarjeta(items, (item) => item, (item) => item.monto * item.pagadas);
   assert.deepEqual(resumen, {
     totalContrato: 47000,
     pagado: 17000,
     pendiente: 30000,
-    mensual: 15000,
+    mensual: 20000,
     atrasado: 5000,
     itemsAtrasados: 1
   });
