@@ -44,8 +44,8 @@
     :root {
       --radius-sm: 8px;
       --radius-md: 12px;
-      --radius-lg: 18px;
-      --radius-xl: 26px;
+      --radius-lg: 16px;
+      --radius-xl: 22px;
       --font: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       --transition: 0.18s ease;
       --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -62,7 +62,7 @@
       --border-2:     #d0d0d6;
       --text:         #101012;
       --text-2:       #5b5b66;
-      --text-3:       #8e8e99;
+      --text-3:       #676c69;
       --accent:       #242d00;
       --accent-hover: #101500;
       --accent-soft:  rgba(123,156,0,0.12);
@@ -92,15 +92,15 @@
     }
 
     [data-theme="dark"] {
-      --bg:           #000000;
-      --surface:      #0c0c0e;
-      --surface-2:    #141417;
-      --surface-3:    #1a1a1e;
-      --border:       #232326;
+      --bg:           #090a0a;
+      --surface:      #111313;
+      --surface-2:    #181a1a;
+      --surface-3:    #202323;
+      --border:       #292c2c;
       --border-2:     #35353b;
       --text:         #f4f4f5;
-      --text-2:       #9c9ca6;
-      --text-3:       #63636d;
+      --text-2:       #b0b6b3;
+      --text-3:       #939b97;
       --accent:       #d7ff4b;
       --accent-hover: #c5ef38;
       --accent-soft:  rgba(215,255,75,0.11);
@@ -119,8 +119,8 @@
       --header-bg:    #000000;
       --header-text:  #fafafa;
       --header-muted: #8f8f99;
-      --kpi-bg:       #0c0c0e;
-      --shadow-card:  0 1px 2px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.45);
+      --kpi-bg:       #111313;
+      --shadow-card:  none;
       --shadow-hover: 0 2px 8px rgba(0,0,0,0.7), 0 12px 32px rgba(0,0,0,0.55);
       --tab-active-bg: #d7ff4b;
       --tab-active-text: #000000;
@@ -141,13 +141,7 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       text-rendering: optimizeLegibility;
-      background-image:
-        radial-gradient(circle at 15% -10%, var(--hero-glow), transparent 28rem),
-        radial-gradient(circle at 92% 18%, var(--hero-glow), transparent 24rem),
-        linear-gradient(var(--grid-line) 1px, transparent 1px),
-        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-      background-size: auto, auto, 42px 42px, 42px 42px;
-      background-attachment: fixed;
+      background-image: none;
     }
     /* Foco visible y consistente para teclado, sin ensuciar el clic con mouse */
     :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
@@ -159,14 +153,14 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.35);
+      box-shadow: none;
       backdrop-filter: blur(18px);
     }
     .header-inner {
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 24px;
-      height: 60px;
+      height: 76px;
       display: flex;
       align-items: center;
       gap: 16px;
@@ -179,9 +173,9 @@
       border-radius: var(--radius-md);
       display: flex; align-items: center; justify-content: center;
       color: var(--brand-ink); font-size: 12px; font-weight: 900; letter-spacing: -0.05em; flex-shrink: 0;
-      box-shadow: 0 0 26px var(--glow);
+      box-shadow: none;
     }
-    .logo-text { font-size: 15px; font-weight: 700; color: var(--header-text); letter-spacing: -0.01em; }
+    .logo-text { font-size: 17px; font-weight: 700; color: var(--header-text); letter-spacing: -0.01em; }
     .logo-text span { font-weight: 400; color: var(--header-muted); }
     .header-spacer { flex: 1; }
     .header-user { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--header-muted); }
@@ -217,7 +211,7 @@
     .header-signout:hover { color: #fff; background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); }
 
     /* ── MAIN ── */
-    .main { max-width: 1240px; margin: 0 auto; padding: 32px 24px 48px; }
+    .main { max-width: 1240px; margin: 0 auto; padding: 40px 24px 64px; }
 
     /* ── PAGE INTRO ── */
     .page-intro {
@@ -395,7 +389,7 @@
       display: flex; align-items: center; justify-content: space-between;
       width: 100%; background: transparent; color: inherit; font: inherit; text-align: left;
       padding: 14px 20px; cursor: pointer; user-select: none;
-      border-bottom: 1px solid transparent;
+      border: 0; border-bottom: 1px solid transparent;
       transition: border-color var(--transition), background var(--transition);
     }
     .panel-header:hover { background: var(--surface-2); }
@@ -403,10 +397,8 @@
     .panel-title { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; }
     .panel-icon { font-size: 15px; color: var(--text-3); transition: transform 0.2s ease; }
     .panel-icon.open { transform: rotate(180deg); }
-    .panel-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
-    /* Holgado a propósito: en móvil el formulario se apila a una columna y con
-       800px quedaba cortado. */
-    .panel-body.open { max-height: 1400px; }
+    .panel-body { display: none; }
+    .panel-body.open { display: block; }
     .panel-body-inner { padding: 20px; }
 
     /* ── FORM ──
@@ -839,6 +831,233 @@
       .export-option .btn { justify-content: center; }
     }
 
+    /* ── IDENTIDAD Y JERARQUÍA ── */
+    .ui-icon { width: 22px; height: 22px; flex-shrink: 0; }
+    .logo-icon { border-radius: 11px; width: 36px; height: 36px; }
+    .header-inner { max-width: 1240px; }
+    .header-btn { border-radius: 10px; min-width: 44px; height: 40px; background: transparent; }
+    #themeIcon { font-size: 22px; line-height: 1; }
+    .header-signout { min-height: 36px; }
+    .header-user { max-width: 290px; }
+    .email-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .page-eyebrow { font-size: 10px; letter-spacing: .16em; }
+    .page-eyebrow::before { width: 7px; height: 7px; border-radius: 2px; background: var(--brand); }
+    .page-intro { margin-bottom: 30px; align-items: center; }
+    .page-intro h1 { font-weight: 650; font-size: clamp(30px, 3.4vw, 42px); }
+    .page-intro p { font-size: 14px; }
+    .page-actions .btn { min-height: 42px; }
+    .btn { border-radius: 9px; }
+    .btn-primary { font-weight: 700; }
+    .card-tabs-section { padding: 0 0 22px; border: 0; border-radius: 0; background: none; box-shadow: none; }
+    .card-tabs-head { margin-bottom: 10px; }
+    .card-tabs-head > div { display: flex; align-items: baseline; gap: 12px; }
+    .card-tabs-head .section-label { font-size: 10px; }
+    .active-card-label { margin: 0; font-size: 11px; font-weight: 400; }
+    .card-tab { min-height: 40px; padding: 9px 16px; font-weight: 600; border-radius: 10px; }
+    .card-tab.active { background: var(--surface-3); color: var(--text); border-color: var(--border-2); box-shadow: inset 0 -2px 0 var(--brand); }
+    .card-tab.active::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--brand); margin-right: 3px; }
+    .card-tab-del { background: transparent; border-color: transparent; color: var(--text-3); font-size: 11px; }
+    .card-tab-add { background: transparent; }
+    .kpi-grid { grid-template-columns: 1.2fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .kpi-card { padding: 24px; border-radius: 16px; animation: none; }
+    .kpi-card::before, .kpi-card::after { display: none; }
+    .kpi-card:hover { transform: none; box-shadow: none; }
+    .kpi-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; text-transform: none; letter-spacing: 0; color: var(--text-2); margin-bottom: 20px; }
+    .kpi-value { font-size: clamp(26px, 3vw, 38px); font-weight: 600; letter-spacing: -.055em; margin-bottom: 20px; }
+    .kpi-value .currency { font-size: 23px; font-weight: 400; margin-right: 4px; }
+    .kpi-bar { height: 3px; }
+    .kpi-sub { line-height: 1.5; margin-top: 10px; }
+    .kpi-monthly { background: #d7f58b; border-color: #d7f58b; color: #18240c; }
+    .kpi-monthly .kpi-label, .kpi-monthly .kpi-sub, .kpi-monthly .currency { color: #3d5023; }
+    .kpi-monthly .kpi-value { color: #18240c; }
+    .kpi-monthly .kpi-bar { background: #b9d474; }
+    .kpi-monthly .kpi-bar-fill { background: #344b1c; }
+    .kpi-monthly:hover { border-color: #d7f58b; }
+    .kpi-tag { padding: 4px 7px; border-radius: 5px; border: 1px solid #9fb960; font-size: 9px; white-space: nowrap; }
+    .kpi-overdue .kpi-value { color: var(--danger-text); }
+    .operations-grid { grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .cycle-card, .agenda-card { border-radius: 16px; animation: none; box-shadow: none; background: var(--surface); }
+    .cycle-card { min-height: 0; padding: 22px 24px; }
+    .cycle-card::after { display: none; }
+    .signal-pill { font-size: 9px; background: transparent; border-color: var(--border-2); color: var(--text-2); padding: 5px 8px; }
+    .signal-pill::before { box-shadow: none; width: 5px; height: 5px; }
+    .cycle-lead { margin: 22px 0; }
+    .cycle-lead > span { font-size: 10px; font-weight: 500; text-transform: none; letter-spacing: 0; }
+    .cycle-lead strong { font-size: clamp(24px, 2.5vw, 32px); font-weight: 600; line-height: 1.1; }
+    .cycle-lead small { font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+    .milestone-day { background: var(--surface-3); color: var(--text); border: 1px solid var(--border-2); font-weight: 600; }
+    .milestone-label { font-size: 9px; font-weight: 500; }
+    .milestone-date { font-size: 12px; font-weight: 600; }
+    .agenda-card { padding: 22px 24px; }
+    .agenda-head h2 { font-weight: 600; }
+    .agenda-head p { font-size: 11px; }
+    .agenda-title { font-size: 13px; font-weight: 600; }
+    .agenda-amount strong { font-size: 13px; font-weight: 600; }
+    .agenda-meta, .agenda-amount span { font-size: 11px; }
+    .agenda-dot { box-shadow: none; }
+    #formPanel { scroll-margin-top: 96px; }
+    .panel-header { min-height: 60px; padding: 18px 22px; }
+    .panel-title::before { content: "+"; color: var(--brand); font-size: 23px; font-weight: 400; width: 26px; }
+    .panel-icon { font-size: 10px; }
+    .panel-body-inner { padding: 24px; }
+    .field label { text-transform: none; font-size: 12px; letter-spacing: 0; color: var(--text-2); }
+    .field input, .field select { min-height: 44px; font-size: 14px; }
+    .field-acciones { padding-top: 20px; }
+    #delSaldoBtn { background: transparent; color: var(--text-3); }
+    .tipo-btn { min-height: 42px; }
+    .purchases-heading { display: flex; align-items: center; justify-content: space-between; padding: 24px 22px 16px; gap: 12px; }
+    .purchases-heading h2, .summary-heading h2 { font-size: 17px; font-weight: 600; letter-spacing: -.025em; }
+    .purchases-heading p, .summary-heading p { font-size: 12px; color: var(--text-3); margin-top: 5px; }
+    .purchases-heading > .section-label { margin: 0; font-size: 9px; }
+    .list-toolbar { background: var(--surface); }
+    .filter-row { padding: 0 22px 14px; }
+    .search-wrap { max-width: 480px; }
+    .search-input { min-height: 42px; background: var(--surface-2); }
+    .search-icon { font-size: 24px; }
+    #filtroEstado { display: none; }
+    .toolbar-secondary { padding: 0 22px 16px; }
+    .quick-filter { border-radius: 7px; padding: 8px 10px; font-size: 12px; min-height: 36px; }
+    .quick-filter.active { color: var(--text); background: var(--surface-3); border-color: var(--border-2); box-shadow: none; }
+    .data-actions::before { display: none; }
+    #clearBtn { color: var(--text-3); background: transparent; }
+    #clearBtn:hover:not(:disabled), #delSaldoBtn:hover:not(:disabled) { background: var(--danger-soft); color: var(--danger-text); box-shadow: none; }
+    thead th { font-size: 10px; padding-top: 14px; padding-bottom: 14px; font-weight: 500; }
+    tbody td { padding-top: 18px; padding-bottom: 18px; font-size: 12px; }
+    .pill { letter-spacing: 0; font-weight: 500; padding: 3px 7px; }
+    .amount-pending { color: var(--text); font-weight: 600; }
+    .summary-heading { margin-top: 36px; }
+    .summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 16px; gap: 16px; }
+    .summary-card { padding: 22px 18px; }
+    .summary-card h3 { font-size: 12px; letter-spacing: 0; text-transform: none; color: var(--text-2); font-weight: 500; }
+    .summary-row { gap: 12px; padding: 10px 0; font-size: 12px; }
+    .summary-row .name { overflow-wrap: anywhere; min-width: 0; }
+    .summary-row .val { white-space: nowrap; }
+    .modal-box { max-height: calc(100dvh - 32px); overflow-y: auto; }
+
+    /* ── ACCESO: PRESENTACIÓN DEL PRODUCTO ── */
+    .login-layout { display: grid; grid-template-columns: 1.05fr 1fr; gap: 80px; align-items: center; min-height: min(680px, calc(100svh - 190px)); padding: 42px 0 64px; }
+    .login-copy { min-width: 0; }
+    .login-copy .page-eyebrow { margin-bottom: 28px; }
+    .login-copy h1 { font-size: clamp(44px, 4.8vw, 64px); font-weight: 550; letter-spacing: -.065em; line-height: 1.09; }
+    .login-copy h1 span { color: var(--brand); }
+    .login-description { color: var(--text-2); line-height: 1.8; font-size: 15px; max-width: 390px; margin-top: 24px; }
+    .login-google { background: #fafbf8; color: #172019; border-color: #dbe0d7; border-radius: 10px; min-height: 54px; width: 100%; max-width: 340px; margin-top: 32px; padding: 14px 18px; font-size: 14px; gap: 12px; }
+    .login-google:hover { background: #e6eddf; border-color: #cbd7c0; }
+    .login-arrow { margin-left: auto; font-size: 20px; font-weight: 400; }
+    .login-note { color: var(--text-3); font-size: 11px; margin-top: 12px; }
+    #login-info { color: var(--danger-text); max-width: 360px; line-height: 1.6; }
+    #login-info:empty { display: none; }
+    .login-features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; border-top: 1px solid var(--border); padding-top: 26px; margin-top: 44px; }
+    .login-features > div { display: flex; flex-direction: column; align-items: flex-start; }
+    .feature-number { color: var(--text-3); font-size: 10px; font-variant-numeric: tabular-nums; margin-bottom: 10px; }
+    .login-features strong { font-size: 12px; font-weight: 600; }
+    .login-features div > span:last-child { color: var(--text-3); font-size: 11px; line-height: 1.65; margin-top: 5px; }
+    .login-visual { position: relative; border: 1px solid var(--border); border-radius: 24px; padding: 32px; background: var(--surface); min-width: 0; }
+    .preview-label { display: flex; align-items: center; gap: 7px; font-size: 8px; font-weight: 600; letter-spacing: .14em; color: var(--text-3); margin-bottom: 38px; }
+    .preview-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--brand); }
+    .preview-card { position: relative; overflow: hidden; border-radius: 18px; padding: 25px; background: #d7f58b; color: #213013; transform: rotate(-4deg); box-shadow: 0 16px 28px #00000022; }
+    .preview-card::before { content: ""; position: absolute; width: 230px; height: 230px; border: 1px solid #29371920; border-radius: 50%; right: -155px; top: -25px; box-shadow: 0 0 0 20px #29371908, 0 0 0 40px #29371908, 0 0 0 60px #29371908; }
+    .preview-card-top { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 600; margin-bottom: 26px; }
+    .preview-mark { font-size: 24px; letter-spacing: -.08em; }
+    .preview-caption { font-size: 11px; }
+    .preview-amount { display: block; font-size: clamp(32px, 3.5vw, 46px); font-weight: 550; letter-spacing: -.055em; margin-top: 5px; }
+    .preview-amount span { display: block; font-size: 10px; letter-spacing: 0; font-weight: 400; margin-top: 4px; }
+    .preview-card-bottom { display: flex; justify-content: space-between; gap: 14px; font-size: 8px; font-weight: 650; letter-spacing: .08em; margin-top: 32px; }
+    .preview-card-bottom i { font-style: normal; opacity: .5; margin: 0 5px; }
+    .preview-payment { position: relative; display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 12px; border: 1px solid var(--border-2); border-radius: 13px; padding: 18px; background: var(--surface-2); margin: 4px -6px 0 25px; box-shadow: 0 10px 24px #00000014; }
+    .preview-check { display: grid; place-items: center; height: 34px; border-radius: 50%; color: var(--brand); background: var(--brand-soft); }
+    .preview-payment div > strong { display: block; font-size: 12px; font-weight: 600; }
+    .preview-payment div > span { display: block; font-size: 10px; color: var(--text-3); margin-top: 4px; }
+    .preview-fraction { font-size: 15px; font-weight: 600; white-space: nowrap; }
+    .preview-fraction > span { color: var(--text-3); font-size: 11px; }
+    .preview-progress { grid-column: 1 / -1; height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .preview-progress > span { width: 66.67%; height: 100%; background: var(--brand); margin-top: 0 !important; }
+    .login-visual figcaption { text-align: center; font-size: 10px; line-height: 1.6; color: var(--text-3); margin-top: 32px; }
+    .login-footer { display: flex; justify-content: space-between; gap: 20px; padding: 22px 0 0; border-top: 1px solid var(--border); color: var(--text-3); font-size: 10px; }
+
+    /* ── ADAPTACIÓN A PANTALLAS PEQUEÑAS ── */
+    @media (max-width: 1100px) {
+      .login-layout { gap: 40px; }
+      .login-visual { padding: 24px; }
+      .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .kpi-tag { display: none; }
+    }
+    @media (max-width: 900px) {
+      .login-layout { grid-template-columns: 1fr 1fr; gap: 28px; }
+      .login-copy h1 { font-size: 45px; }
+      .login-features { gap: 12px; }
+      .login-visual { padding: 20px; }
+      .preview-payment { margin-left: 0; }
+      .preview-card { padding: 18px; }
+      .kpi-card { padding: 20px; }
+      .kpi-value { font-size: 29px; }
+      .operations-grid { grid-template-columns: 1fr 1fr; }
+      .cycle-card, .agenda-card { padding: 20px; }
+      .cycle-milestones { grid-template-columns: 1fr; }
+      .toolbar-secondary { gap: 14px; }
+      .row-actions .btn, .filter-row select { min-height: 44px; }
+      tbody td { padding: 10px 0; }
+      .cell-persona, .cell-item { padding-top: 0; }
+      .cell-item { min-width: 0; overflow-wrap: anywhere; }
+      tbody tr { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+      .btn-sm { min-height: 38px; }
+    }
+    @media (max-width: 700px) {
+      .login-layout { grid-template-columns: 1fr; gap: 42px; padding: 28px 8px 36px; min-height: 0; }
+      .login-copy h1 { font-size: clamp(42px, 8vw, 56px); }
+      .login-description { max-width: 460px; }
+      .login-visual { max-width: 430px; width: 100%; margin: 0 auto; padding: 28px; }
+      .login-features { margin-top: 32px; }
+      .login-footer { padding-bottom: 12px; }
+      .page-intro { align-items: stretch; flex-direction: column; gap: 20px; }
+      .page-actions { justify-content: flex-start; }
+      .operations-grid { grid-template-columns: 1fr; }
+      .cycle-milestones { grid-template-columns: 1fr 1fr; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .kpi-monthly { grid-column: 1 / -1; }
+      .kpi-tag { display: inline-flex; }
+      .kpi-monthly .kpi-value { font-size: 40px; }
+      .kpi-label { margin-bottom: 16px; font-size: 11px; }
+      .kpi-card:not(.kpi-monthly) { padding: 18px 16px; }
+      .kpi-card:not(.kpi-monthly) .kpi-value { font-size: clamp(22px, 4.8vw, 30px); }
+      .kpi-card:not(.kpi-monthly) .currency { font-size: 17px; }
+      .kpi-sub { font-size: 10px; }
+      .header-inner { height: 66px; }
+      .header-user { gap: 6px; }
+      .header-user .email-text { display: none; }
+      .logo-text { font-size: 15px; }
+      .logo-text span { display: none; }
+      .purchases-heading { padding: 20px 16px 16px; }
+      .purchases-heading > .section-label { display: none; }
+      .filter-row { padding: 0 16px 12px; }
+      .search-wrap { min-width: 0; }
+      #filtroEstado { display: inline-flex; }
+      .quick-filters { display: none; }
+      .toolbar-secondary { padding: 0 16px 16px; }
+      .data-actions { padding-top: 12px; }
+      .field input, .field select, .search-input { font-size: 16px; }
+      .card-tabs-actions .btn, .row-actions .btn, .data-actions .btn { min-height: 44px; }
+      .header-btn, .header-signout { min-width: 38px; min-height: 40px; }
+      .panel-body-inner { padding: 20px 16px; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .summary-heading { margin-top: 30px; }
+      .summary-card { padding: 20px; }
+    }
+    @media (max-width: 380px) {
+      .main { padding-left: 12px; padding-right: 12px; }
+      .header-inner { gap: 7px; padding: 0 12px; }
+      .header-actions { gap: 5px; }
+      .header-avatar { display: none; }
+      .login-copy h1 { font-size: 39px; }
+      .login-visual { padding: 22px 18px; }
+      .preview-card-bottom { font-size: 7px; }
+      .preview-payment { padding: 14px; gap: 8px; }
+      .login-footer { flex-direction: column; gap: 8px; }
+      .kpi-value { overflow-wrap: anywhere; }
+      .cycle-milestones { grid-template-columns: 1fr; }
+    }
+
+
     /* Respetar a quien pide menos movimiento en el sistema */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -864,18 +1083,18 @@
     <div class="header-spacer"></div>
     <div class="header-actions">
       <button class="header-btn hidden" id="historialBtn" title="Historial de actividad">
-        <span aria-hidden="true">📋</span>
+        <span aria-hidden="true">↺</span>
         <span class="header-btn-text">Historial</span>
       </button>
       <button class="header-btn" id="themeToggle" title="Cambiar tema">
-        <span id="themeIcon">☀️</span>
+        <span id="themeIcon" aria-hidden="true">☼</span>
         <span class="header-btn-text" id="themeLabel">Claro</span>
       </button>
     </div>
     <div class="header-user hidden" id="headerUser">
       <div class="header-avatar" id="headerAvatar">?</div>
       <span class="email-text" id="headerEmail"></span>
-      <button class="header-signout" id="logoutBtn" title="Cerrar sesión">Salir</button>
+      <button class="header-signout" id="logoutBtn" title="Cerrar sesión" aria-label="Cerrar sesión">Salir</button>
     </div>
   </div>
 </header>
@@ -884,15 +1103,41 @@
 
   <!-- Login -->
   <div id="login-box">
-    <div class="login-card">
-      <span class="lock-icon">🔐</span>
-      <h2>Bienvenido</h2>
-      <p>Inicia sesión con tu cuenta de Google para acceder a tu control de cuotas personal.</p>
-      <button class="btn btn-primary" id="loginBtn" style="width:100%;justify-content:center;font-size:14px;padding:12px;">
-        Iniciar sesión con Google
-      </button>
-      <p id="login-info"></p>
+    <div class="login-layout">
+      <section class="login-copy" aria-labelledby="welcomeTitle">
+        <div class="page-eyebrow">Tu espacio financiero</div>
+        <h1 id="welcomeTitle">Cada cuota.<br>Todo <span>bajo control.</span></h1>
+        <p class="login-description">Tus compras, tus fechas, tu tranquilidad. Organiza lo que debes y lo que viene, en un solo lugar.</p>
+        <button class="btn login-google" id="loginBtn">
+          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2.1H12v4h5.4a4.6 4.6 0 0 1-2 3v2.5h3.3c1.9-1.7 2.9-4.2 2.9-7.4Z"/><path fill="#34A853" d="M12 22c2.7 0 5-1 6.7-2.4l-3.3-2.5c-.9.6-2 .9-3.4.9-2.6 0-4.8-1.8-5.6-4.1H3v2.6A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.4 13.9a6 6 0 0 1 0-3.8V7.5H3a10 10 0 0 0 0 9l3.4-2.6Z"/><path fill="#EA4335" d="M12 6c1.5 0 2.8.5 3.8 1.5l2.9-2.8A9.6 9.6 0 0 0 12 2a10 10 0 0 0-9 5.5l3.4 2.6A6 6 0 0 1 12 6Z"/></svg>
+          Continuar con Google <span class="login-arrow" aria-hidden="true">↗</span>
+        </button>
+        <p id="login-info" role="status"></p>
+        <p class="login-note">Accede con tu cuenta para ver tus tarjetas.</p>
+        <div class="login-features" aria-label="Qué puedes hacer">
+          <div><span class="feature-number">01</span><strong>Anticípate</strong><span>Fechas y pagos a la vista.</span></div>
+          <div><span class="feature-number">02</span><strong>Organiza</strong><span>Cada compra, cada persona.</span></div>
+          <div><span class="feature-number">03</span><strong>Comparte</strong><span>Resúmenes y reportes PDF.</span></div>
+        </div>
+      </section>
+      <figure class="login-visual" aria-label="Ejemplo ilustrativo del seguimiento de cuotas">
+        <div class="preview-label"><span class="preview-dot"></span> MENOS PENDIENTES. MÁS CLARIDAD.</div>
+        <div class="preview-card">
+          <div class="preview-card-top"><span>Cuotas / Control</span><span class="preview-mark">C²</span></div>
+          <span class="preview-caption">Tu mes, en orden</span>
+          <strong class="preview-amount">$120.000<span>por pagar este mes</span></strong>
+          <div class="preview-card-bottom"><span>MI TARJETA</span><span>CIERRE 10 <i> / </i> PAGO 25</span></div>
+        </div>
+        <div class="preview-payment">
+          <span class="preview-check" aria-hidden="true">✓</span>
+          <div><strong>Una cuota menos.</strong><span>Tu progreso se ve así.</span></div>
+          <span class="preview-fraction">4 <span>/ 6</span></span>
+          <div class="preview-progress"><span></span></div>
+        </div>
+        <figcaption>Una vista de lo que puedes organizar. Datos de ejemplo.</figcaption>
+      </figure>
     </div>
+    <div class="login-footer"><span>Control de cuotas</span><span>Un poco de orden. Mucha tranquilidad.</span></div>
   </div>
 
   <!-- App content -->
@@ -901,11 +1146,12 @@
     <section class="page-intro" aria-labelledby="pageTitle">
       <div>
         <div class="page-eyebrow">Panel financiero</div>
-        <h1 id="pageTitle">Tus cuotas, bajo control.</h1>
-        <p>Revisa lo pendiente, detecta atrasos y registra pagos sin perder de vista el mes completo.</p>
+        <h1 id="pageTitle">Tu mes, en orden.</h1>
+        <p>Todas tus compras y próximos pagos, en una sola vista.</p>
       </div>
       <div class="page-actions">
         <button class="btn btn-soft btn-sm" id="copySummaryBtn">⧉ Copiar resumen</button>
+        <button class="btn btn-primary" id="newPurchaseBtn" aria-controls="formBody">＋ Agregar compra</button>
         <button class="btn btn-primary btn-sm hidden" id="installAppBtn">＋ Instalar app</button>
       </div>
     </section>
@@ -924,6 +1170,28 @@
           <button class="btn btn-ghost btn-sm card-tab card-tab-add" id="addTarjetaBtn">＋ Nueva tarjeta</button>
           <button class="btn btn-sm card-tab card-tab-del" id="delTarjetaBtn">Eliminar activa</button>
         </div>
+      </div>
+    </div>
+
+    <!-- KPI cards -->
+    <div class="kpi-grid" aria-label="Resumen de montos">
+      <div class="kpi-card kpi-monthly">
+        <div class="kpi-label">Por pagar este mes <span class="kpi-tag">Este mes</span></div>
+        <div class="kpi-value"><span class="currency">$</span><span id="kpi-monthly">0</span></div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-monthly-bar" style="width:0%"></div></div>
+        <div class="kpi-sub" id="kpi-monthly-sub">Sin cuotas pendientes</div>
+      </div>
+      <div class="kpi-card kpi-pending">
+        <div class="kpi-label">Pendiente total</div>
+        <div class="kpi-value"><span class="currency">$</span><span id="kpi-pending">0</span></div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-pending-bar" style="width:0%"></div></div>
+        <div class="kpi-sub" id="kpi-pending-sub">Sin ítems activos</div>
+      </div>
+      <div class="kpi-card kpi-overdue">
+        <div class="kpi-label">Monto atrasado</div>
+        <div class="kpi-value"><span class="currency">$</span><span id="kpi-overdue">0</span></div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-overdue-bar" style="width:0%"></div></div>
+        <div class="kpi-sub" id="kpi-overdue-sub">Sin cuotas vencidas</div>
       </div>
     </div>
 
@@ -963,32 +1231,10 @@
       </aside>
     </section>
 
-    <!-- KPI cards -->
-    <div class="kpi-grid">
-      <div class="kpi-card kpi-pending">
-        <div class="kpi-label">Pendiente</div>
-        <div class="kpi-value"><span class="currency">$</span><span id="kpi-pending">0</span></div>
-        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-pending-bar" style="width:0%"></div></div>
-        <div class="kpi-sub" id="kpi-pending-sub">Sin ítems activos</div>
-      </div>
-      <div class="kpi-card kpi-monthly">
-        <div class="kpi-label">Cuota mensual</div>
-        <div class="kpi-value"><span class="currency">$</span><span id="kpi-monthly">0</span></div>
-        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-monthly-bar" style="width:0%"></div></div>
-        <div class="kpi-sub" id="kpi-monthly-sub">Sin cuotas pendientes</div>
-      </div>
-      <div class="kpi-card kpi-overdue">
-        <div class="kpi-label">Atrasado</div>
-        <div class="kpi-value"><span class="currency">$</span><span id="kpi-overdue">0</span></div>
-        <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-overdue-bar" style="width:0%"></div></div>
-        <div class="kpi-sub" id="kpi-overdue-sub">Sin cuotas vencidas</div>
-      </div>
-    </div>
-
     <!-- Add item form -->
     <div class="panel" id="formPanel">
       <button type="button" class="panel-header" id="formToggle" aria-expanded="false" aria-controls="formBody">
-        <div class="panel-title">＋ Agregar nuevo ítem</div>
+        <div class="panel-title">Registrar una compra</div>
         <span class="panel-icon" id="formToggleIcon" aria-hidden="true">▼</span>
       </button>
       <div class="panel-body" id="formBody">
@@ -1022,8 +1268,8 @@
 
             <!-- Ítem -->
             <div class="field field-item">
-              <label for="item">Ítem</label>
-              <input id="item" placeholder="PS5, notebook, smart TV..." />
+              <label for="item">Compra</label>
+              <input id="item" placeholder="Ej. Notebook, supermercado…" />
             </div>
 
             <!-- Monto -->
@@ -1043,8 +1289,8 @@
             <div class="field field-tipo">
               <label id="tipo-compra-label">Tipo de compra</label>
               <div class="tipo-compra-row">
-                <button type="button" class="tipo-btn active" id="btnConCuotas" aria-pressed="true">📅 Con cuotas</button>
-                <button type="button" class="tipo-btn" id="btnSinCuotas" aria-pressed="false">💵 Pago único</button>
+                <button type="button" class="tipo-btn active" id="btnConCuotas" aria-pressed="true">Con cuotas</button>
+                <button type="button" class="tipo-btn" id="btnSinCuotas" aria-pressed="false">Pago único</button>
               </div>
             </div>
 
@@ -1060,7 +1306,7 @@
 
             <!-- Acciones -->
             <div class="field field-acciones">
-              <button class="btn btn-primary" id="addBtn">Agregar ítem</button>
+              <button class="btn btn-primary" id="addBtn">Guardar compra</button>
             </div>
 
           </div>
@@ -1069,7 +1315,8 @@
     </div>
 
     <!-- Table panel -->
-    <div class="panel">
+    <section class="panel purchases-panel" aria-labelledby="purchasesTitle">
+      <div class="purchases-heading"><div><h2 id="purchasesTitle">Compras y cuotas</h2><p>El detalle de tu tarjeta activa.</p></div><span class="section-label">Movimientos</span></div>
       <div class="list-toolbar">
         <div class="filter-row">
           <div class="search-wrap">
@@ -1132,24 +1379,25 @@
           <tbody id="tabla-body"></tbody>
         </table>
       </div>
-    </div>
+    </section>
 
     <!-- Summary -->
+    <div class="summary-heading"><h2>Una mirada al detalle</h2><p>Tu distribución por persona y tarjeta.</p></div>
     <div class="summary-grid">
       <div class="summary-card">
-        <h3>📊 Pendiente por persona</h3>
+        <h3>Pendiente por persona</h3>
         <div id="sum-persona"></div>
       </div>
       <div class="summary-card">
-        <h3>💳 Pendiente por tarjeta</h3>
+        <h3>Pendiente por tarjeta</h3>
         <div id="sum-tarjeta"></div>
       </div>
       <div class="summary-card">
-        <h3>📅 Cuota mensual por persona</h3>
+        <h3>Este mes por persona</h3>
         <div id="sum-mensual"></div>
       </div>
       <div class="summary-card">
-        <h3>⚠️ Atrasado por persona</h3>
+        <h3>Atrasado por persona</h3>
         <div id="sum-atraso"></div>
       </div>
     </div>
@@ -1203,7 +1451,8 @@
   function applyTheme(t) {
     document.documentElement.setAttribute("data-theme", t);
     localStorage.setItem("theme", t);
-    themeIcon.textContent  = t === "dark" ? "☀️" : "🌙";
+    themeIcon.textContent  = t === "dark" ? "☼" : "☾";
+    themeToggle.setAttribute("aria-label", t === "dark" ? "Activar tema claro" : "Activar tema oscuro");
     themeLabel.textContent = t === "dark" ? "Claro" : "Oscuro";
   }
 
@@ -1336,8 +1585,8 @@
             <div class="field span-2">
               <label>Tipo de compra</label>
               <div class="tipo-compra-row">
-                <button type="button" class="tipo-btn ${!it.pagoUnico ? "active" : ""}" id="e-btn-cuotas">📅 Con cuotas</button>
-                <button type="button" class="tipo-btn ${it.pagoUnico ? "active" : ""}" id="e-btn-unico">💵 Pago único</button>
+                <button type="button" class="tipo-btn ${!it.pagoUnico ? "active" : ""}" id="e-btn-cuotas">Con cuotas</button>
+                <button type="button" class="tipo-btn ${it.pagoUnico ? "active" : ""}" id="e-btn-unico">Pago único</button>
               </div>
             </div>
             <div class="field" id="e-campo-monto">
@@ -2819,7 +3068,7 @@
   const formBody   = document.getElementById("formBody");
   const formToggle = document.getElementById("formToggle");
   const formIcon   = document.getElementById("formToggleIcon");
-  let formOpen = window.innerWidth > 640;
+  let formOpen = false;
   function setForm(open) {
     formOpen = open;
     formBody.classList.toggle("open", open);
@@ -2829,6 +3078,11 @@
   }
   setForm(formOpen);
   formToggle.addEventListener("click", () => setForm(!formOpen));
+  document.getElementById("newPurchaseBtn").addEventListener("click", () => {
+    setForm(true);
+    document.getElementById("formPanel").scrollIntoView({ block: "start" });
+    document.getElementById("personaSelect").focus({ preventScroll: true });
+  });
 
   // ── Sort ──
   document.querySelectorAll("thead th[data-col]").forEach(th => {
