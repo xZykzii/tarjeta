@@ -212,7 +212,24 @@ function validatePlan(value) {
     if (t.estado === "completada" && (typeof t.evidencia !== "string" || !t.evidencia.trim())) throw Error("Falta evidencia");
   }
   if (list.reduce((sum, t) => sum + t.peso, 0) !== PERCENT || typeof value.fecha !== "string" || typeof value.base !== "string") throw Error("Resumen inválido");
+  if (new Set(value.fases.map((fase) => fase.id)).size !== value.fases.length) throw Error("Fase duplicada");
+  validateDependencies(list);
   return value;
+}
+function validateDependencies(list) {
+  const map = new Map(list.map((t) => [t.id, t]));
+  const visited = new Set();
+  function visit(id, path = new Set()) {
+    if (path.has(id)) throw Error("Dependencias cíclicas");
+    if (visited.has(id)) return;
+    const task = map.get(id);
+    if (task.estado === "completada" && task.dependencias.some((dep) => map.get(dep).estado !== "completada")) throw Error("Dependencia sin verificar");
+    path.add(id);
+    task.dependencias.forEach((dep) => visit(dep, path));
+    path.delete(id);
+    visited.add(id);
+  }
+  list.forEach((task) => visit(task.id));
 }
 function applyPlan(value) {
   PLAN = validatePlan(value);

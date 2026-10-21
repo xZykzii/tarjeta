@@ -11,8 +11,8 @@ Detectar compras reales desde Android, revisarlas sin asignación e incorporarla
 
 - PWA HTML/CSS/JS sin framework; index.html contiene UI, pagos y Firebase JS 10.12.0.
 - Google Auth; users/{uid} conserva arrays y añade revisión de guardado. save usa transacción CAS y cola; getDoc valida base. Sin escucha en vivo todavía.
-- cuotas-item.mjs es el adaptador común PWA/resúmenes/PDF; datos-compras preserva IDs y planes; SW cuotas-v17 y backup v7 compatible con v6.
-- Legados conservan monto por cuota; planes explícitos y participaciones usan sus importes exactos sin duplicar contrato. Formulario de modalidades aún pendiente.
+- cuotas-item.mjs es el adaptador común PWA/resúmenes/PDF; datos-compras preserva IDs y planes; ui-plan-cuotas ofrece configurador; SW cuotas-v18 y backup v7 compatible con v6.
+- Legados conservan monto por cuota; planes explícitos y participaciones usan sus importes exactos sin duplicar contrato. El alta manual permite modalidades explícitas con previsualización.
 
 ## Decisiones técnicas
 
@@ -24,16 +24,17 @@ Detectar compras reales desde Android, revisarlas sin asignación e incorporarla
 - Dispositivo de validación: Samsung Galaxy S24, confirmado por el usuario. Paquete de la ficha oficial cl.android confirmado como app instalada; Android/One UI exactos aún no informados.
 - Reanudación: conectar CAS/cola a escritores actuales, mostrar borrador recuperable ante fallo y probar aislamiento/concurrencia en emulador local antes de habilitar flujo automático.
 - Roadmap reparado: servidor Node local reproducible en npm run roadmap; consulta plan.json sin caché cada 3 segundos, conserva vista válida y muestra conexión. Espera por dependencia se distingue de bloqueo explícito; no cambia pesos ni aceptación.
+- El configurador exige el original de forma explícita y mantiene la entrada habitual por valor de cuota. Configurar o cancelar no escribe deuda; solo guardar aplica el plan. La edición financiera de planes existentes sigue protegida.
 
 ## Punto exacto de continuidad
 
-Tarea actual: **4.4 — Formulario de modalidades**. Estado efectivo: **en_curso**.
+Tarea actual: **2.1 — App complementaria y permisos explícitos**. Estado efectivo: **pendiente**.
 
-Criterio de cierre: Previsualización explícita y sin tasas inferidas, incluso con cuotas diferentes.
+Criterio de cierre: Proyecto Android separado, listener real, filtro por paquete verificado y autorización transparente.
 
-Última tarea terminada: **5.3 — Integrar registro manual, resúmenes y PDF**.
+Última tarea terminada: **4.4 — Formulario de modalidades**.
 
-Avance verificado: **41%**.
+Avance verificado: **43%**.
 
 ## Archivos creados o modificados en esta iniciativa
 
@@ -67,10 +68,12 @@ Avance verificado: **41%**.
 - `scripts/roadmap-servidor.mjs`
 - `tests/roadmap.test.mjs`
 - `docs/CUOTAS_EXACTAS.md`
+- `ui-plan-cuotas.mjs`
+- `tests/formulario-plan.test.mjs`
 
 ## Implementaciones incompletas
 
-- Siguiente 4.4: formulario de modalidades con previsualización explícita. Los planes exactos ya se leen/pagan/exportan; el formulario habitual aún registra el formato histórico. Reparto UI y confirmación automática pendientes.
+- Siguiente 2.1: proyecto Android separado y permisos transparentes. Aún no hay SDK/ADB/Gradle encontrados, APK, listener nativo ni configuración Android de Firebase. Preparar y compilar antes de dar instrucciones de instalación.
 - Reglas locales probadas para guardado y captura mínima; pendientes update/delete denegados hasta confirmación atómica. 6.1 no completa: auditoría real y reglas finales pendientes.
 - Prototipo de analizador no se ejecuta en Android; faltan extras y negativos auténticos. Galaxy S24 y ficha cl.android confirmados.
 - Sin APK, permisos del teléfono, sincronización móvil ni cambios de producción.
@@ -86,6 +89,7 @@ Avance verificado: **41%**.
 - Hallazgo corregido: denegación de reglas en carrera se reclasifica mediante lectura sin escritura; nunca se reenvía borrador contra una base nueva.
 - Roadmap: 4/4 pruebas aprobadas de actualización, filtros/selección, marcador actual, dependencias y servidor limitado al seguimiento. Inspección visual de la pestaña rechazada por política de acceso del navegador; no se intentó eludir.
 - Bloque 4.3/5.2/5.3: 49/49 Node, sintaxis app/SW, UI ficticia pago 34, pago 33, deshacer 33, edición sin alterar pagos; backup v7 realmente exportado y restaurado. PDF personal/general generados y renderizados; aislamiento personal verificado.
+- Cierre formulario: 53/53 Node y sintaxis app/SW aprobadas. UI escritorio comprobó cuatro modalidades, aplicación sin escritura, alta manual, cancelación sin deuda y cuota única pagada/editada sin perder pago; cero errores de consola. No probada físicamente en móvil.
 
 ## Errores conocidos, riesgos y requisitos externos
 
@@ -97,16 +101,15 @@ Avance verificado: **41%**.
 
 ## Próximos pasos en orden de prioridad
 
-1. 4.4 — Formulario de modalidades (en_curso).
-2. 2.1 — App complementaria y permisos explícitos (pendiente).
-3. 6.1 — Reglas y pruebas de aislamiento (pendiente).
+1. 2.1 — App complementaria y permisos explícitos (pendiente).
+2. 6.1 — Reglas y pruebas de aislamiento (pendiente).
 
 ## Instrucciones concretas para retomar
 
 - REANUDADO el 2026-10-21 por solicitud explícita del usuario. Continuar tareas verificables y conservar estado tras cada bloque.
 - Worktree: outputs/tarjeta en la carpeta de esta conversación; rama codex/compras-falabella. Leer ROADMAP.md y ESTADO_PROYECTO.md; comprobar git status, diff y log antes de editar.
-- Base vigente: 41/100 puntos, 49 pruebas Node y 9 pruebas Firestore/emulador. Ejecutar npm test y seguimiento --check; repetir emulador cuando cambie persistencia o reglas.
-- Continuar 4.4: formulario de modalidades y previsualización. 4.3/5.2/5.3 cerradas; docs/CUOTAS_EXACTAS.md documenta evidencia, compatibilidad y límites.
+- Base vigente: 43/100 puntos, 53 pruebas Node y 9 pruebas Firestore/emulador. Ejecutar npm test y seguimiento --check; repetir emulador cuando cambie persistencia o reglas.
+- Continuar 2.1: preparar proyecto Android y listener, usando la captura anonimizada y paquete cl.android confirmado. Verificar SDK/configuración y compilar; no inventar extras ni afirmar detección antes de prueba física.
 - La UI de reparto debe editar/confirmar el grupo completo y conservar importes por persona y por mes. Todavía no está implementada; no confundir fixtures importados con captura operativa.
 - Datos confirmados: Samsung Galaxy S24; Banco Falabella Chile de ficha Google Play cl.android. Captura positiva transcrita de forma anonimizada en docs/FORMATO_NOTIFICACION.md. Faltan Android/One UI exactos, extras de notificación y muestras negativas auténticas.
 - No hay Android SDK/Gradle/ADB encontrados en el entorno ni APK construido. No se creó todavía android/. No asumir detector móvil ni sincronización operativos.

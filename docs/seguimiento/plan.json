@@ -4,13 +4,13 @@
   "fecha": "2026-10-21",
   "base": "58ebee85df3acf3b942f3ade944b40b63aa82af9",
   "objetivo": "Detectar compras reales desde Android, revisarlas sin asignación e incorporarlas solo al confirmar, conservando toda la PWA actual. Permitir repartir una compra entre varias personas con importes elegidos y suma exacta.",
-  "actual": "4.4",
-  "ultimaTerminada": "5.3",
+  "actual": "2.1",
+  "ultimaTerminada": "4.4",
   "arquitectura": [
     "PWA HTML/CSS/JS sin framework; index.html contiene UI, pagos y Firebase JS 10.12.0.",
     "Google Auth; users/{uid} conserva arrays y añade revisión de guardado. save usa transacción CAS y cola; getDoc valida base. Sin escucha en vivo todavía.",
-    "cuotas-item.mjs es el adaptador común PWA/resúmenes/PDF; datos-compras preserva IDs y planes; SW cuotas-v17 y backup v7 compatible con v6.",
-    "Legados conservan monto por cuota; planes explícitos y participaciones usan sus importes exactos sin duplicar contrato. Formulario de modalidades aún pendiente."
+    "cuotas-item.mjs es el adaptador común PWA/resúmenes/PDF; datos-compras preserva IDs y planes; ui-plan-cuotas ofrece configurador; SW cuotas-v18 y backup v7 compatible con v6.",
+    "Legados conservan monto por cuota; planes explícitos y participaciones usan sus importes exactos sin duplicar contrato. El alta manual permite modalidades explícitas con previsualización."
   ],
   "decisiones": [
     "Seguimiento separado de la PWA. docs/seguimiento/plan.json es la única fuente de verdad; Markdown y HTML se regeneran.",
@@ -20,7 +20,8 @@
     "Ampliación 2026-10-21: reparto entre varias personas con importes libres o partes iguales. Se redistribuyeron solo pesos pendientes; total sigue en 100 y se conservan los 17 puntos ya verificados.",
     "Dispositivo de validación: Samsung Galaxy S24, confirmado por el usuario. Paquete de la ficha oficial cl.android confirmado como app instalada; Android/One UI exactos aún no informados.",
     "Reanudación: conectar CAS/cola a escritores actuales, mostrar borrador recuperable ante fallo y probar aislamiento/concurrencia en emulador local antes de habilitar flujo automático.",
-    "Roadmap reparado: servidor Node local reproducible en npm run roadmap; consulta plan.json sin caché cada 3 segundos, conserva vista válida y muestra conexión. Espera por dependencia se distingue de bloqueo explícito; no cambia pesos ni aceptación."
+    "Roadmap reparado: servidor Node local reproducible en npm run roadmap; consulta plan.json sin caché cada 3 segundos, conserva vista válida y muestra conexión. Espera por dependencia se distingue de bloqueo explícito; no cambia pesos ni aceptación.",
+    "El configurador exige el original de forma explícita y mantiene la entrada habitual por valor de cuota. Configurar o cancelar no escribe deuda; solo guardar aplica el plan. La edición financiera de planes existentes sigue protegida."
   ],
   "problemas": [
     "Captura positiva revisada. Usuario confirma Samsung Galaxy S24 y ficha oficial Banco Falabella Chile (paquete cl.android). Faltan versión Android, extras reales y muestras negativas auténticas.",
@@ -59,7 +60,9 @@
     "tests/cuotas-integradas.test.mjs",
     "scripts/roadmap-servidor.mjs",
     "tests/roadmap.test.mjs",
-    "docs/CUOTAS_EXACTAS.md"
+    "docs/CUOTAS_EXACTAS.md",
+    "ui-plan-cuotas.mjs",
+    "tests/formulario-plan.test.mjs"
   ],
   "pruebas": [
     "12/12 pruebas preexistentes aprobadas (node --test tests/*.test.mjs).",
@@ -70,10 +73,11 @@
     "Reanudación: 32/32 Node y 9/9 Firestore emulador aprobadas; UI ficticia verificó alta, conflicto, recarga, reconexión, pago y deshacer.",
     "Hallazgo corregido: denegación de reglas en carrera se reclasifica mediante lectura sin escritura; nunca se reenvía borrador contra una base nueva.",
     "Roadmap: 4/4 pruebas aprobadas de actualización, filtros/selección, marcador actual, dependencias y servidor limitado al seguimiento. Inspección visual de la pestaña rechazada por política de acceso del navegador; no se intentó eludir.",
-    "Bloque 4.3/5.2/5.3: 49/49 Node, sintaxis app/SW, UI ficticia pago 34, pago 33, deshacer 33, edición sin alterar pagos; backup v7 realmente exportado y restaurado. PDF personal/general generados y renderizados; aislamiento personal verificado."
+    "Bloque 4.3/5.2/5.3: 49/49 Node, sintaxis app/SW, UI ficticia pago 34, pago 33, deshacer 33, edición sin alterar pagos; backup v7 realmente exportado y restaurado. PDF personal/general generados y renderizados; aislamiento personal verificado.",
+    "Cierre formulario: 53/53 Node y sintaxis app/SW aprobadas. UI escritorio comprobó cuatro modalidades, aplicación sin escritura, alta manual, cancelación sin deuda y cuota única pagada/editada sin perder pago; cero errores de consola. No probada físicamente en móvil."
   ],
   "incompletas": [
-    "Siguiente 4.4: formulario de modalidades con previsualización explícita. Los planes exactos ya se leen/pagan/exportan; el formulario habitual aún registra el formato histórico. Reparto UI y confirmación automática pendientes.",
+    "Siguiente 2.1: proyecto Android separado y permisos transparentes. Aún no hay SDK/ADB/Gradle encontrados, APK, listener nativo ni configuración Android de Firebase. Preparar y compilar antes de dar instrucciones de instalación.",
     "Reglas locales probadas para guardado y captura mínima; pendientes update/delete denegados hasta confirmación atómica. 6.1 no completa: auditoría real y reglas finales pendientes.",
     "Prototipo de analizador no se ejecuta en Android; faltan extras y negativos auténticos. Galaxy S24 y ficha cl.android confirmados.",
     "Sin APK, permisos del teléfono, sincronización móvil ni cambios de producción."
@@ -81,8 +85,8 @@
   "continuar": [
     "REANUDADO el 2026-10-21 por solicitud explícita del usuario. Continuar tareas verificables y conservar estado tras cada bloque.",
     "Worktree: outputs/tarjeta en la carpeta de esta conversación; rama codex/compras-falabella. Leer ROADMAP.md y ESTADO_PROYECTO.md; comprobar git status, diff y log antes de editar.",
-    "Base vigente: 41/100 puntos, 49 pruebas Node y 9 pruebas Firestore/emulador. Ejecutar npm test y seguimiento --check; repetir emulador cuando cambie persistencia o reglas.",
-    "Continuar 4.4: formulario de modalidades y previsualización. 4.3/5.2/5.3 cerradas; docs/CUOTAS_EXACTAS.md documenta evidencia, compatibilidad y límites.",
+    "Base vigente: 43/100 puntos, 53 pruebas Node y 9 pruebas Firestore/emulador. Ejecutar npm test y seguimiento --check; repetir emulador cuando cambie persistencia o reglas.",
+    "Continuar 2.1: preparar proyecto Android y listener, usando la captura anonimizada y paquete cl.android confirmado. Verificar SDK/configuración y compilar; no inventar extras ni afirmar detección antes de prueba física.",
     "La UI de reparto debe editar/confirmar el grupo completo y conservar importes por persona y por mes. Todavía no está implementada; no confundir fixtures importados con captura operativa.",
     "Datos confirmados: Samsung Galaxy S24; Banco Falabella Chile de ficha Google Play cl.android. Captura positiva transcrita de forma anonimizada en docs/FORMATO_NOTIFICACION.md. Faltan Android/One UI exactos, extras de notificación y muestras negativas auténticas.",
     "No hay Android SDK/Gradle/ADB encontrados en el entorno ni APK construido. No se creó todavía android/. No asumir detector móvil ni sincronización operativos.",
@@ -365,8 +369,8 @@
           "dependencias": [
             "4.3"
           ],
-          "estado": "en_curso",
-          "evidencia": ""
+          "estado": "completada",
+          "evidencia": "ui-plan-cuotas.mjs y alta manual conectados. Cuatro modalidades previsualizadas en UI; alta 34/33/33, cancelación sin deuda y cuota única pagada/editada verificadas. 53 pruebas Node; caché v18."
         },
         {
           "id": "4.5",

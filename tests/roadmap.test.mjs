@@ -85,6 +85,25 @@ test("las dependencias pendientes se distinguen de impedimentos explícitos", ()
   assert.ok(states.every((t) => !t.deps || ["bloqueada", "en_espera"].includes(t.effective)));
 });
 
+test("la actualización en vivo rechaza ciclos y aceptación con dependencias sin verificar", async () => {
+  const page = browser();
+  page.context.location.protocol = "http:";
+  const invalid = structuredClone(plan);
+  const task = invalid.fases.flatMap((fase) => fase.tareas).find((t) => t.estado === "pendiente" && t.dependencias.length);
+  task.dependencias = [task.id];
+  page.context.fetch = async () => ({ ok:true, json:async () => invalid });
+  await page.run("refreshPlan()");
+  assert.equal(page.nodes.get("connection").dataset.state, "error");
+  const inconsistent = structuredClone(plan);
+  const pending = inconsistent.fases.flatMap((fase) => fase.tareas).find((t) => t.estado === "pendiente" && t.dependencias.some((id) => plan.fases.flatMap((fase) => fase.tareas).find((d) => d.id === id).estado !== "completada"));
+  pending.estado = "completada";
+  pending.evidencia = "Declaración incompatible con sus dependencias";
+  page.context.fetch = async () => ({ ok:true, json:async () => inconsistent });
+  await page.run("refreshPlan()");
+  assert.equal(page.nodes.get("connection").dataset.state, "error");
+  assert.equal(page.errors.length, 2);
+});
+
 function get(port, path, options = {}) {
   return new Promise((resolve, reject) => {
     const req = request({ hostname:"127.0.0.1", port, path, headers:{ Host:"127.0.0.1:8767" }, ...options }, (res) => {

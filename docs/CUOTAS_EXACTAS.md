@@ -1,7 +1,7 @@
 # Cuotas exactas, pagos y backups
 
 Implementación local; no publicada ni aplicada a datos reales. El formulario
-de modalidades y la confirmación de compras automáticas continúan pendientes.
+de modalidades está integrado; la confirmación automática continúa pendiente.
 
 ## Representación y compatibilidad
 
@@ -66,3 +66,27 @@ sin fecha debe completarse al revisar, antes de generar la compra definitiva.
 No se ha probado captura física Android ni conexión al Firebase real de la
 cuenta. La caché nueva debe publicarse junto con los módulos y las reglas
 coordinadas, después de auditar las vigentes y obtener autorización.
+
+## Formulario de modalidades
+
+En «Registrar una compra», «Definir total y cuotas» abre el configurador.
+Exige el monto original; no interpreta el monto por cuota ya escrito como
+total. Permite una cuota, división exacta sin interés, valor mensual con
+interés manual o importes distintos por cuota. Muestra original, total final,
+diferencia por financiamiento y cada importe antes de aplicar. No infiere tasas.
+
+Configurar el plan no crea deuda. «Usar este plan» lo devuelve al formulario;
+solo «Guardar compra» registra. Cancelar/Escape conserva la configuración
+anterior. «Volver al valor por cuota» permite usar la entrada habitual y limpia
+los importes para que no se reinterpreten accidentalmente. Una sesión nueva
+limpia el formulario y cierra el configurador.
+
+La interfaz comprobó las cuatro modalidades y guardó una compra manual
+$34/$33/$33 una sola vez. Guardar y pagar una cuota única, después editar su
+descripción, conservó la cuota pagada y el saldo. Cancelar otra configuración
+no añadió registros. Sin errores de consola en esa prueba. La suite final
+incluye **53 pruebas**, con validación de entrada y de actualizaciones del
+roadmap. El service worker pasa a **cuotas-v18** e incluye el configurador.
+
+La prueba visual se realizó en escritorio; la validación física en el Galaxy
+S24 y la regresión completa de captura/bandeja siguen pendientes.

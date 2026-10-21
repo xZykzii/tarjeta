@@ -632,6 +632,20 @@
     .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
     .edit-grid .span-2 { grid-column: 1 / -1; }
     .edit-grid .field input, .edit-grid .field select { background: var(--surface-2); border: 1px solid var(--border); }
+    .plan-config { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .plan-config p { color: var(--text-2); font-size: 12px; line-height: 1.6; margin: 10px 0 0; }
+    .plan-dialog { width: min(600px, calc(100% - 24px)); max-height: 90dvh; overflow: auto; margin: auto; padding: 24px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); color: var(--text); }
+    .plan-dialog::backdrop { background: rgba(0,0,0,.7); backdrop-filter: blur(4px); }
+    .plan-dialog h2 { font-size: 19px; margin: 0 0 10px; }
+    .plan-controls { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin: 18px 0; }
+    .plan-controls label { font-size: 12px; color: var(--text-2); min-width: 0; }
+    .plan-controls [hidden] { display: none; }.plan-span { grid-column: 1 / -1; }
+    .plan-controls .modal-input { margin-top: 6px; }.plan-controls small { display: block; margin-top: 6px; }
+    .plan-intro,.plan-preview { color: var(--text-2); font-size: 13px; line-height: 1.6; }
+    .plan-error { color: var(--danger); font-size: 12px; min-height: 18px; }
+    .plan-preview { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; margin: 14px 0; }
+    .plan-preview p { margin: 0; }.plan-preview ol { max-height: 180px; overflow: auto; padding-left: 22px; margin: 10px 0 0; }
+    @media(max-width:480px) { .plan-controls { grid-template-columns: 1fr; }.plan-dialog { padding: 18px; } }
 
     /* ── HISTORIAL MODAL ── */
     .hist-filter-row {
@@ -1323,6 +1337,11 @@
             </div>
 
           </div>
+          <div class="plan-config">
+            <button type="button" class="btn btn-soft btn-sm" id="configurarPlanBtn">Definir total y cuotas</button>
+            <button type="button" class="btn btn-ghost btn-sm hidden" id="quitarPlanBtn">Volver al valor por cuota</button>
+            <p id="planCompraResumen" aria-live="polite">¿Conoces el total original? Configura una cuota, cuotas sin interés, interés manual o importes diferentes y revisa el detalle.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -1429,9 +1448,10 @@
   import {
     abonoDeCompra, restanteCuotaDe, pagadoDeCompra, recalcularCompra, totalContratoDe,
     proximaCuotaNumero, ultimaCuotaPagadaNumero, importeCuota, contarCuotasPendientesHasta, montoExigibleHasta,
-    registrarPagoCompra, deshacerPagoCompra, resumenImportesCompra, hasPlanExplicito
+    registrarPagoCompra, deshacerPagoCompra, resumenImportesCompra, hasPlanExplicito, MAX_CUOTAS_LEGADAS
   } from "./cuotas-item.mjs";
-  import { normalizarCompras, serializarCompra, crearBackup, leerBackup, MAX_BACKUP_BYTES } from "./datos-compras.mjs";
+  import { normalizarCompra, normalizarCompras, serializarCompra, crearBackup, leerBackup, MAX_BACKUP_BYTES } from "./datos-compras.mjs";
+  import { solicitarPlanCuotas, descripcionPlanCuotas } from "./ui-plan-cuotas.mjs";
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
     getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
@@ -1461,6 +1481,7 @@
   let saldos = {};
   let sortCol = null, sortDir = 1;
   let esConCuotas = true;
+  let planCompra = null;
   let pdfModulePromise = null;
   const PDF_MODULE_URL = "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/+esm";
   const controlGuardado = crearControlGuardado({
@@ -2629,54 +2650,96 @@
 
   // ── Actions ──
   function limpiarFormularioCompra() {
+    aplicarPlanCompra(null);
     ["item", "monto", "cuotasPagadas", "cuotasTotales"].forEach(id => document.getElementById(id).value = "");
     resetFechaCompra();
   }
 
   async function agregarItem() {
     if (!requireLogin()) return;
+    let n;
+    try { n = compraDelFormulario(); }
+    catch (error) {
+      console.warn("No se pudo registrar el formulario.", error.name);
+      toast(error.message, "error"); return;
+    }
+    items.push(n);
+    const primerVenc = vencimientoCuota(n.fechaCompra, proximaCuotaNumero(n) || n.totales);
+    logEvento(n.pagoUnico ? "compra_unica" : "compra_cuotas", {
+      compraId: n.id, persona: n.persona, item: n.item, monto: n.monto, totales: n.totales, tarjeta: n.tarjeta,
+      fechaCompra: n.fechaCompra, venc: primerVenc ? toISO(primerVenc) : null
+    });
+    showLoading(); try { await save(); } finally { hideLoading(); }
+    renderTabla();
+    limpiarFormularioCompra();
+    document.getElementById("item").focus();
+    toast(`"${n.item}" agregado${n.pagoUnico ? " (pago único)" : ` (${n.totales} cuotas)`}${
+      primerVenc ? ` · próximo pago ${fmtFechaCorta(primerVenc)}` : ""}.`);
+  }
+
+  function compraDelFormulario() {
     const persona = document.getElementById("personaSelect").value || personas[0];
     const item    = document.getElementById("item").value.trim() || "-";
-    const monto   = parseInt(document.getElementById("monto").value, 10);
+    const monto   = Number(document.getElementById("monto").value);
     const fechaIn = document.getElementById("fechaCompra").value;
     const fechaCompra = parseFecha(fechaIn) ? fechaIn : null;
 
     let pagadas, totales;
     if (esConCuotas) {
-      pagadas = parseInt(document.getElementById("cuotasPagadas").value, 10) || 0;
-      totales = parseInt(document.getElementById("cuotasTotales").value, 10) || 0;
+      pagadas = Number(document.getElementById("cuotasPagadas").value);
+      totales = Number(document.getElementById("cuotasTotales").value);
     } else {
       pagadas = 0;
       totales = 1;
     }
 
-    if (isNaN(monto) || monto <= 0)           { toast("Monto inválido (debe ser > 0).", "error"); return; }
-    if (esConCuotas && totales <= 0)           { toast("Cuotas totales debe ser > 0.", "error"); return; }
-    if (esConCuotas && (pagadas < 0 || pagadas > totales)) { toast("Cuotas pagadas fuera de rango.", "error"); return; }
-    if (!tarjetaActiva)                        { toast("Crea o selecciona una tarjeta primero.", "error"); return; }
+    if (!Number.isSafeInteger(monto) || monto <= 0) throw new TypeError("Monto inválido: usa pesos enteros positivos.");
+    if (!Number.isInteger(totales) || totales <= 0 || totales > MAX_CUOTAS_LEGADAS) throw new TypeError("Cantidad de cuotas inválida.");
+    if (!Number.isInteger(pagadas) || pagadas < 0 || pagadas > totales) throw new TypeError("Cuotas pagadas fuera de rango.");
+    if (!tarjetas.includes(tarjetaActiva) || !personas.includes(persona)) throw new TypeError("Selecciona una persona y tarjeta existentes.");
 
     const n = {
       id: crypto.randomUUID(), origen: "manual",
       persona, tarjeta: tarjetaActiva, item, monto, pagadas, totales, abonado: 0,
-      pagoUnico: !esConCuotas, fechaCompra, completedAt: null
+      pagoUnico: !esConCuotas, fechaCompra, completedAt: null,
+      ...(planCompra ? { planCuotas: structuredClone(planCompra) } : {})
     };
-    recalcItem(n);
-    items.push(n);
-
-    const primerVenc = vencimientoCuota(fechaCompra, pagadas + 1);
-    logEvento(esConCuotas ? "compra_cuotas" : "compra_unica", {
-      compraId: n.id, persona, item, monto, totales, tarjeta: tarjetaActiva,
-      fechaCompra, venc: primerVenc ? toISO(primerVenc) : null
-    });
-
-    showLoading(); try { await save(); } finally { hideLoading(); }
-    renderTabla();
-    ["item","monto","cuotasPagadas","cuotasTotales"].forEach(id => document.getElementById(id).value = "");
-    resetFechaCompra();
-    document.getElementById("item").focus();
-    toast(`"${item}" agregado${esConCuotas ? ` (${totales} cuotas)` : " (pago único)"}${
-      primerVenc ? ` · próximo pago ${fmtFechaCorta(primerVenc)}` : ""}.`);
+    return normalizarCompra(n);
   }
+
+  function aplicarPlanCompra(plan) {
+    planCompra = plan;
+    if (plan) {
+      esConCuotas = plan.cuotas.length > 1;
+      ["btnConCuotas", "btnSinCuotas"].forEach((id, indice) => {
+        const isActive = indice === 0 ? esConCuotas : !esConCuotas;
+        document.getElementById(id).classList.toggle("active", isActive);
+        document.getElementById(id).setAttribute("aria-pressed", String(isActive));
+      });
+      setCuotasVisible(esConCuotas);
+    }
+    ["monto", "cuotasTotales", "btnConCuotas", "btnSinCuotas"].forEach(id => {
+      document.getElementById(id).disabled = !!plan;
+    });
+    document.getElementById("monto").value = plan ? plan.cuotas[0] : "";
+    document.getElementById("cuotasTotales").value = plan ? plan.cuotas.length : "";
+    document.getElementById("cuotasPagadas").value = "";
+    document.getElementById("monto-label").textContent = plan ? "Primera cuota del plan" : esConCuotas ? "Monto por cuota" : "Monto total";
+    document.getElementById("quitarPlanBtn").classList.toggle("hidden", !plan);
+    document.getElementById("configurarPlanBtn").textContent = plan ? "Revisar o cambiar plan" : "Definir total y cuotas";
+    document.getElementById("planCompraResumen").textContent = plan
+      ? `${descripcionPlanCuotas(plan)} ${plan.cuotas.length} cuota(s): ${plan.cuotas.map(cuota => `$${fmt(cuota)}`).join(", ")}.`
+      : "¿Conoces el total original? Configura una cuota, cuotas sin interés, interés manual o importes diferentes y revisa el detalle.";
+    updateVencHint();
+  }
+
+  document.getElementById("configurarPlanBtn").addEventListener("click", async () => {
+    if (!requireLogin()) return;
+    const uid = currentUser.uid;
+    const plan = await solicitarPlanCuotas({ planInicial: planCompra });
+    if (plan && currentUser?.uid === uid && requireLogin()) aplicarPlanCompra(plan);
+  });
+  document.getElementById("quitarPlanBtn").addEventListener("click", () => aplicarPlanCompra(null));
 
   async function editarFila(idx) {
     const it = items[idx]; if (!it) return;
@@ -3205,6 +3268,8 @@
   });
 
   onAuthStateChanged(auth, async user => {
+    document.querySelector(".plan-dialog")?.close();
+    limpiarFormularioCompra();
     controlGuardado.iniciar(user?.uid || null);
     currentUser = user;
     items = []; tarjetas = []; personas = []; historial = []; saldos = {};

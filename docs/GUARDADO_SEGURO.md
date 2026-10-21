@@ -15,11 +15,11 @@ La comparación de contenido detecta también cambios de un escritor anterior qu
 - Al reintentar con éxito se actualizan la lista, los saldos y el formulario. Las acciones que fallaron no siguen mostrando mensajes de éxito.
 - Cambiar de cuenta invalida la cola y no muestra el borrador a otro UID. La copia permanece en memoria hasta resolverla o cerrar la pestaña; no sobrevive a apagar el equipo sin descargarla.
 
-`loadData()` valida el contenedor antes de usarlo. La caché PWA pasa a `cuotas-v17` e incluye persistencia, recuperación y el cálculo de planes exactos.
+`loadData()` valida el contenedor antes de usarlo. La caché PWA pasa a `cuotas-v18` e incluye persistencia, recuperación, cálculo de planes exactos y su configurador.
 
 ## Evidencia de pruebas
 
-- Suite Node existente y de dominio: 49 pruebas aprobadas, incluidas cuatro de seguimiento.
+- Suite Node existente y de dominio: 53 pruebas aprobadas, incluidas cinco de seguimiento.
 - Emulador Firestore con SDK 10.12.0 real: 9 pruebas aprobadas. Incluyen migración no destructiva de revisión, dos clientes concurrentes, escritor antiguo, creación inválida, acceso cruzado/anónimo, campos legados y contrato mínimo de pendientes.
 - Hallazgo comprobado: las reglas pueden devolver `permission-denied` antes del reintento automático de una transacción concurrente. Una segunda lectura transaccional sin escrituras distingue base cambiada de denegación real. No se repite la escritura.
 - Navegador con datos ficticios y puerto de almacenamiento explícitamente identificado como prueba: alta manual, conflicto, bloqueo del reintento conflictivo, cancelación/confirmación de recarga, recuperación del cambio remoto, fallo de red y reintento único, pago y deshacer con restitución de saldo.
