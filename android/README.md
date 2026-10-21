@@ -59,12 +59,12 @@ global. No versionar SDK, cachés, APK, firmas, configuración Firebase ni logs.
 
 ## Evidencia y pruebas
 
-`core` no depende de Android. Quince casos en el corpus JSON compartido con la
+`core` no depende de Android. Veinticuatro casos en el corpus JSON compartido con la
 PWA y cuatro pruebas de privacidad verifican gramática, límites y que el callback
 de lectura no se ejecute para otras apps, resúmenes o falta de consentimiento.
 
 Los positivos se anonimizan a partir de la captura; el reparto en extras y todos
-los negativos son sintéticos. Los mismos quince casos se ejecutan en Node.
+los negativos son sintéticos. Los mismos veinticuatro casos se ejecutan en Node.
 No sustituyen muestras negativas auténticas ni la prueba del S24.
 
 Las pruebas de componentes ejecutan Activity y servicio bajo Robolectric con
@@ -72,8 +72,10 @@ datos ficticios. Comprueban inicio desactivado, apertura de Ajustes sin otorgar
 acceso, filtrado/normalización y limpieza al pausar. No son callbacks entregados
 por un teléfono real, ni certifican restricciones de Samsung o duración en segundo plano.
 
-Validación local del 2026-10-21: 19 pruebas del núcleo y tres de componentes
-aprobadas; APK debug compilado y firma verificada. Suite Node: 68 aprobadas.
+Validación de 0.1.1 del 2026-10-21: 28 pruebas del núcleo y tres de componentes
+aprobadas; APK debug compilado y firma verificada. Incluye «Tu Adicional compró»
+sin conservar su nombre ni asignar persona automáticamente. La primera positiva
+real de 0.1.0 («Compraste») está documentada; la variante nueva requiere prueba propia.
 Lint: cero errores y una advertencia `ObsoleteSdkInt` por carpeta vacía
 `mipmap-anydpi-v26`; los recursos efectivos están en `mipmap-anydpi`.
 La revisión automática rechazó el comando de limpieza de esa carpeta y repetición

@@ -3,7 +3,7 @@ package cl.controlcuotas.core
 import java.text.Normalizer
 
 const val PAQUETE_BANCO = "cl.android"
-const val VERSION_ANALIZADOR = "captura-20261021-v1"
+const val VERSION_ANALIZADOR = "captura-20261021-v2"
 const val MAX_TEXTO_NOTIFICACION = 2000
 private const val MAX_COMERCIO = 200
 private const val MAX_ENTERO_JS = 9_007_199_254_740_991L
@@ -71,6 +71,12 @@ object AnalizadorFalabella {
             "Con tu CMR Mastercard Elite terminada en (\\d{4})\\. " +
             "Si no la realizaste tú, revisa los movimientos de tus adicionales en tu app\\.$"
     )
+    // No capturar ni conservar el nombre del titular adicional.
+    private val adicional = Regex(
+        "^Tu Adicional compró \\$((?:[1-9]\\d{0,2}(?:\\.\\d{3})+)|(?:[1-9]\\d*)) en (.+?) " +
+            "Realizada por [\\p{L}\\p{M}][\\p{L}\\p{M} .'-]{0,199} con su CMR Adicional terminada en (\\d{4})\\. " +
+            "Si tienes algún problema, comunícate con nosotros\\.$"
+    )
 
     fun analizar(aviso: TextoNotificacion): ResultadoNotificacion {
         val campos = listOf(aviso.titulo, aviso.texto, aviso.textoAmpliado)
@@ -96,7 +102,7 @@ object AnalizadorFalabella {
     }
 
     private fun datosDeTexto(texto: String): CompraDetectada? {
-        val match = compra.matchEntire(texto) ?: return null
+        val match = compra.matchEntire(texto) ?: adicional.matchEntire(texto) ?: return null
         val monto = match.groupValues[1].replace(".", "").toLongOrNull() ?: return null
         val comercio = match.groupValues[2].trim()
         if (monto <= 0 || monto > MAX_ENTERO_JS || comercio.isEmpty() || comercio.length > MAX_COMERCIO) return null

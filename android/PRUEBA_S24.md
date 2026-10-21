@@ -1,6 +1,8 @@
 # Prueba física pendiente · Galaxy S24
 
-Esta guía corresponde al APK de diagnóstico 0.1.0. No hay sincronización con la web.
+Esta guía corresponde al APK de diagnóstico 0.1.1. No hay sincronización con la web.
+Las capturas positivas descritas abajo corresponden a 0.1.0 y al formato «Compraste».
+La actualización 0.1.1 añade «Tu Adicional compró» y necesita su comprobación física.
 
 ## Evidencia parcial del teléfono · 2026-10-21
 

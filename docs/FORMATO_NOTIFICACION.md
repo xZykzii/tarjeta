@@ -18,3 +18,24 @@ El usuario confirmó Samsung Galaxy S24 y que la app instalada corresponde a la 
 Para verificar el paquete sin adivinarlo: abrir información de la app desde la notificación y comprobar su ficha de instalación o, con ADB autorizado por el titular, inspeccionar el paquete instalado. Luego capturar los extras pertinentes en un diagnóstico local y voluntario; nunca subir un volcado completo de notificaciones ni contenidos de otras aplicaciones al repositorio.
 
 Nueva condición del usuario: repartir compras entre personas con importes libres, no solamente iguales. Ejemplo ficticio: $1.000 → Persona A $700, Persona B $300. Un reparto afecta el plan completo; si tiene intereses, los importes asignados corresponden al total final mostrado explícitamente. No se duplica la transacción bancaria: se enlazan participaciones a una sola compra y una sola confirmación.
+
+## Segundo formato auténtico: compra de adicional
+
+El usuario aportó otra captura, que la versión 0.1.0 no reconoció. Gramática
+anonimizada conservando las frases y puntuación:
+
+```text
+Tu Adicional compró $2.000 en COMERCIO ADICIONAL
+Realizada por PERSONA DE EJEMPLO con su CMR Adicional terminada en 1111. Si tienes algún problema, comunícate con nosotros.
+```
+
+El analizador v2 acepta esta gramática completa en JS y Kotlin. Solo devuelve
+importe, comercio y terminación; el nombre se valida y se descarta. Nunca asigna
+la persona de la PWA a partir del titular mencionado. Los resúmenes de grupo
+siguen ignorados; el aviso individual se procesa por separado.
+
+Corpus compartido: 24 casos, incluidos nueve de este formato y sus variantes
+sintéticas. APK 0.1.1 compilado, firmado y con 31 pruebas Android aprobadas.
+La recepción física de esta variante corregida está pendiente de comprobación;
+la positiva ya verificada en S24 corresponde al formato «Compraste» de 0.1.0.
+No se guardan la captura financiera, su nombre real ni avisos de otras apps en Git.

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "advertencia": "Positivo anonimizado de una captura. La distribución de extras y todos los negativos son sintéticos; no certifican entrega física.",
+  "advertencia": "Dos formatos positivos anonimizados de capturas. La distribución en extras y los negativos son sintéticos; cada versión requiere comprobación física propia.",
   "casos": [
     {
       "id": "positivo_anonimizado",
@@ -9,7 +9,11 @@
       "isResumenGrupo": false,
       "titulo": "Banco Falabella",
       "texto": "Compraste $1.000 en COMERCIO DE EJEMPLO CHL Con tu CMR Mastercard Elite terminada en 0000. Si no la realizaste tú, revisa los movimientos de tus adicionales en tu app.",
-      "compra": { "montoOriginal": 1000, "comercio": "COMERCIO DE EJEMPLO CHL", "tarjetaUltimos4": "0000" }
+      "compra": {
+        "montoOriginal": 1000,
+        "comercio": "COMERCIO DE EJEMPLO CHL",
+        "tarjetaUltimos4": "0000"
+      }
     },
     {
       "id": "titulo_y_cuerpo_sinteticos",
@@ -18,7 +22,11 @@
       "isResumenGrupo": false,
       "titulo": "Compraste $1000 en COMERCIO DE EJEMPLO CHL",
       "texto": "Con tu CMR Mastercard Elite terminada en 0000. Si no la realizaste tú, revisa los movimientos de tus adicionales en tu app.",
-      "compra": { "montoOriginal": 1000, "comercio": "COMERCIO DE EJEMPLO CHL", "tarjetaUltimos4": "0000" }
+      "compra": {
+        "montoOriginal": 1000,
+        "comercio": "COMERCIO DE EJEMPLO CHL",
+        "tarjetaUltimos4": "0000"
+      }
     },
     {
       "id": "texto_ampliado_sintetico",
@@ -28,7 +36,11 @@
       "titulo": "Banco Falabella",
       "texto": "Compraste $1.000 en COMERCIO...",
       "textoAmpliado": "Compraste $1.000 en COMERCIO DE EJEMPLO CHL Con tu CMR Mastercard Elite terminada en 0000. Si no la realizaste tú, revisa los movimientos de tus adicionales en tu app.",
-      "compra": { "montoOriginal": 1000, "comercio": "COMERCIO DE EJEMPLO CHL", "tarjetaUltimos4": "0000" }
+      "compra": {
+        "montoOriginal": 1000,
+        "comercio": "COMERCIO DE EJEMPLO CHL",
+        "tarjetaUltimos4": "0000"
+      }
     },
     {
       "id": "espacios_unicode_sinteticos",
@@ -36,12 +48,44 @@
       "paquete": "cl.android",
       "isResumenGrupo": false,
       "texto": "Compraste $1000 en COMERCIO\nDE EJEMPLO CHL Con tu CMR Mastercard Elite terminada en 0000. Si no la realizaste tú, revisa los movimientos de tus adicionales en tu app.",
-      "compra": { "montoOriginal": 1000, "comercio": "COMERCIO DE EJEMPLO CHL", "tarjetaUltimos4": "0000" }
+      "compra": {
+        "montoOriginal": 1000,
+        "comercio": "COMERCIO DE EJEMPLO CHL",
+        "tarjetaUltimos4": "0000"
+      }
     },
-    { "id": "pago_sintetico", "procedencia": "sintetico", "paquete": "cl.android", "isResumenGrupo": false, "texto": "Recibimos tu pago por $1.000.", "compra": null },
-    { "id": "devolucion_sintetica", "procedencia": "sintetico", "paquete": "cl.android", "isResumenGrupo": false, "texto": "Se ha registrado una devolución de $1.000.", "compra": null },
-    { "id": "publicidad_sintetica", "procedencia": "sintetico", "paquete": "cl.android", "isResumenGrupo": false, "texto": "Compra con descuentos en comercios adheridos.", "compra": null },
-    { "id": "vacio", "procedencia": "sintetico", "paquete": "cl.android", "isResumenGrupo": false, "texto": "", "compra": null },
+    {
+      "id": "pago_sintetico",
+      "procedencia": "sintetico",
+      "paquete": "cl.android",
+      "isResumenGrupo": false,
+      "texto": "Recibimos tu pago por $1.000.",
+      "compra": null
+    },
+    {
+      "id": "devolucion_sintetica",
+      "procedencia": "sintetico",
+      "paquete": "cl.android",
+      "isResumenGrupo": false,
+      "texto": "Se ha registrado una devolución de $1.000.",
+      "compra": null
+    },
+    {
+      "id": "publicidad_sintetica",
+      "procedencia": "sintetico",
+      "paquete": "cl.android",
+      "isResumenGrupo": false,
+      "texto": "Compra con descuentos en comercios adheridos.",
+      "compra": null
+    },
+    {
+      "id": "vacio",
+      "procedencia": "sintetico",
+      "paquete": "cl.android",
+      "isResumenGrupo": false,
+      "texto": "",
+      "compra": null
+    },
     {
       "id": "otra_app_no_se_lee",
       "procedencia": "sintetico",
@@ -97,6 +141,93 @@
       "isResumenGrupo": false,
       "texto": "Compraste $1.000 en COMERCIO DE EJEMPLO CHL Con tu CMR Mastercard Elite terminada en 0000. Si no la realizaste tú, revisa los movimientos de tus adicionales en tu app.",
       "textoAmpliado": "Compraste $2.000 en OTRO COMERCIO CHL Con tu CMR Mastercard Elite terminada en 0000. Si no la realizaste tú, revisa los movimientos de tus adicionales en tu app.",
+      "compra": null
+    },
+    {
+      "procedencia": "captura_anonimizada",
+      "id": "adicional_anonimizado",
+      "paquete": "cl.android",
+      "isResumenGrupo": false,
+      "titulo": "Banco Falabella",
+      "texto": "Tu Adicional compró $2.000 en COMERCIO ADICIONAL Realizada por PERSONA DE EJEMPLO con su CMR Adicional terminada en 1111. Si tienes algún problema, comunícate con nosotros.",
+      "compra": {
+        "montoOriginal": 2000,
+        "comercio": "COMERCIO ADICIONAL",
+        "tarjetaUltimos4": "1111"
+      }
+    },
+    {
+      "procedencia": "distribucion_extras_sintetica",
+      "id": "adicional_titulo_cuerpo",
+      "paquete": "cl.android",
+      "isResumenGrupo": false,
+      "titulo": "Tu Adicional compró $2.000 en COMERCIO ADICIONAL",
+      "texto": "Realizada por PERSONA DE EJEMPLO con su CMR Adicional terminada en 1111. Si tienes algún problema, comunícate con nosotros.",
+      "compra": {
+        "montoOriginal": 2000,
+        "comercio": "COMERCIO ADICIONAL",
+        "tarjetaUltimos4": "1111"
+      }
+    },
+    {
+      "procedencia": "sintetico",
+      "id": "adicional_ampliado_nombre_unicode",
+      "paquete": "cl.android",
+      "isResumenGrupo": false,
+      "textoAmpliado": "Tu Adicional compró $2.000 en COMERCIO ADICIONAL Realizada por MARÍA DE LA O'CRUZ con su CMR Adicional terminada en 1111. Si tienes algún problema, comunícate con nosotros.",
+      "compra": {
+        "montoOriginal": 2000,
+        "comercio": "COMERCIO ADICIONAL",
+        "tarjetaUltimos4": "1111"
+      }
+    },
+    {
+      "procedencia": "sintetico",
+      "id": "adicional_resumen_ignorado",
+      "paquete": "cl.android",
+      "isResumenGrupo": true,
+      "texto": "Tu Adicional compró $2.000 en COMERCIO ADICIONAL Realizada por PERSONA DE EJEMPLO con su CMR Adicional terminada en 1111. Si tienes algún problema, comunícate con nosotros.",
+      "compra": null
+    },
+    {
+      "procedencia": "sintetico",
+      "id": "adicional_otra_app",
+      "paquete": "cl.ejemplo.otra",
+      "isResumenGrupo": false,
+      "texto": "Tu Adicional compró $2.000 en COMERCIO ADICIONAL Realizada por PERSONA DE EJEMPLO con su CMR Adicional terminada en 1111. Si tienes algún problema, comunícate con nosotros.",
+      "compra": null
+    },
+    {
+      "procedencia": "sintetico",
+      "id": "adicional_terminacion_invalida",
+      "paquete": "cl.android",
+      "isResumenGrupo": false,
+      "texto": "Tu Adicional compró $2.000 en COMERCIO ADICIONAL Realizada por PERSONA DE EJEMPLO con su CMR Adicional terminada en 11111. Si tienes algún problema, comunícate con nosotros.",
+      "compra": null
+    },
+    {
+      "procedencia": "sintetico",
+      "id": "adicional_nombre_fuera_limite",
+      "paquete": "cl.android",
+      "isResumenGrupo": false,
+      "texto": "Tu Adicional compró $2.000 en COMERCIO ADICIONAL Realizada por AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA con su CMR Adicional terminada en 1111. Si tienes algún problema, comunícate con nosotros.",
+      "compra": null
+    },
+    {
+      "procedencia": "sintetico",
+      "id": "adicional_devolucion_sintetica",
+      "paquete": "cl.android",
+      "isResumenGrupo": false,
+      "texto": "Tu Adicional recibió una devolución de $2.000 en COMERCIO ADICIONAL Realizada por PERSONA DE EJEMPLO con su CMR Adicional terminada en 1111. Si tienes algún problema, comunícate con nosotros.",
+      "compra": null
+    },
+    {
+      "procedencia": "sintetico",
+      "id": "adicional_textos_contradictorios",
+      "paquete": "cl.android",
+      "isResumenGrupo": false,
+      "texto": "Tu Adicional compró $2.000 en COMERCIO ADICIONAL Realizada por PERSONA DE EJEMPLO con su CMR Adicional terminada en 1111. Si tienes algún problema, comunícate con nosotros.",
+      "textoAmpliado": "Tu Adicional compró $3.000 en COMERCIO ADICIONAL Realizada por PERSONA DE EJEMPLO con su CMR Adicional terminada en 1111. Si tienes algún problema, comunícate con nosotros.",
       "compra": null
     }
   ]
