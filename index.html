@@ -1066,6 +1066,9 @@
       }
       .btn:hover:not(:disabled) { transform: none !important; }
     }
+    .sync-panel { margin: 0 0 24px; padding: 20px; border: 1px solid var(--accent, #b5ef73); border-radius: 14px; background: var(--surface, #16202a); }
+    .sync-panel p { margin: 8px 0 14px; }
+    .sync-actions { display: flex; flex-wrap: wrap; gap: 10px; }
   </style>
 </head>
 <body>
@@ -1141,6 +1144,15 @@
   </div>
 
   <!-- App content -->
+  <section id="sync-panel" class="sync-panel hidden" role="alert" aria-live="assertive">
+    <strong id="sync-message"></strong>
+    <p id="sync-detail"></p>
+    <div class="sync-actions">
+      <button id="sync-download" class="btn" type="button">Descargar borrador</button>
+      <button id="sync-retry" class="btn" type="button">Reintentar guardado</button>
+      <button id="sync-reload" class="btn" type="button">Recargar datos guardados</button>
+    </div>
+  </section>
   <div id="contenido" class="hidden">
 
     <section class="page-intro" aria-labelledby="pageTitle">
@@ -1411,12 +1423,14 @@
     filtrarItems, proximosHitosCiclo, resumirTarjeta
   } from "./logic.mjs";
   import { generarPdfGeneral, generarPdfPersona } from "./pdf-export.mjs";
+  import { guardarConRevision, validarDocumento } from "./persistencia-segura.mjs";
+  import { crearControlGuardado } from "./ui-guardado.mjs";
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
     getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import {
-    getFirestore, doc, getDoc, setDoc
+    getFirestore, doc, getDoc, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -1442,6 +1456,24 @@
   let esConCuotas = true;
   let pdfModulePromise = null;
   const PDF_MODULE_URL = "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/+esm";
+  const controlGuardado = crearControlGuardado({
+    guardar: (base, datos, uid) => {
+      if (currentUser?.uid !== uid) throw new Error("La sesión cambió. Vuelve a iniciar sesión.");
+      return guardarConRevision({ db, runTransaction }, doc(db, "users", uid), base, datos);
+    },
+    recargar: async () => {
+      if (await loadData()) limpiarFormularioCompra();
+    },
+    alReintentarGuardado: () => {
+      renderCardTabs(); renderPersonaSelect(); renderTabla(); updateSaldoUI();
+      limpiarFormularioCompra(); toast("Cambios pendientes guardados.");
+    },
+    confirmarDescartar: () => showModal({
+      title: "Revisar cambios sin guardar",
+      body: "Descarga el borrador si quieres conservarlo. Continuar descartará los cambios de esta pestaña y cargará los datos guardados.",
+      icon: "⚠", iconType: "danger", confirm: "Descartar borrador", cancel: "Volver"
+    })
+  });
 
   // ── Theme ──
   const themeToggle = document.getElementById("themeToggle");
@@ -1927,7 +1959,7 @@
 
   // ── Firebase ──
   async function save() {
-    if (!currentUser) return;
+    if (!currentUser) throw new Error("Inicia sesión antes de guardar.");
     const clean = items.map(it => ({
       persona: it.persona, tarjeta: it.tarjeta, item: it.item,
       monto: it.monto, pagadas: it.pagadas, totales: it.totales,
@@ -1936,18 +1968,23 @@
       fechaCompra: it.fechaCompra || null,
       completedAt: it.completedAt || null
     }));
-    await setDoc(doc(db, "users", currentUser.uid),
-      { items: clean, tarjetas, personas, tarjetaActiva, saldos, historial },
-      { merge: true });
+    await controlGuardado.guardar({ items: clean, tarjetas, personas, tarjetaActiva, saldos, historial });
   }
 
   async function loadData() {
     if (!currentUser) return;
+    const uid = currentUser.uid;
     showLoading();
     try {
-      const snap = await getDoc(doc(db, "users", currentUser.uid));
+      const snap = await getDoc(doc(db, "users", uid));
+      if (currentUser?.uid !== uid) return;
       if (snap.exists()) {
         const d       = snap.data();
+        validarDocumento({
+          items: d.items ?? [], tarjetas: d.tarjetas ?? [], personas: d.personas ?? [],
+          tarjetaActiva: d.tarjetaActiva ?? "", saldos: d.saldos ?? {}, historial: d.historial ?? []
+        });
+        controlGuardado.cargar(d);
         items         = d.items        || [];
         tarjetas      = d.tarjetas     || [];
         personas      = d.personas     || [];
@@ -1955,6 +1992,7 @@
         saldos        = (d.saldos && typeof d.saldos === "object") ? d.saldos : {};
         historial     = Array.isArray(d.historial) ? d.historial : [];
       } else {
+        controlGuardado.cargar(null);
         items = []; tarjetas = ["Tarjeta 1","Tarjeta 2"];
         personas = ["Persona 1","Persona 2"];
         tarjetaActiva = tarjetas[0]; saldos = {}; historial = [];
@@ -1975,10 +2013,15 @@
       if (!personas.length) personas = ["Persona 1"];
       personaSeleccionada = personas[0];
       renderCardTabs(); renderPersonaSelect(); renderTabla(); updateSaldoUI();
+      return true;
+    } catch (error) {
+      if (currentUser?.uid === uid) controlGuardado.registrarError(error);
+      return false;
     } finally { hideLoading(); }
   }
 
   function cleanupCompleted() {
+    if (!controlGuardado.puedeModificar()) return;
     const now = Date.now();
     let ch = false;
     items = items.filter(it => {
@@ -1992,6 +2035,7 @@
 
   function requireLogin() {
     if (!currentUser) { toast("Primero inicia sesión con Google.", "error"); return false; }
+    if (!controlGuardado.puedeModificar()) { toast("Espera el guardado o revisa los cambios pendientes.", "error"); return false; }
     return true;
   }
 
@@ -2579,6 +2623,11 @@
   }
 
   // ── Actions ──
+  function limpiarFormularioCompra() {
+    ["item", "monto", "cuotasPagadas", "cuotasTotales"].forEach(id => document.getElementById(id).value = "");
+    resetFechaCompra();
+  }
+
   async function agregarItem() {
     if (!requireLogin()) return;
     const persona = document.getElementById("personaSelect").value || personas[0];
@@ -3177,12 +3226,18 @@
   });
 
   document.getElementById("logoutBtn").addEventListener("click", async () => {
-    try { await signOut(auth); }
+    try {
+      if (!await controlGuardado.puedeCerrarSesion()) return;
+      await signOut(auth);
+    }
     catch { toast("Error al cerrar sesión.", "error"); }
   });
 
   onAuthStateChanged(auth, async user => {
+    controlGuardado.iniciar(user?.uid || null);
     currentUser = user;
+    items = []; tarjetas = []; personas = []; historial = []; saldos = {};
+    tarjetaActiva = ""; personaSeleccionada = "";
     const loginBox   = document.getElementById("login-box");
     const contenido  = document.getElementById("contenido");
     const headerUser = document.getElementById("headerUser");

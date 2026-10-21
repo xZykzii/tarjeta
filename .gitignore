@@ -1,0 +1,9 @@
+node_modules/
+*-debug.log
+.firebase/
+android/local.properties
+android/.gradle/
+android/**/build/
+*.jks
+*.keystore
+**/google-services.json

@@ -114,7 +114,7 @@ export async function guardarConRevision(sdk, referencia, base, datos) {
   }
   exigirBase(base);
   const copia = validarDocumento(datos);
-  return sdk.runTransaction(sdk.db, async (transaction) => {
+  try { return await sdk.runTransaction(sdk.db, async (transaction) => {
     const snapshot = await transaction.get(referencia);
     const remoto = snapshot.exists() ? snapshot.data() : null;
     const actual = baseDocumento(remoto);
@@ -124,7 +124,18 @@ export async function guardarConRevision(sdk, referencia, base, datos) {
     const escritura = { ...copia, revision: nuevaRevision };
     transaction.set(referencia, escritura, { merge: true });
     return baseDocumento(escritura);
-  });
+  }); } catch (error) {
+    if (error.code !== "permission-denied") throw error;
+    // Las reglas pueden rechazar una revisión vieja antes de que Firestore
+    // reintente el callback. Releer sin escribir distingue ese conflicto de
+    // una denegación real; nunca rebasar ni volver a enviar el borrador.
+    return sdk.runTransaction(sdk.db, async (transaction) => {
+      const snapshot = await transaction.get(referencia);
+      const actual = baseDocumento(snapshot.exists() ? snapshot.data() : null);
+      if (!hasMismaBase(actual, base)) throw new ConflictoGuardado();
+      throw error;
+    });
+  }
 }
 
 /**
@@ -170,7 +181,14 @@ export function crearColaGuardado(guardar) {
     base = null;
   }
 
-  return { cargar, encolar, invalidar };
+  function reintentar(datos) {
+    // Conserva la misma base; nunca convierte un borrador viejo en escritura
+    // sobre una revisión nueva. Si el servidor cambió, volverá a dar conflicto.
+    hasBloqueo = false;
+    return encolar(datos);
+  }
+
+  return { cargar, encolar, invalidar, reintentar };
 }
 
 // Requisitos de activación:

@@ -3,11 +3,9 @@
 
 Actualizado: 2026-10-21. Base: `58ebee85df3acf3b942f3ade944b40b63aa82af9`.
 
-**PAUSADO por solicitud del usuario. Reanudar únicamente cuando lo pida.**
+**Avance global: 32% (32/100 puntos verificados).**
 
-**Avance global: 28% (28/100 puntos verificados).**
-
-**Tarea actual: 5.1 — Resolver concurrencia del documento legado.**
+**Tarea actual: 4.3 — Unificar cálculo manual y automático.**
 
 [Abrir roadmap visual](docs/seguimiento/roadmap.html) · [Estado para continuar](ESTADO_PROYECTO.md)
 
@@ -71,18 +69,18 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 --- | --- | --- | --- | --- | --- | ---
 4.1 | Motor de planes de cuotas | completada | 3 pt | 1.2 | Una cuota, división exacta en CLP, interés manual y cuotas individuales válidas. | planes-cuotas.mjs: modalidades, planes variables y adaptador legado sin mutación; pruebas aprobadas.
 4.2 | Pruebas de redondeo y límites | completada | 2 pt | 4.1 | Suma exacta, enteros seguros, validación de importes y compatibilidad documentada. | tests/compras.test.mjs: residuos exhaustivos, abonos, límites y overflow; 28/28 pruebas globales aprobadas.
-4.3 | Unificar cálculo manual y automático | bloqueada | 3 pt | 4.2, 5.1 | Abonos, vencimientos, pagos, deshacer, PDF y resumen usan una lógica común. | Pendiente
+4.3 | Unificar cálculo manual y automático | en_curso | 3 pt | 4.2, 5.1 | Abonos, vencimientos, pagos, deshacer, PDF y resumen usan una lógica común. | Pendiente
 4.4 | Formulario de modalidades | bloqueada | 2 pt | 4.3 | Previsualización explícita y sin tasas inferidas, incluso con cuotas diferentes. | Pendiente
 4.5 | Motor de reparto exacto entre personas | completada | 2 pt | 4.2 | Distribución igual o por importes libres; cuotas por persona conservan totales por fila y columna incluso con redondeo e interés. | reparto-compras.mjs: importes libres/iguales y matriz exacta por persona/mes; barrido exhaustivo y enteros grandes aprobados.
 
-## Fase 5 — Compatibilidad de la PWA · 0%
+## Fase 5 — Compatibilidad de la PWA · 33.3%
 
-Aceptación: 0/12 puntos.
+Aceptación: 4/12 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
-5.1 | Resolver concurrencia del documento legado | en_curso | 4 pt | 1.4 | Guardados no pierden compras confirmadas, pagos ni cambios de otro dispositivo. | Pendiente
-5.2 | Origen, identificadores y backups | bloqueada | 3 pt | 5.1 | Persistir origen/ID/planes sin romper importación de backups v6 ni datos antiguos. | Pendiente
+5.1 | Resolver concurrencia del documento legado | completada | 4 pt | 1.4 | Guardados no pierden compras confirmadas, pagos ni cambios de otro dispositivo. | save/load conectados a CAS real, cola y recuperación de borrador; 32 pruebas Node + 9 Firestore/emulador y flujo UI ficticio aprobados. docs/GUARDADO_SEGURO.md; reglas no desplegadas.
+5.2 | Origen, identificadores y backups | pendiente | 3 pt | 5.1 | Persistir origen/ID/planes sin romper importación de backups v6 ni datos antiguos. | Pendiente
 5.3 | Integrar registro manual, resúmenes y PDF | bloqueada | 3 pt | 4.3, 5.2 | Mismos cálculos y resultados para registro manual y automático. | Pendiente
 5.4 | Caché, cierre de sesión y regresión | bloqueada | 2 pt | 5.3, 3.3 | Bump del SW y limpieza de suscripciones; funciones previas comprobadas. | Pendiente
 
@@ -121,7 +119,7 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 
 - Captura positiva revisada. Usuario confirma Samsung Galaxy S24 y ficha oficial Banco Falabella Chile (paquete cl.android). Faltan versión Android, extras reales y muestras negativas auténticas.
 - Reglas de Firestore desplegadas sin verificar; no publicar reglas ni escribir datos reales desde esta sesión.
-- save() sobrescribe arrays completos: riesgo de pérdida entre dispositivos y confirmaciones; requiere resolver concurrencia.
+- Guardado protegido localmente con CAS y revisión; falta auditar/desplegar reglas para bloquear clientes antiguos en producción. No publicar solo la PWA.
 - Cuotas variables exigen cambios coordinados en pagos, abonos, PDF, importación y resumen.
 
 ## Funcionalidades completadas
@@ -138,6 +136,7 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - 4.1 Motor de planes de cuotas: planes-cuotas.mjs: modalidades, planes variables y adaptador legado sin mutación; pruebas aprobadas.
 - 4.2 Pruebas de redondeo y límites: tests/compras.test.mjs: residuos exhaustivos, abonos, límites y overflow; 28/28 pruebas globales aprobadas.
 - 4.5 Motor de reparto exacto entre personas: reparto-compras.mjs: importes libres/iguales y matriz exacta por persona/mes; barrido exhaustivo y enteros grandes aprobados.
+- 5.1 Resolver concurrencia del documento legado: save/load conectados a CAS real, cola y recuperación de borrador; 32 pruebas Node + 9 Firestore/emulador y flujo UI ficticio aprobados. docs/GUARDADO_SEGURO.md; reglas no desplegadas.
 
 ## Funcionalidades pendientes
 
@@ -150,10 +149,9 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - 3.3 Confirmación atómica y descarte (bloqueada)
 - 3.4 Personas, tarjetas y revisión (bloqueada)
 - 3.5 Repartir una compra entre varias personas (bloqueada)
-- 4.3 Unificar cálculo manual y automático (bloqueada)
+- 4.3 Unificar cálculo manual y automático (en_curso)
 - 4.4 Formulario de modalidades (bloqueada)
-- 5.1 Resolver concurrencia del documento legado (en_curso)
-- 5.2 Origen, identificadores y backups (bloqueada)
+- 5.2 Origen, identificadores y backups (pendiente)
 - 5.3 Integrar registro manual, resúmenes y PDF (bloqueada)
 - 5.4 Caché, cierre de sesión y regresión (bloqueada)
 - 6.1 Reglas y pruebas de aislamiento (pendiente)

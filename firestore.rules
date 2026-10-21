@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function esTitular(uid) {
+      return request.auth != null && request.auth.uid == uid
+        && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    function camposUsuario() {
+      return ['items', 'tarjetas', 'personas', 'tarjetaActiva', 'saldos', 'historial', 'revision'];
+    }
+
+    function documentoUsuarioValido() {
+      let datos = request.resource.data;
+      return datos.keys().hasAll(camposUsuario())
+        && datos.items is list && datos.tarjetas is list && datos.personas is list
+        && datos.tarjetaActiva is string && datos.saldos is map && datos.historial is list
+        && datos.revision is int && datos.revision > 0 && datos.revision <= 9007199254740991;
+    }
+
+    function revisionSiguiente() {
+      let anterior = resource.data.get('revision', 0);
+      return anterior is int && request.resource.data.revision == anterior + 1;
+    }
+
+    function pendienteValido(eventId) {
+      let datos = request.resource.data;
+      return eventId.matches('^[a-zA-Z0-9_-]{16,128}$')
+        && datos.keys().hasAll(['schemaVersion', 'eventId', 'estado', 'origen', 'moneda',
+          'montoOriginal', 'comercio', 'fechaCompra', 'horaCompra', 'tarjetaUltimos4',
+          'referenciaHash', 'recibidaEn', 'parserVersion', 'compraId', 'creadaEn'])
+        && datos.keys().hasOnly(['schemaVersion', 'eventId', 'estado', 'origen', 'moneda',
+          'montoOriginal', 'comercio', 'fechaCompra', 'horaCompra', 'tarjetaUltimos4',
+          'referenciaHash', 'recibidaEn', 'parserVersion', 'compraId', 'creadaEn'])
+        && datos.schemaVersion == 1 && datos.eventId == eventId
+        && datos.estado == 'sin_asignar' && datos.origen == 'automatico' && datos.moneda == 'CLP'
+        && (datos.montoOriginal == null || (datos.montoOriginal is int
+          && datos.montoOriginal > 0 && datos.montoOriginal <= 9007199254740991))
+        && (datos.comercio == null || (datos.comercio is string
+          && datos.comercio.size() > 0 && datos.comercio.size() <= 200))
+        && (datos.fechaCompra == null || (datos.fechaCompra is string
+          && datos.fechaCompra.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')))
+        && (datos.horaCompra == null || (datos.horaCompra is string
+          && datos.horaCompra.matches('^([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$')))
+        && (datos.tarjetaUltimos4 == null || (datos.tarjetaUltimos4 is string
+          && datos.tarjetaUltimos4.matches('^[0-9]{4}$')))
+        && (datos.referenciaHash == null || (datos.referenciaHash is string
+          && datos.referenciaHash.matches('^[a-f0-9]{64}$')))
+        && datos.recibidaEn is int && datos.recibidaEn > 0
+        && datos.parserVersion is string && datos.parserVersion.size() > 0
+        && datos.parserVersion.size() <= 40 && datos.parserVersion.matches('^[a-zA-Z0-9._-]+$')
+        && datos.compraId == null && datos.creadaEn == request.time;
+    }
+
+    match /users/{uid} {
+      allow read: if esTitular(uid);
+      allow create: if esTitular(uid) && documentoUsuarioValido()
+        && request.resource.data.keys().hasOnly(camposUsuario())
+        && request.resource.data.revision == 1;
+      allow update: if esTitular(uid) && documentoUsuarioValido() && revisionSiguiente()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(camposUsuario());
+      allow delete: if false;
+
+      match /comprasPendientes/{eventId} {
+        allow read: if esTitular(uid);
+        allow create: if esTitular(uid) && pendienteValido(eventId);
+        // Se habilitarán resoluciones cuando exista confirmación atómica probada.
+        allow update, delete: if false;
+      }
+    }
+  }
+}
