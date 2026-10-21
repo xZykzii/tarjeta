@@ -20,6 +20,11 @@
 .revision-plan p { font-size: 13px; line-height: 1.6; }
 .revision-partes { display: grid; gap: 10px; margin: 16px 0; }
 .revision-parte { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: center; }
+.revision-individual .revision-parte { grid-template-columns: 1fr 1fr; }
+.revision-dialog [hidden] { display: none !important; }
+.revision-reparto { border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin: 18px 0; }
+.revision-reparto summary { cursor: pointer; font-weight: 600; }
+.revision-reparto[open] summary { margin-bottom: 18px; }
 .revision-preview { display: grid; gap: 8px; margin: 12px 0; }
 .revision-cuotas { padding: 12px; border: 1px solid var(--border); border-radius: 10px; }
 .revision-cuotas p { font-size: 13px; line-height: 1.6; margin: 8px 0 0; overflow-wrap: anywhere; }
@@ -30,6 +35,7 @@
   .revision-dialog { padding: 18px; }
   .revision-grid { grid-template-columns: 1fr; }
   .revision-parte { grid-template-columns: 1fr auto; }
-  .revision-parte select { grid-column: 1 / -1; }
+  .revision-parte label:first-child { grid-column: 1 / -1; }
+  .revision-individual .revision-parte { grid-template-columns: 1fr; }
   .revision-actions .btn { flex-grow: 1; }
 }

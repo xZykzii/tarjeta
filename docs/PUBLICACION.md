@@ -8,8 +8,8 @@ documentos financieros para verificar la entrega.
 
 - Aplicación: <https://xzykzii.github.io/tarjeta/>.
 - GitHub Pages publica `main` desde la raíz del repositorio.
-- Bloque funcional publicado: commit `8596ee9`, sobre la base `58ebee8`.
-- Caché de aplicación: `cuotas-v19`.
+- Publicación funcional inicial: commit `8596ee9`, sobre la base `58ebee8`.
+- Caché de aplicación vigente: `cuotas-v20`, con el ajuste de confirmación.
 - GitHub Pages completó correctamente la entrega funcional:
   <https://github.com/xZykzii/tarjeta/actions/runs/39667206844>.
 - Se descargaron 20 archivos de la aplicación, incluidos todos los recursos del
@@ -26,10 +26,16 @@ anterior puede recibir rechazo de guardado hasta recargar la aplicación.
 
 ## Verificación y límites
 
-Antes de publicar aprobaron 84 pruebas Node, 16 de SDK Firestore con emulador y
+Antes de la publicación inicial aprobaron 84 pruebas Node, 16 de SDK Firestore con emulador y
 43 ejecuciones Android; un caso sin configuración se omitió después de configurar
 el SDK, habiéndose probado previamente sin configuración. Ambos APK compilan y
 tienen firma válida. Las pruebas de reglas usan únicamente `demo-cuotas-local`.
+
+El ajuste posterior de confirmación aprobó 88 pruebas Node y pruebas UI con datos
+ficticios: fecha e importe sugeridos, tarjeta preferida editable, asignación individual,
+reparto desplegable, cuotas con/sin intereses y personalizadas, preservación de
+correcciones, tarjeta ausente y cancelación sin deuda. No cambia APK, parser ni
+reglas. Recargar la web entrega el ajuste; no requiere reinstalar la app Android.
 
 La entrega pública se comprueba mediante estado de GitHub Pages y descarga de
 los archivos estáticos contra el contenido versionado. No requiere abrir la

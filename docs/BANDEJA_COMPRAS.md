@@ -16,20 +16,53 @@ generación descarta callbacks tardíos de otra cuenta. Los borradores de revisi
 permanecen solo en memoria mientras el diálogo siga abierto. Cancelar no escribe.
 Los datos bancarios y de catálogos se insertan con `textContent` y controles DOM.
 
-Revisar permite corregir descripción, completar una fecha explícita, elegir una
-tarjeta existente, configurar las cuatro modalidades y seleccionar personas
-existentes. No se asigna persona a partir del titular bancario ni se convierte
-la recepción en fecha de compra. El aviso original no se modifica al corregir.
+Revisar permite corregir descripción, fecha, tarjeta, plan y personas existentes.
+La fecha se propone desde una fecha válida del aviso o, en su ausencia, desde el
+día de detección en `America/Santiago`. Es una sugerencia editable; no agrega una
+fecha bancaria al aviso original. Si existe la tarjeta llamada «Papá», se
+preselecciona; si no existe, queda la selección manual. La persona se elige
+explícitamente, sin inferirla del titular bancario. El aviso original no se modifica.
 
 En una revisión nueva, modalidad y número de cuotas empiezan sin elegir. El
 monto original puede precargarse del aviso; el plan requiere una elección y
 aplicación explícitas. El configurador manual conserva su comportamiento previo.
+
+El flujo inicial asigna el total a una sola persona, con importe precargado del
+aviso. Valida y previsualiza automáticamente cuando existe un plan válido. El
+reparto múltiple está cerrado en «Repartir entre varias personas»; abrirlo muestra
+añadir/quitar personas, importes, partes iguales y verificación explícita. Cerrarlo
+recupera la asignación individual y conserva el borrador múltiple mientras siga
+abierta la revisión. Ninguno de estos cambios escribe deuda.
+
+Al aplicar otro plan, los importes sugeridos de una sola persona siguen el total
+final, incluidos los intereses. Los importes editados a mano se conservan, incluso
+si quedan incompletos; la validación impide confirmar hasta que la suma coincida.
+Los repartos con varias filas nunca se reajustan silenciosamente. Partes iguales
+es una acción explícita calculada contra el total final del plan vigente.
 
 El reparto acepta importes libres o iguales. La previsualización muestra total
 original, total final, diferencia por financiamiento y cuotas de cada persona.
 La suma por persona y por mes conserva el contrato completo, incluidos residuos
 de un peso y meses con participación cero. Cambiar un campo invalida la revisión
 previa. Confirmar exige verificar de nuevo todos los datos.
+
+## Verificación del ajuste de confirmación · 2026-10-21
+
+El usuario confirmó detección funcionando y aportó la pantalla real de revisión.
+La entrega se limitó a los valores iniciales y al flujo de revisión. No cambió el
+parser, el APK, el contrato de notificaciones ni las reglas desplegadas.
+
+Aprobaron 88 pruebas Node. Cuatro nuevas comprueban el cambio de día Chile/UTC,
+prioridad de fecha bancaria, tarjeta ausente, asignación individual sin mutar el
+aviso y preservación de correcciones ante intereses. La UI ficticia ejecutó
+cuota única, tres cuotas sin interés, interés manual, cuotas personalizadas,
+reparto libre/igual, cambio de modo sin perder borrador, tarjeta ausente,
+correcciones de fecha/tarjeta/importe y cancelación sin deuda. La confirmación
+individual guardó una participación; la múltiple, dos participaciones con sus cuotas exactas.
+
+Capturas del workspace, fuera de Git: `outputs/confirmacion-simple.png` y
+`outputs/confirmacion-reparto.png`. No se usaron documentos financieros reales
+en estas pruebas. El resto de etapas del roadmap no avanzó en este bloque.
 
 ## Transacción y concurrencia
 

@@ -15,7 +15,7 @@ function texto(valor, nombre) {
 
 function fecha(valor) {
   if (typeof valor !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
-    throw new TypeError("Indica la fecha de compra; no se deduce de la recepción.");
+    throw new TypeError("Indica una fecha de compra válida.");
   }
   const parsed = new Date(`${valor}T00:00:00Z`);
   if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== valor) {

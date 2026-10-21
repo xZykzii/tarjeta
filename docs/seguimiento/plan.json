@@ -9,10 +9,10 @@
   "arquitectura": [
     "PWA HTML/CSS/JS sin framework; index.html contiene UI, pagos y Firebase JS 10.12.0.",
     "Google Auth; users/{uid} conserva arrays y añade revisión de guardado. save usa transacción CAS y cola; getDoc valida base. Bandeja con onSnapshot por UID; el documento financiero principal conserva lectura protegida al cargar.",
-    "cuotas-item.mjs es el adaptador común PWA/resúmenes/PDF; datos-compras preserva IDs y planes; ui-plan-cuotas ofrece configurador; SW cuotas-v19 y backup v7 compatible con v6.",
+    "cuotas-item.mjs es el adaptador común PWA/resúmenes/PDF; datos-compras preserva IDs y planes; ui-plan-cuotas ofrece configurador; SW cuotas-v20 y backup v7 compatible con v6.",
     "Legados conservan monto por cuota; planes explícitos y participaciones usan sus importes exactos sin duplicar contrato. El alta manual permite modalidades explícitas con previsualización.",
     "Android separado: Kotlin con core JVM, NotificationListenerService y Activity nativa. Primera versión diagnóstico RAM sin Internet/Firebase; Gradle 8.11.1, AGP 8.9.2, Kotlin 2.2.21, API 35/mínimo 28.",
-    "Bandeja y confirmación publicadas: onSnapshot por UID; recibo inmutable comprasConfirmadas/auto_{eventId}, participaciones + resolución atómicas y control CAS compartido. Reglas activas verificadas; envío físico S24 pendiente.",
+    "Bandeja y confirmación publicadas: onSnapshot por UID; recibo inmutable, participaciones y resolución atómicos con CAS. Usuario confirma detección funcionando y aporta revisión real; aún faltan pruebas físicas prolongadas de reintentos y actualizaciones.",
     "Dos variantes Android: diagnóstico cl.controlcuotas.companion sin Internet y conectada .sync, con consentimiento independiente, Google Auth, Room por UID, WorkManager y caché Firestore en memoria. Limpia datos financieros de filas enviadas y conserva identidad mínima."
   ],
   "decisiones": [
@@ -29,16 +29,17 @@
     "La confirmación creará un recibo inmutable en comprasConfirmadas/{compraId}, añadirá todas sus participaciones al array legado y resolverá el pendiente en la misma transacción. Las reglas getAfter exigirán las tres partes; descartar no modifica deuda. No desplegar sin autorización.",
     "La conectada tiene otro applicationId para mantener diagnóstico local disponible. Se registró el cliente Android y sus huellas en el proyecto existente como configuración necesaria de la integración solicitada; no se desplegaron reglas/PWA ni se modificaron documentos financieros.",
     "La identidad local combina UID, clave Android anonimizada, postTime y huella de datos; conserva cada ID en reintentos. No fusiona por monto/comercio y no promete deduplicación bancaria global sin referencia auténtica.",
-    "2026-10-21: el titular autorizó publicar web y reglas. Reglas compiladas y desplegadas antes de avanzar main sin forzar. No se consultaron ni editaron documentos financieros; no hay migración. No volver a pedir esta autorización para completar la entrega aprobada."
+    "2026-10-21: el titular autorizó publicar web y reglas. Reglas compiladas y desplegadas antes de avanzar main sin forzar. No se consultaron ni editaron documentos financieros; no hay migración. No volver a pedir esta autorización para completar la entrega aprobada.",
+    "Prioridad explícita del usuario: simplificar la confirmación antes de nuevas etapas. Fecha sugerida desde fecha bancaria válida o detección America/Santiago, tarjeta Papá si existe, flujo individual con importe detectado, reparto múltiple desplegable. Las correcciones manuales prevalecen y la validación usa el total final con intereses. No se modifica el aviso ni se crea deuda antes de confirmar."
   ],
   "problemas": [
     "Captura positiva revisada. Usuario confirma Samsung Galaxy S24 y ficha oficial Banco Falabella Chile (paquete cl.android). Faltan versión Android, extras reales y muestras negativas auténticas.",
     "Reglas nuevas desplegadas y verificadas por lectura del release activo. La auditoría anterior queda como evidencia histórica; la entrega no leyó ni escribió documentos financieros.",
-    "CAS y revisión activos en producción con SW cuotas-v19. Un cliente antiguo debe recargar antes de guardar; no restaurar reglas permisivas para admitir escrituras sin revisión.",
+    "CAS y revisión activos en producción con SW cuotas-v20. Un cliente antiguo debe recargar antes de guardar; no restaurar reglas permisivas para admitir escrituras sin revisión.",
     "La revisión automática rechazó iniciar el servidor localhost sin motivo adicional; no se pudo restaurar la URL en esta sesión. Servidor probado en puerto efímero; el usuario puede iniciarlo con npm run roadmap.",
     "Captura del S24 aportada por el usuario: app instalada, cl.android detectado, consentimiento y acceso Android concedidos, servicio conectado. Primera compra nueva recibida y reconocida con campos coincidentes en dos capturas; falta cobertura de otros avisos y comportamiento prolongado. Lint: cero errores, una advertencia ObsoleteSdkInt por carpeta vacía; limpieza/repetición rechazadas por revisión automática sin motivo adicional.",
-    "Bandeja/confirmación/reparto publicados con autorización. GitHub Pages aprobado y 20 recursos públicos coincidentes con el commit 8596ee9. Falta prueba en navegador móvil y envío Android real.",
-    "Cliente Android y huellas registrados; SDK/OAuth solo en configuración local ignorada por Git. Publicación autorizada y completada; falta Google personal en S24, UID coincidente y envío. Diagnóstico separado sin Internet.",
+    "Usuario confirma captura automática funcionando y aporta pantalla real de confirmación. Ajustes solicitados verificados en UI ficticia; falta probar esta nueva UI en su navegador móvil. Se conservan pendientes de negativos auténticos, reinicio y comportamiento prolongado.",
+    "Google vinculado y envío autorizado mostrados físicamente en S24; posteriormente el usuario confirma detección funcionando y muestra aviso en revisión web. No volver a pedir login ni instalación. Diagnóstico separado; no se certifica identidad bancaria global por esta positiva.",
     "Lint Android sin errores, con advertencias de dependencias/estilo y un detector heurístico de Google ID cuyo parseo se realiza en vincular(). No se declara revisión visual ni entrega real del APK conectado."
   ],
   "archivos": [
@@ -120,21 +121,23 @@
     "Android final: 44 ejecuciones, 43 aprobadas y un caso sin configuración omitido porque el SDK ya está configurado (probado previamente sin configuración). Room real/Robolectric verifica persistencia, UID, callbacks repetidos, compras iguales distintas, limpieza, límites, colisión y estados terminales. Ambos APK compilan; lint sin errores.",
     "APK conectado 0.2.0-preparacion firmado e inspeccionado: paquete .sync, listener protegido e Internet. Diagnóstico continúa sin Internet. OAuth Android/web y certificado del SDK coinciden con paquete y firma; sin prueba de Google/envío real en teléfono.",
     "Última revisión UI: aviso sin modalidad ni cantidad predeterminadas; el titular elige y aplica el plan. 84 Node y 16 SDK/emulador mantienen aprobación.",
-    "Publicación autorizada: Firebase CLI compiló y desplegó reglas; lectura del release coincide con fuente local normalizada. main avanzó sin forzar a 8596ee9. GitHub Pages run 39667206844 exitoso; 20 recursos estáticos HTTP 200 coinciden con el commit y módulos con MIME JavaScript. Sin lectura ni escritura de documentos financieros."
+    "Publicación autorizada: Firebase CLI compiló y desplegó reglas; lectura del release coincide con fuente local normalizada. main avanzó sin forzar a 8596ee9. GitHub Pages run 39667206844 exitoso; 20 recursos estáticos HTTP 200 coinciden con el commit y módulos con MIME JavaScript. Sin lectura ni escritura de documentos financieros.",
+    "Ajuste de confirmación: 88/88 Node y UI ficticia aprobados. Fecha de detección Chile/prioridad bancaria, Papá o selector vacío, importe editable sin sobrescritura, individual automático, reparto cerrado/abierto, partes libres/iguales, cuatro modalidades, suma final con intereses, borrador al alternar y cancelación sin deuda. Confirmación individual/múltiple ejecutadas solo en datos ficticios. Ver docs/BANDEJA_COMPRAS.md."
   ],
   "incompletas": [
     "1.3/2.2: puerto Kotlin provisional con corpus compartido; primera recepción y normalización positiva verificadas en S24 mediante capturas. Faltan distribución exacta de extras, negativos auténticos, actualizaciones y validación física más amplia.",
-    "6.1 auditada y reglas publicadas con autorización; resolución probada en emulador. Validación entre dispositivos y envío físico pendientes.",
-    "2.3/2.4 implementadas y web/reglas publicadas. Faltan sesión del mismo Google en S24, envío real y pruebas de actualización/reinicio. No se completan por publicar ni registrar el cliente SDK.",
+    "6.1 auditada y reglas publicadas con autorización. Usuario confirma detección con aviso visible en la PWA; faltan pruebas físicas de fallos, actualización, reinicio y reintentos.",
+    "2.3/2.4 implementadas, publicadas y con positiva declarada por el titular y pantalla de revisión. Faltan deduplicación de actualizaciones, pruebas de reintento/reinicio y cobertura negativa auténtica; no cerrar por una positiva.",
     "Permanece bloqueada 1.3 por negativos auténticos del banco. V2 añade compra adicional; solo el formato titular tiene positiva física verificada. Los avisos similares o de dos teléfonos pueden necesitar descarte manual hasta validar identidad bancaria.",
-    "Entrega autorizada completada: main incluye el bloque funcional 8596ee9; GitHub Pages y reglas activas comprobados. Falta validación física del APK conectado y del formato adicional."
+    "Publicación inicial completada en 86d0061; ajuste UI verificado con 88 Node y escenarios ficticios. No se avanzan otras funcionalidades del roadmap en esta entrega ni se alteran puntos de aceptación."
   ],
   "continuar": [
+    "PRIORIDAD 2026-10-21: completar y verificar ajustes de confirmación solicitados antes de continuar otras funcionalidades. Bloque ejecutado y verificado; conservar el resto del roadmap y sus límites, sin adelantar etapas.",
     "REANUDADO el 2026-10-21 por solicitud explícita del usuario. Continuar tareas verificables y conservar estado tras cada bloque.",
     "Worktree: outputs/tarjeta en la carpeta de esta conversación; rama codex/compras-falabella. Leer ROADMAP.md y ESTADO_PROYECTO.md; comprobar git status, diff y log antes de editar.",
-    "Base vigente: 65/100 puntos, 84 Node, 16 Firestore/emulador y 43 ejecuciones Android aprobadas; un caso de ausencia de configuración omitido tras configurar SDK, probado antes. Ver evidencia y límites antes de declarar soporte completo.",
-    "Siguiente intervención: instalar Cuotas · conexión .sync en S24, conceder personalmente acceso Android, entrar con el mismo Google que la PWA y autorizar guardar/enviar avisos. Esperar una compra habitual; no pedir gastar para probar. Publicación y reglas ya verificadas; no repetir registro ni login CLI.",
-    "La bandeja publicada revisa y confirma grupos con importes por persona/mes, sin modalidad ni número de cuotas supuestos. Recargar la PWA para recibir cuotas-v19. Redistribución financiera posterior de grupos pagados protegida.",
+    "Base vigente: 65/100 puntos, 88 Node; 16 SDK/emulador y 43 Android aprobadas en la entrega anterior. El ajuste UI no cambia reglas ni APK. Leer evidencia y límites antes de declarar soporte integral.",
+    "Google y consentimiento físico ya confirmados; el usuario declara detección funcionando y aporta revisión web. No pedir otra vez el mismo login o compra. Esta entrega se limita a simplificar confirmación; esperar su revisión de la interfaz antes de retomar otras funcionalidades.",
+    "Recargar PWA para cuotas-v20: fecha e importe precargados editables, tarjeta Papá si existe, una persona por defecto y reparto múltiple desplegable. Cuotas/modalidad siguen explícitas; total con intereses y reparto exacto obligatorios. No reinstalar APK por este cambio.",
     "Datos confirmados: Samsung Galaxy S24; Banco Falabella Chile de ficha Google Play cl.android. Captura positiva transcrita de forma anonimizada en docs/FORMATO_NOTIFICACION.md. Faltan Android/One UI exactos, extras de notificación y muestras negativas auténticas.",
     "SDK API 35, Build Tools 35.0.0, Platform Tools y Gradle instalados fuera del repo en work/herramientas con aceptación explícita del titular; sin PATH global. APK debug en outputs/apk; guía android/PRUEBA_S24.md. No hay teléfono conectado por ADB. La captura del usuario verifica instalación, autorización y conexión mostradas en S24; dos capturas posteriores verifican recepción y reconocimiento de una compra nueva con campos coincidentes.",
     "JS y Kotlin comparten corpus v2 de 24 casos. Diagnóstico conserva resultados en RAM; conectada solo persiste/envía con cuenta y consentimiento separado. Validación integral y formato adicional físicos pendientes; no confundir la primera positiva diagnóstica con envío conectado.",
@@ -300,7 +303,7 @@
             "6.1"
           ],
           "estado": "en_curso",
-          "evidencia": "Variante cl.controlcuotas.companion.sync compilada, con Google Auth, consentimiento de envío y SDK configurado. App y huellas registradas en Firebase; sin reglas/PWA desplegadas ni sesión/envío físico del S24 verificados."
+          "evidencia": "Web y reglas desplegadas. Captura del S24 acredita cuenta y consentimiento; usuario confirma detección funcionando y aporta aviso en revisión web. Contrato seguro/idempotente probado en emulador; reintentos/reinicio/actualizaciones físicos pendientes."
         }
       ]
     },
@@ -342,7 +345,7 @@
             "5.1"
           ],
           "estado": "completada",
-          "evidencia": "resolverCompraRemota crea recibo inmutable, añade participaciones y resuelve pendiente en una transacción; descarte terminal sin deuda. 16 pruebas Firestore/emulador, incluidas concurrencia e idempotencia."
+          "evidencia": "resolverCompraRemota crea recibo inmutable, añade participaciones y resuelve pendiente en una transacción; descarte terminal sin deuda. 16 pruebas Firestore/emulador, incluidas concurrencia e idempotencia. Ajuste UI: valores precargados editables, individual como flujo principal y reparto desplegable, 88 Node y pruebas UI ficticias. No cambia la resolución atómica."
         },
         {
           "id": "3.4",

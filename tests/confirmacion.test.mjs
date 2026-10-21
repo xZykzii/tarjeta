@@ -5,6 +5,7 @@ import { crearPlanCuotas } from "../planes-cuotas.mjs";
 import { prepararConfirmacion, validarRevisionCompra, pendienteDesdeDocumento } from "../confirmacion-compras.mjs";
 import { crearSuscripcionPendientes } from "../repositorio-pendientes.mjs";
 import { crearColaGuardado, baseDocumento } from "../persistencia-segura.mjs";
+import { valoresInicialesRevision, importeSugerido } from "../ui-revision-compra.mjs";
 
 const EVENT = "evento_prueba_confirmacion_0001";
 const RECEIVED_AT = 1792540800000;
@@ -113,4 +114,48 @@ test("la operación externa actualiza la base de la cola antes del próximo guar
   const retrasada = cola.ejecutar(async () => { throw new Error("fallo" ); });
   await assert.rejects(retrasada);
   await assert.rejects(cola.encolar(datos()));
+});
+
+test("la revisión sugiere el día de detección en Chile y prioriza una fecha bancaria válida", () => {
+  const original = { ...aviso(), recibidaEn: Date.parse("2026-10-22T01:30:00Z") };
+  const copia = structuredClone(original);
+  const inicial = valoresInicialesRevision(original, ["Otra", "Papá"]);
+  assert.deepEqual(inicial, { fechaCompra: "2026-10-21", hasFechaBancaria: false, tarjeta: "Papá", monto: "1000" });
+  assert.equal(valoresInicialesRevision({ ...original, fechaCompra: "2026-10-19" }, []).fechaCompra, "2026-10-19");
+  assert.equal(valoresInicialesRevision({ ...original, fechaCompra: "2026-02-30" }, []).fechaCompra, "2026-10-21");
+  assert.deepEqual(original, copia);
+});
+
+test("sin tarjeta preferida ni fecha utilizable no inventa una selección", () => {
+  for (const recibidaEn of [null, "1792584000000", NaN, -1, Number.MAX_SAFE_INTEGER]) {
+    const inicial = valoresInicialesRevision({ ...aviso(), recibidaEn, montoOriginal: null }, ["Prueba", "Papa"]);
+    assert.equal(inicial.fechaCompra, "");
+    assert.equal(inicial.tarjeta, "");
+    assert.equal(inicial.monto, "");
+  }
+});
+
+test("la asignación individual usa los valores sugeridos sin alterar el aviso ni registrar antes de confirmar", () => {
+  const original = { ...aviso(), montoOriginal: 25990 };
+  const documento = { ...datos(), tarjetas: ["Papá"] };
+  const inicial = valoresInicialesRevision(original, documento.tarjetas);
+  const planCuotas = crearPlanCuotas({ modalidad: "una_cuota", montoOriginal: Number(inicial.monto), numeroCuotas: 1 });
+  const entrada = { ...revision(), fechaCompra: inicial.fechaCompra, tarjeta: inicial.tarjeta, planCuotas,
+    asignaciones: [{ persona: "A", monto: Number(inicial.monto) }] };
+  const validada = validarRevisionCompra(entrada, documento);
+  assert.equal(documento.items.length, 0);
+  assert.equal(original.fechaCompra, null);
+  assert.equal(original.estado, "sin_asignar");
+  const resultado = prepararConfirmacion(original, validada, documento);
+  assert.deepEqual(resultado.recibo.items[0].cuotasAsignadas, [25990]);
+  assert.equal(resultado.recibo.items[0].tarjeta, "Papá");
+});
+
+test("un nuevo plan actualiza solo importes sugeridos y conserva las correcciones manuales", () => {
+  const plan = crearPlanCuotas({ modalidad: "interes_manual", montoOriginal: 25990, numeroCuotas: 3, valorCuota: 10000 });
+  assert.equal(importeSugerido("25990", plan, false), "30000");
+  for (const actual of ["27000", "", "valor por corregir"]) assert.equal(importeSugerido(actual, plan, true), actual);
+  const entrada = { ...revision(), planCuotas: plan, asignaciones: [{ persona: "A", monto: 27000 }] };
+  assert.throws(() => validarRevisionCompra(entrada, datos()), /suma|total/i);
+  assert.equal(validarRevisionCompra({ ...entrada, asignaciones: [{ persona: "A", monto: 30000 }] }, datos()).planCuotas.totalFinal, 30000);
 });
