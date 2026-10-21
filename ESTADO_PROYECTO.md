@@ -10,11 +10,11 @@ Detectar compras reales desde Android, revisarlas sin asignación e incorporarla
 ## Arquitectura comprobada
 
 - PWA HTML/CSS/JS sin framework; index.html contiene UI, pagos y Firebase JS 10.12.0.
-- Google Auth; users/{uid} conserva arrays y añade revisión de guardado. save usa transacción CAS y cola; getDoc valida base. Sin escucha en vivo todavía.
-- cuotas-item.mjs es el adaptador común PWA/resúmenes/PDF; datos-compras preserva IDs y planes; ui-plan-cuotas ofrece configurador; SW cuotas-v18 y backup v7 compatible con v6.
+- Google Auth; users/{uid} conserva arrays y añade revisión de guardado. save usa transacción CAS y cola; getDoc valida base. Bandeja con onSnapshot por UID; el documento financiero principal conserva lectura protegida al cargar.
+- cuotas-item.mjs es el adaptador común PWA/resúmenes/PDF; datos-compras preserva IDs y planes; ui-plan-cuotas ofrece configurador; SW cuotas-v19 y backup v7 compatible con v6.
 - Legados conservan monto por cuota; planes explícitos y participaciones usan sus importes exactos sin duplicar contrato. El alta manual permite modalidades explícitas con previsualización.
 - Android separado: Kotlin con core JVM, NotificationListenerService y Activity nativa. Primera versión diagnóstico RAM sin Internet/Firebase; Gradle 8.11.1, AGP 8.9.2, Kotlin 2.2.21, API 35/mínimo 28.
-- Bandeja y confirmación locales implementadas: onSnapshot por UID; recibo inmutable comprasConfirmadas/auto_{eventId}, participaciones + resolución atómicas y control CAS compartido. SW v19.
+- Bandeja y confirmación publicadas: onSnapshot por UID; recibo inmutable comprasConfirmadas/auto_{eventId}, participaciones + resolución atómicas y control CAS compartido. Reglas activas verificadas; envío físico S24 pendiente.
 - Dos variantes Android: diagnóstico cl.controlcuotas.companion sin Internet y conectada .sync, con consentimiento independiente, Google Auth, Room por UID, WorkManager y caché Firestore en memoria. Limpia datos financieros de filas enviadas y conserva identidad mínima.
 
 ## Decisiones técnicas
@@ -32,6 +32,7 @@ Detectar compras reales desde Android, revisarlas sin asignación e incorporarla
 - La confirmación creará un recibo inmutable en comprasConfirmadas/{compraId}, añadirá todas sus participaciones al array legado y resolverá el pendiente en la misma transacción. Las reglas getAfter exigirán las tres partes; descartar no modifica deuda. No desplegar sin autorización.
 - La conectada tiene otro applicationId para mantener diagnóstico local disponible. Se registró el cliente Android y sus huellas en el proyecto existente como configuración necesaria de la integración solicitada; no se desplegaron reglas/PWA ni se modificaron documentos financieros.
 - La identidad local combina UID, clave Android anonimizada, postTime y huella de datos; conserva cada ID en reintentos. No fusiona por monto/comercio y no promete deduplicación bancaria global sin referencia auténtica.
+- 2026-10-21: el titular autorizó publicar web y reglas. Reglas compiladas y desplegadas antes de avanzar main sin forzar. No se consultaron ni editaron documentos financieros; no hay migración. No volver a pedir esta autorización para completar la entrega aprobada.
 
 ## Punto exacto de continuidad
 
@@ -98,14 +99,15 @@ Avance verificado: **65%**.
 - `android/app/src/testConectada/`
 - `android/app/schemas/`
 - `android/app/src/main/java/cl/controlcuotas/companion/DestinoCompras.kt`
+- `docs/PUBLICACION.md`
 
 ## Implementaciones incompletas
 
 - 1.3/2.2: puerto Kotlin provisional con corpus compartido; primera recepción y normalización positiva verificadas en S24 mediante capturas. Faltan distribución exacta de extras, negativos auténticos, actualizaciones y validación física más amplia.
-- 6.1 auditada con propuesta local probada. Propuesta de resolución probada; faltan despliegue coordinado y validación entre dispositivos. No se modificó producción.
-- 2.3/2.4 implementadas como preparación local. Faltan autorización de publicación, sesión del mismo Google en S24, envío real y pruebas de actualización/reinicio. No se completan por código compilado ni por registrar el cliente SDK.
+- 6.1 auditada y reglas publicadas con autorización; resolución probada en emulador. Validación entre dispositivos y envío físico pendientes.
+- 2.3/2.4 implementadas y web/reglas publicadas. Faltan sesión del mismo Google en S24, envío real y pruebas de actualización/reinicio. No se completan por publicar ni registrar el cliente SDK.
 - Permanece bloqueada 1.3 por negativos auténticos del banco. V2 añade compra adicional; solo el formato titular tiene positiva física verificada. Los avisos similares o de dos teléfonos pueden necesitar descarte manual hasta validar identidad bancaria.
-- Publicación pendiente: subir cambios remotos requiere autorización según solicitud original. No se ha hecho push ni desplegado reglas. main remoto sigue en la base 58ebee8.
+- Entrega autorizada completada: main incluye el bloque funcional 8596ee9; GitHub Pages y reglas activas comprobados. Falta validación física del APK conectado y del formato adicional.
 
 ## Pruebas y resultados
 
@@ -131,16 +133,17 @@ Avance verificado: **65%**.
 - Android final: 44 ejecuciones, 43 aprobadas y un caso sin configuración omitido porque el SDK ya está configurado (probado previamente sin configuración). Room real/Robolectric verifica persistencia, UID, callbacks repetidos, compras iguales distintas, limpieza, límites, colisión y estados terminales. Ambos APK compilan; lint sin errores.
 - APK conectado 0.2.0-preparacion firmado e inspeccionado: paquete .sync, listener protegido e Internet. Diagnóstico continúa sin Internet. OAuth Android/web y certificado del SDK coinciden con paquete y firma; sin prueba de Google/envío real en teléfono.
 - Última revisión UI: aviso sin modalidad ni cantidad predeterminadas; el titular elige y aplica el plan. 84 Node y 16 SDK/emulador mantienen aprobación.
+- Publicación autorizada: Firebase CLI compiló y desplegó reglas; lectura del release coincide con fuente local normalizada. main avanzó sin forzar a 8596ee9. GitHub Pages run 39667206844 exitoso; 20 recursos estáticos HTTP 200 coinciden con el commit y módulos con MIME JavaScript. Sin lectura ni escritura de documentos financieros.
 
 ## Errores conocidos, riesgos y requisitos externos
 
 - Captura positiva revisada. Usuario confirma Samsung Galaxy S24 y ficha oficial Banco Falabella Chile (paquete cl.android). Faltan versión Android, extras reales y muestras negativas auténticas.
-- Reglas vigentes auditadas solo por lectura; el contrato nuevo de revisión y pendientes requiere despliegue coordinado posterior. No se escribió en producción.
-- Guardado protegido localmente con CAS y revisión; falta desplegar coordinadamente las reglas para bloquear clientes antiguos en producción. No publicar solo la PWA.
+- Reglas nuevas desplegadas y verificadas por lectura del release activo. La auditoría anterior queda como evidencia histórica; la entrega no leyó ni escribió documentos financieros.
+- CAS y revisión activos en producción con SW cuotas-v19. Un cliente antiguo debe recargar antes de guardar; no restaurar reglas permisivas para admitir escrituras sin revisión.
 - La revisión automática rechazó iniciar el servidor localhost sin motivo adicional; no se pudo restaurar la URL en esta sesión. Servidor probado en puerto efímero; el usuario puede iniciarlo con npm run roadmap.
 - Captura del S24 aportada por el usuario: app instalada, cl.android detectado, consentimiento y acceso Android concedidos, servicio conectado. Primera compra nueva recibida y reconocida con campos coincidentes en dos capturas; falta cobertura de otros avisos y comportamiento prolongado. Lint: cero errores, una advertencia ObsoleteSdkInt por carpeta vacía; limpieza/repetición rechazadas por revisión automática sin motivo adicional.
-- Bandeja/confirmación/reparto implementados y probados solo localmente. La PWA pública, sus reglas y el APK de diagnóstico siguen sin sincronización nueva. No desplegar sin autorización.
-- Cliente Android y huellas ya registrados; SDK/OAuth guardados solo en configuración local ignorada por Git. Falta completar Google personalmente en S24, validar UID y envío, y autorizar publicación coordinada de web/reglas. El APK de diagnóstico sigue separado.
+- Bandeja/confirmación/reparto publicados con autorización. GitHub Pages aprobado y 20 recursos públicos coincidentes con el commit 8596ee9. Falta prueba en navegador móvil y envío Android real.
+- Cliente Android y huellas registrados; SDK/OAuth solo en configuración local ignorada por Git. Publicación autorizada y completada; falta Google personal en S24, UID coincidente y envío. Diagnóstico separado sin Internet.
 - Lint Android sin errores, con advertencias de dependencias/estilo y un detector heurístico de Google ID cuyo parseo se realiza en vincular(). No se declara revisión visual ni entrega real del APK conectado.
 
 ## Próximos pasos en orden de prioridad
@@ -153,11 +156,11 @@ Avance verificado: **65%**.
 - REANUDADO el 2026-10-21 por solicitud explícita del usuario. Continuar tareas verificables y conservar estado tras cada bloque.
 - Worktree: outputs/tarjeta en la carpeta de esta conversación; rama codex/compras-falabella. Leer ROADMAP.md y ESTADO_PROYECTO.md; comprobar git status, diff y log antes de editar.
 - Base vigente: 65/100 puntos, 84 Node, 16 Firestore/emulador y 43 ejecuciones Android aprobadas; un caso de ausencia de configuración omitido tras configurar SDK, probado antes. Ver evidencia y límites antes de declarar soporte completo.
-- Siguiente puerta: obtener autorización explícita para publicar la web y desplegar reglas coordinadamente, sin migración de datos. Después instalar/probar APK conectado .sync en S24 con el mismo Google y consentimiento separado. Código, cliente SDK y APK ya preparados; no repetir registro Android.
-- La bandeja ya revisa y confirma grupos con importes por persona/mes, sin modalidad ni número de cuotas supuestos. No se ha publicado. La redistribución financiera de grupos ya pagados sigue protegida.
+- Siguiente intervención: instalar Cuotas · conexión .sync en S24, conceder personalmente acceso Android, entrar con el mismo Google que la PWA y autorizar guardar/enviar avisos. Esperar una compra habitual; no pedir gastar para probar. Publicación y reglas ya verificadas; no repetir registro ni login CLI.
+- La bandeja publicada revisa y confirma grupos con importes por persona/mes, sin modalidad ni número de cuotas supuestos. Recargar la PWA para recibir cuotas-v19. Redistribución financiera posterior de grupos pagados protegida.
 - Datos confirmados: Samsung Galaxy S24; Banco Falabella Chile de ficha Google Play cl.android. Captura positiva transcrita de forma anonimizada en docs/FORMATO_NOTIFICACION.md. Faltan Android/One UI exactos, extras de notificación y muestras negativas auténticas.
 - SDK API 35, Build Tools 35.0.0, Platform Tools y Gradle instalados fuera del repo en work/herramientas con aceptación explícita del titular; sin PATH global. APK debug en outputs/apk; guía android/PRUEBA_S24.md. No hay teléfono conectado por ADB. La captura del usuario verifica instalación, autorización y conexión mostradas en S24; dos capturas posteriores verifican recepción y reconocimiento de una compra nueva con campos coincidentes.
-- El prototipo JS tiene puerto Kotlin y corpus compartido; el flag conservador del prototipo JS sigue en falso hasta su validación integral; la primera positiva física del puerto Kotlin ya está documentada. La app solo mantiene resultados en RAM. No activar persistencia o sincronización antes de vincular y verificar UID.
+- JS y Kotlin comparten corpus v2 de 24 casos. Diagnóstico conserva resultados en RAM; conectada solo persiste/envía con cuenta y consentimiento separado. Validación integral y formato adicional físicos pendientes; no confundir la primera positiva diagnóstica con envío conectado.
 - Registrar tarea y archivos previstos antes de un bloque extenso; actualizar JSON y regenerar vistas al cerrarlo. No subir commits, desplegar reglas ni tocar datos reales sin autorización.
 - Ejecutar npm run roadmap y abrir http://127.0.0.1:8767/docs/seguimiento/roadmap.html para seguimiento en vivo; Ctrl+C cierra el servidor. También abre como archivo local con snapshot, que requiere reabrir tras regenerar.
 - Firebase CLI quedó autenticada mediante acceso completado por el titular. La sesión no autoriza despliegues ni cambios financieros. La auditoría de reglas terminó; no volver a pedir login salvo que caduque o falten permisos.

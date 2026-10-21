@@ -120,12 +120,12 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 ## Problemas y dependencias externas
 
 - Captura positiva revisada. Usuario confirma Samsung Galaxy S24 y ficha oficial Banco Falabella Chile (paquete cl.android). Faltan versión Android, extras reales y muestras negativas auténticas.
-- Reglas vigentes auditadas solo por lectura; el contrato nuevo de revisión y pendientes requiere despliegue coordinado posterior. No se escribió en producción.
-- Guardado protegido localmente con CAS y revisión; falta desplegar coordinadamente las reglas para bloquear clientes antiguos en producción. No publicar solo la PWA.
+- Reglas nuevas desplegadas y verificadas por lectura del release activo. La auditoría anterior queda como evidencia histórica; la entrega no leyó ni escribió documentos financieros.
+- CAS y revisión activos en producción con SW cuotas-v19. Un cliente antiguo debe recargar antes de guardar; no restaurar reglas permisivas para admitir escrituras sin revisión.
 - La revisión automática rechazó iniciar el servidor localhost sin motivo adicional; no se pudo restaurar la URL en esta sesión. Servidor probado en puerto efímero; el usuario puede iniciarlo con npm run roadmap.
 - Captura del S24 aportada por el usuario: app instalada, cl.android detectado, consentimiento y acceso Android concedidos, servicio conectado. Primera compra nueva recibida y reconocida con campos coincidentes en dos capturas; falta cobertura de otros avisos y comportamiento prolongado. Lint: cero errores, una advertencia ObsoleteSdkInt por carpeta vacía; limpieza/repetición rechazadas por revisión automática sin motivo adicional.
-- Bandeja/confirmación/reparto implementados y probados solo localmente. La PWA pública, sus reglas y el APK de diagnóstico siguen sin sincronización nueva. No desplegar sin autorización.
-- Cliente Android y huellas ya registrados; SDK/OAuth guardados solo en configuración local ignorada por Git. Falta completar Google personalmente en S24, validar UID y envío, y autorizar publicación coordinada de web/reglas. El APK de diagnóstico sigue separado.
+- Bandeja/confirmación/reparto publicados con autorización. GitHub Pages aprobado y 20 recursos públicos coincidentes con el commit 8596ee9. Falta prueba en navegador móvil y envío Android real.
+- Cliente Android y huellas registrados; SDK/OAuth solo en configuración local ignorada por Git. Publicación autorizada y completada; falta Google personal en S24, UID coincidente y envío. Diagnóstico separado sin Internet.
 - Lint Android sin errores, con advertencias de dependencias/estilo y un detector heurístico de Google ID cuyo parseo se realiza en vincular(). No se declara revisión visual ni entrega real del APK conectado.
 
 ## Funcionalidades completadas

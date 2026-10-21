@@ -69,9 +69,10 @@ de importes se ejecuta en el dominio del cliente. El titular ya puede modificar
 sus propios datos; ningún secreto diferencia Android de la web del mismo usuario.
 El servidor no certifica que un aviso haya sido emitido por el banco.
 
-Estas reglas todavía son locales. Antes de publicar deben coordinarse con todos
-los escritores y el SW `cuotas-v19`. No publicar solo la nueva PWA contra las reglas
-antiguas ni considerar el inicio de Firebase CLI una autorización de despliegue.
+El 2026-10-21 el titular autorizó la publicación coordinada de la PWA y las reglas.
+Las reglas ya fueron compiladas, desplegadas y verificadas por lectura del release
+activo. Se publican con el SW `cuotas-v19`; clientes antiguos deben recargar la web.
+El inicio de sesión en Firebase CLI por sí solo nunca autoriza un despliegue.
 
 ## Evidencia del 2026-10-21
 

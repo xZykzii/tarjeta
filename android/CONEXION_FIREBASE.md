@@ -12,8 +12,9 @@ funcionamiento local sin Internet.
 - Configuración validada por proyecto, paquete e ID; solo cuatro identificadores
   públicos SDK se escribieron en `android/sincronizacion.properties`, ignorado por Git.
   No contiene service accounts, contraseñas bancarias ni claves privadas.
-- No se desplegaron reglas, no se publicó la PWA ni se modificaron documentos
-  financieros. La autorización de Firebase CLI no inicia sesión en el teléfono.
+- El titular autorizó publicar la PWA y desplegar reglas el 2026-10-21. Las reglas
+  ya están activas y verificadas; entrega web documentada en `docs/PUBLICACION.md`.
+  No se modificaron documentos financieros. Firebase CLI no inicia sesión en el teléfono.
 - La variante conectada está preparada para Google Auth y una cola por UID. Falta
   validar el acceso del titular en el S24 y el envío real tras activar las reglas.
   No se declara sincronización física comprobada.
@@ -35,10 +36,11 @@ funcionamiento local sin Internet.
    solicitud ya en curso podría completarse. La cola existente sigue asociada
    al UID original y no se reasigna al iniciar otra cuenta.
 
-Mientras las reglas anteriores sigan desplegadas, el servidor deniega la nueva
-subcolección. Los avisos permanecen pendientes localmente y se muestra un error
-de acceso. Después de activar las reglas puede solicitarse reintento; no hay que
-repetir la compra ni introducirla otra vez para provocar un envío.
+Las reglas nuevas ya permiten la subcolección del mismo UID. Si un aviso quedó
+en cola por el rechazo de las reglas anteriores, puede solicitarse reintento;
+no hay que repetir la compra ni introducirla otra vez para provocar un envío.
+Si persiste un error de acceso, comprobar la cuenta y comunicar el estado visible
+sin borrar datos de la app ni compartir credenciales.
 
 ## Persistencia e identidad
 

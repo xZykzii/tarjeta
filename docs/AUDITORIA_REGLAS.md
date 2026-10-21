@@ -35,3 +35,16 @@ Se ejecutan con `npm run test:reglas`, exclusivamente contra `demo-cuotas-local`
 
 La tarea 6.1 cubre inspección y aislamiento local. La propuesta de resolución
 está probada localmente; despliegue y validación entre dispositivos siguen pendientes.
+
+## Despliegue autorizado · 2026-10-21
+
+El titular autorizó expresamente publicar la web y desplegar las reglas. Firebase
+CLI compiló y activó `firestore.rules`; una lectura posterior del release activo
+comprobó igualdad con la fuente local, normalizando únicamente CRLF/LF.
+
+SHA-256 normalizado de las reglas activas:
+`57f32d40cfc72ec7921a836145430732627e8e3528c606fe18775a2aeed4c3a5`.
+
+Este despliegue supera el estado de propuesta local descrito en la auditoría
+anterior. No leyó ni escribió documentos financieros. La prueba de Google y envío
+desde el S24 continúa pendiente. Ver `PUBLICACION.md` para alcance y recuperación.
