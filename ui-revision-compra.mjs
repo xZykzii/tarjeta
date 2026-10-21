@@ -177,7 +177,7 @@ class RevisionCompra {
 
   async configurar() {
     try {
-      const elegido = await solicitarPlanCuotas({ planInicial: this.plan, montoInicial: this.aviso.montoOriginal });
+      const elegido = await solicitarPlanCuotas({ planInicial: this.plan, montoInicial: this.aviso.montoOriginal, debeElegirModalidad: true });
       if (!elegido || !this.dialog.isConnected || this.hasGuardado) return;
       this.plan = elegido;
       this.q("[data-plan-text]").textContent = descripcionPlanCuotas(this.plan);

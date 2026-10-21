@@ -21,6 +21,10 @@ tarjeta existente, configurar las cuatro modalidades y seleccionar personas
 existentes. No se asigna persona a partir del titular bancario ni se convierte
 la recepción en fecha de compra. El aviso original no se modifica al corregir.
 
+En una revisión nueva, modalidad y número de cuotas empiezan sin elegir. El
+monto original puede precargarse del aviso; el plan requiere una elección y
+aplicación explícitas. El configurador manual conserva su comportamiento previo.
+
 El reparto acepta importes libres o iguales. La previsualización muestra total
 original, total final, diferencia por financiamiento y cuotas de cada persona.
 La suma por persona y por mes conserva el contrato completo, incluidos residuos

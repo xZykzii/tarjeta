@@ -136,12 +136,18 @@ function actualizarPreview(dialog) {
 }
 
 /** Diálogo reutilizable por el alta manual y la futura revisión de pendientes. */
-export function solicitarPlanCuotas({ planInicial = null, montoInicial = null } = {}) {
+export function solicitarPlanCuotas({ planInicial = null, montoInicial = null, debeElegirModalidad = false } = {}) {
   if (document.querySelector(".plan-dialog")) return Promise.resolve(null);
   const dialog = crearDialogo();
   rellenarPlan(dialog, planInicial);
   if (!planInicial && Number.isSafeInteger(montoInicial) && montoInicial > 0) {
     dialog.querySelector('[name="montoOriginal"]').value = montoInicial;
+  }
+  if (!planInicial && debeElegirModalidad) {
+    const modalidad = dialog.querySelector('[name="modalidad"]');
+    modalidad.prepend(new Option("Selecciona la modalidad", ""));
+    modalidad.value = "";
+    dialog.querySelector('[name="numeroCuotas"]').value = "";
   }
   document.body.append(dialog);
   actualizarPreview(dialog);
