@@ -14,6 +14,10 @@ solo procesa avisos nuevos: los anteriores a la autorización no se recuperan.
 Si una nueva notificación de compra ya llegó y el contador sigue en cero, registrar
 ese caso como posible fallo de recepción y verificarlo antes de modificar el parser.
 
+Posteriormente, el usuario confirmó una compra nueva y aportó la notificación y el resultado de Cuotas. Un aviso recibido y uno reconocido; monto, comercio y terminación coinciden. Se verifica una primera recepción y normalización real de este formato en el S24. No se publican datos financieros ni avisos ajenos de las imágenes.
+
+Siguen pendientes negativos auténticos del banco, actualizaciones, duplicados, reinicio/restricciones de Samsung, persistencia y sincronización. Esta positiva no certifica todos los formatos ni completa por sí sola las tareas pendientes.
+
 ## Instalación y autorización
 
 1. Copiar el APK compilado al teléfono e instalarlo si el titular decide hacerlo.

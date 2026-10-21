@@ -37,7 +37,7 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 1.1 | Investigar Android y Firebase | completada | 3 pt | 0.4 | Documentación oficial vigente, límites y alternativas contrastadas. | docs/ADR-001-compras-android.md: fuentes oficiales Android/Firebase consultadas el 2026-10-21.
 1.2 | Decidir arquitectura y modelo de datos | completada | 4 pt | 1.1 | ADR, contrato de pendientes, aislamiento por UID e idempotencia documentados. | ADR-001: listener nativo, cola Room/WorkManager, UID, pendientes aislados y confirmación transaccional; contrato v1.
 1.3a | Documentar formato positivo auténtico | completada | 1 pt | 1.1 | Transcribir estructura comprobada sin publicar datos financieros y distinguir recepción de fecha bancaria. | docs/FORMATO_NOTIFICACION.md: captura positiva revisada; estructura anonimizada y campos ausentes documentados.
-1.3 | Verificar paquete emisor y ejemplos negativos reales | bloqueada | 2 pt | 1.1 | packageName verificado y muestras de pago/devolución/publicidad auténticas; confirmar contenido accesible en Android. | Captura positiva documentada; ficha Google Play cl.android y app instalada confirmadas por el usuario. Pendientes negativos auténticos y diagnóstico físico.
+1.3 | Verificar paquete emisor y ejemplos negativos reales | bloqueada | 2 pt | 1.1 | packageName verificado y muestras de pago/devolución/publicidad auténticas; confirmar contenido accesible en Android. | App cl.android instalada y primera recepción/normalización real en S24 verificadas mediante capturas del banco y diagnóstico. Faltan negativos auténticos, distribución de extras y actualizaciones; tarea incompleta.
 1.4 | Plan de compatibilidad y validación | completada | 2 pt | 1.2 | Cubrir arrays legados, cuotas variables, backup, caché, concurrencia y dispositivo real. | docs/VALIDACION_COMPRAS.md y ADR-001: matriz de 14 casos, compatibilidad, escritor legado y permisos.
 
 ## Fase 2 — Captura Android · 26.7%
@@ -47,7 +47,7 @@ Aceptación: 4/15 puntos.
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
 2.1 | App complementaria y permisos explícitos | completada | 4 pt | 1.2 | Proyecto Android separado, listener real, filtro por paquete verificado y autorización transparente. | android/: listener nativo protegido, filtro cl.android instalado y consentimiento separado de Ajustes. APK debug compilado y firma verificada; 19 pruebas JVM + 3 Robolectric aprobadas. Sin Internet/Firebase/deuda; prueba física S24 pendiente. android/README.md y PRUEBA_S24.md.
-2.2 | Analizador de notificaciones auténticas | en_espera | 4 pt | 1.3, 2.1 | Extraer solo compras verificadas; desconocidos no generan transacciones. | Pendiente
+2.2 | Analizador de notificaciones auténticas | en_espera | 4 pt | 1.3, 2.1 | Extraer solo compras verificadas; desconocidos no generan transacciones. | Puerto conservador Kotlin con corpus compartido y primera compra real reconocida en S24. No completa: depende de 1.3 y sus negativos auténticos pendientes.
 2.3 | Cola persistente y deduplicación | en_espera | 4 pt | 2.2 | Persistencia mínima, reintentos y deduplicación sin fusionar compras legítimas iguales. | Pendiente
 2.4 | Vinculación Firebase y sincronización | en_espera | 3 pt | 2.3, 6.1 | Sesión del mismo UID; envío seguro e idempotente validado con reglas. | Pendiente
 
@@ -124,7 +124,7 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - Guardado protegido localmente con CAS y revisión; falta desplegar coordinadamente las reglas para bloquear clientes antiguos en producción. No publicar solo la PWA.
 - Captura automática y reparto todavía no tienen interfaz de revisión/confirmación. La edición de planes existentes conserva importes y pagos para evitar cambios financieros accidentales.
 - La revisión automática rechazó iniciar el servidor localhost sin motivo adicional; no se pudo restaurar la URL en esta sesión. Servidor probado en puerto efímero; el usuario puede iniciarlo con npm run roadmap.
-- Captura del S24 aportada por el usuario: app instalada, cl.android detectado, consentimiento y acceso Android concedidos, servicio conectado. Contadores en cero; recepción de una compra nueva todavía sin verificar. Lint: cero errores, una advertencia ObsoleteSdkInt por carpeta vacía; limpieza/repetición rechazadas por revisión automática sin motivo adicional.
+- Captura del S24 aportada por el usuario: app instalada, cl.android detectado, consentimiento y acceso Android concedidos, servicio conectado. Primera compra nueva recibida y reconocida con campos coincidentes en dos capturas; falta cobertura de otros avisos y comportamiento prolongado. Lint: cero errores, una advertencia ObsoleteSdkInt por carpeta vacía; limpieza/repetición rechazadas por revisión automática sin motivo adicional.
 
 ## Funcionalidades completadas
 

@@ -84,7 +84,7 @@ Avance verificado: **51%**.
 
 ## Implementaciones incompletas
 
-- 1.3/2.2: puerto Kotlin provisional con corpus compartido; faltan emisor/extras observados y negativos auténticos. APK de diagnóstico disponible; soporte físico sigue sin verificar.
+- 1.3/2.2: puerto Kotlin provisional con corpus compartido; primera recepción y normalización positiva verificadas en S24 mediante capturas. Faltan distribución exacta de extras, negativos auténticos, actualizaciones y validación física más amplia.
 - 2.3/2.4: no hay cola persistente, deduplicación, cuenta Firebase ni sincronización Android. No convertir diagnóstico en deuda.
 - 3.2 es la siguiente tarea independiente: bandeja por UID con errores visibles y limpieza de suscripción; después confirmación atómica y reparto.
 - 6.1 auditada con propuesta local probada. Faltan reglas finales de resolución, despliegue coordinado y validación entre dispositivos. No se modificó producción.
@@ -105,6 +105,7 @@ Avance verificado: **51%**.
 - Node: 68/68 aprobadas, incluidos 15 casos compartidos con Kotlin. Positivos anonimizados; negativos y distribución de extras sintéticos.
 - Auditoría remota de reglas completada por lectura autenticada del release/ruleset; fuente y procedencia privadas, SHA-256 documentado. No se leyeron documentos financieros ni se cambió producción.
 - S24, evidencia parcial del usuario: captura de la pantalla real con paquete instalado, consentimiento, acceso concedido y servicio conectado. Cero avisos/reconocimientos; no acredita recepción, parser ni sincronización. No suma puntos de aceptación.
+- Primera compra real en S24: usuario confirmó detección y aportó notificación bancaria y resultado de Cuotas. Un aviso recibido y uno reconocido; monto, comercio y terminación coinciden. Sin datos financieros publicados. No prueba negativos, deduplicación, persistencia ni sincronización.
 
 ## Errores conocidos, riesgos y requisitos externos
 
@@ -113,7 +114,7 @@ Avance verificado: **51%**.
 - Guardado protegido localmente con CAS y revisión; falta desplegar coordinadamente las reglas para bloquear clientes antiguos en producción. No publicar solo la PWA.
 - Captura automática y reparto todavía no tienen interfaz de revisión/confirmación. La edición de planes existentes conserva importes y pagos para evitar cambios financieros accidentales.
 - La revisión automática rechazó iniciar el servidor localhost sin motivo adicional; no se pudo restaurar la URL en esta sesión. Servidor probado en puerto efímero; el usuario puede iniciarlo con npm run roadmap.
-- Captura del S24 aportada por el usuario: app instalada, cl.android detectado, consentimiento y acceso Android concedidos, servicio conectado. Contadores en cero; recepción de una compra nueva todavía sin verificar. Lint: cero errores, una advertencia ObsoleteSdkInt por carpeta vacía; limpieza/repetición rechazadas por revisión automática sin motivo adicional.
+- Captura del S24 aportada por el usuario: app instalada, cl.android detectado, consentimiento y acceso Android concedidos, servicio conectado. Primera compra nueva recibida y reconocida con campos coincidentes en dos capturas; falta cobertura de otros avisos y comportamiento prolongado. Lint: cero errores, una advertencia ObsoleteSdkInt por carpeta vacía; limpieza/repetición rechazadas por revisión automática sin motivo adicional.
 
 ## Próximos pasos en orden de prioridad
 
@@ -127,8 +128,8 @@ Avance verificado: **51%**.
 - Continuar 3.2: bandeja web aislada por UID con estados de carga/error y cancelación al salir. Mantener confirmación/descarte deshabilitados hasta su transacción y reglas probadas. La prueba física Android avanza en paralelo cuando el titular pueda hacerla.
 - La UI de reparto debe editar/confirmar el grupo completo y conservar importes por persona y por mes. Todavía no está implementada; no confundir fixtures importados con captura operativa.
 - Datos confirmados: Samsung Galaxy S24; Banco Falabella Chile de ficha Google Play cl.android. Captura positiva transcrita de forma anonimizada en docs/FORMATO_NOTIFICACION.md. Faltan Android/One UI exactos, extras de notificación y muestras negativas auténticas.
-- SDK API 35, Build Tools 35.0.0, Platform Tools y Gradle instalados fuera del repo en work/herramientas con aceptación explícita del titular; sin PATH global. APK debug en outputs/apk; guía android/PRUEBA_S24.md. No hay teléfono conectado por ADB. La captura del usuario verifica instalación, autorización y conexión mostradas en S24; falta comprobar recepción y reconocimiento de un aviso nuevo.
-- El prototipo JS tiene puerto Kotlin y corpus compartido; el flag de soporte físico sigue en falso. La app solo mantiene resultados en RAM. No activar persistencia o sincronización antes de vincular y verificar UID.
+- SDK API 35, Build Tools 35.0.0, Platform Tools y Gradle instalados fuera del repo en work/herramientas con aceptación explícita del titular; sin PATH global. APK debug en outputs/apk; guía android/PRUEBA_S24.md. No hay teléfono conectado por ADB. La captura del usuario verifica instalación, autorización y conexión mostradas en S24; dos capturas posteriores verifican recepción y reconocimiento de una compra nueva con campos coincidentes.
+- El prototipo JS tiene puerto Kotlin y corpus compartido; el flag conservador del prototipo JS sigue en falso hasta su validación integral; la primera positiva física del puerto Kotlin ya está documentada. La app solo mantiene resultados en RAM. No activar persistencia o sincronización antes de vincular y verificar UID.
 - Registrar tarea y archivos previstos antes de un bloque extenso; actualizar JSON y regenerar vistas al cerrarlo. No subir commits, desplegar reglas ni tocar datos reales sin autorización.
 - Ejecutar npm run roadmap y abrir http://127.0.0.1:8767/docs/seguimiento/roadmap.html para seguimiento en vivo; Ctrl+C cierra el servidor. También abre como archivo local con snapshot, que requiere reabrir tras regenerar.
 - Firebase CLI quedó autenticada mediante acceso completado por el titular. La sesión no autoriza despliegues ni cambios financieros. La auditoría de reglas terminó; no volver a pedir login salvo que caduque o falten permisos.
