@@ -3,9 +3,9 @@
   "titulo": "Compras automáticas · Banco Falabella",
   "fecha": "2026-10-21",
   "base": "58ebee85df3acf3b942f3ade944b40b63aa82af9",
-  "objetivo": "Detectar compras reales desde Android, revisarlas sin asignación e incorporarlas solo al confirmar, conservando toda la PWA actual.",
-  "actual": "1.1",
-  "ultimaTerminada": "0.4",
+  "objetivo": "Detectar compras reales desde Android, revisarlas sin asignación e incorporarlas solo al confirmar, conservando toda la PWA actual. Permitir repartir una compra entre varias personas con importes elegidos y suma exacta.",
+  "actual": "5.1",
+  "ultimaTerminada": "4.5",
   "arquitectura": [
     "PWA HTML/CSS/JS sin framework; index.html contiene UI, pagos y Firebase JS 10.12.0.",
     "Google Auth; users/{uid} contiene arrays items/tarjetas/personas, saldos e historial; getDoc/setDoc merge sin escucha en vivo.",
@@ -15,10 +15,13 @@
   "decisiones": [
     "Seguimiento separado de la PWA. docs/seguimiento/plan.json es la única fuente de verdad; Markdown y HTML se regeneran.",
     "Los pesos suman 100 puntos de aceptación. Solo completadas y con evidencia aportan avance; no es una estimación de tiempo.",
-    "Gantt por orden lógico de ejecución, sin fechas ni duración inventadas. Dependencias independientes permiten trabajo fuera del orden visual."
+    "Gantt por orden lógico de ejecución, sin fechas ni duración inventadas. Dependencias independientes permiten trabajo fuera del orden visual.",
+    "ADR-001 selecciona app Kotlin nativa + cola Room/WorkManager + Firebase del mismo UID; pendientes en subcolección aislada, confirmación online con control de revisión de todos los escritores.",
+    "Ampliación 2026-10-21: reparto entre varias personas con importes libres o partes iguales. Se redistribuyeron solo pesos pendientes; total sigue en 100 y se conservan los 17 puntos ya verificados.",
+    "Dispositivo de validación: Samsung Galaxy S24, confirmado por el usuario. Paquete de la ficha oficial cl.android confirmado como app instalada; Android/One UI exactos aún no informados."
   ],
   "problemas": [
-    "Faltan ejemplos auténticos y packageName verificado; el usuario enviará una captura. No implementar un analizador definitivo sin evidencia.",
+    "Captura positiva revisada. Usuario confirma Samsung Galaxy S24 y ficha oficial Banco Falabella Chile (paquete cl.android). Faltan versión Android, extras reales y muestras negativas auténticas.",
     "Reglas de Firestore desplegadas sin verificar; no publicar reglas ni escribir datos reales desde esta sesión.",
     "save() sobrescribe arrays completos: riesgo de pérdida entre dispositivos y confirmaciones; requiere resolver concurrencia.",
     "Cuotas variables exigen cambios coordinados en pagos, abonos, PDF, importación y resumen."
@@ -30,21 +33,42 @@
     "docs/seguimiento/plantilla.html",
     "ROADMAP.md",
     "ESTADO_PROYECTO.md",
-    "docs/seguimiento/roadmap.html"
+    "docs/seguimiento/roadmap.html",
+    "docs/ADR-001-compras-android.md",
+    "docs/VALIDACION_COMPRAS.md",
+    "compras-pendientes.mjs",
+    "planes-cuotas.mjs",
+    "tests/compras.test.mjs",
+    "docs/FORMATO_NOTIFICACION.md",
+    "reparto-compras.mjs",
+    "falabella-notificaciones.mjs",
+    "persistencia-segura.mjs"
   ],
   "pruebas": [
     "12/12 pruebas preexistentes aprobadas (node --test tests/*.test.mjs).",
-    "Seguimiento generado y --check aprobado; controles de fases, búsqueda y recarga probados en navegador."
+    "Seguimiento generado y --check aprobado; controles de fases, búsqueda y recarga probados en navegador.",
+    "28/28 pruebas Node aprobadas: 12 preexistentes y 16 nuevas; fixtures bancarios positivos anonimizados, negativos sintéticos identificados como tales.",
+    "32/32 pruebas Node aprobadas tras añadir comparación de revisiones, cambio de escritor legado, cola serial y bloqueo tras fallo; puerto de prueba en memoria, no emulador Firestore.",
+    "Cierre por pausa: 32/32 pruebas Node aprobadas tras las últimas modificaciones; seguimiento --check correcto. Nuevos helpers y puente de notificación aún no tienen pruebas específicas; no declarar cobertura total."
   ],
   "incompletas": [
-    "Ningún cambio funcional en la PWA. Todavía no hay detector ni sincronización Android."
+    "Motor de cuotas y reparto implementados y probados, todavía sin conectar a UI, PDF ni persistencia. No hay reparto operativo en la PWA aún.",
+    "Prototipo de analizador solo para formato positivo observado; no es definitivo ni se ejecuta en Android. Falta paquete y corpus negativo auténticos.",
+    "5.1: persistencia-segura.mjs implementa control de revisión y cola; pruebas del contrato aprobadas. Falta conectar a todos los escritores de la PWA, preservar borrador en errores y probar reglas/emulador antes de marcar completo.",
+    "Sin APK, permiso de teléfono, sincronización móvil ni cambios de datos de producción.",
+    "Trabajo detenido por el usuario. Sin cambios funcionales en index.html, logic.mjs, pdf-export.mjs, sw.js ni datos Firebase. No se comenzó integración de UI."
   ],
   "continuar": [
-    "Leer ROADMAP.md y ESTADO_PROYECTO.md; comprobar git status y git diff antes de editar.",
-    "Ejecutar node scripts/seguimiento.mjs --check y node --test tests/*.test.mjs; comprobar evidencia de tareas completadas.",
-    "Abrir docs/seguimiento/roadmap.html. Consultar actual y dependencias en el JSON.",
-    "Antes de un bloque extenso registrar tarea y archivos previstos en plan.json; regenerar. Al cerrarlo registrar evidencia, pruebas y siguiente tarea.",
-    "No dar por operativo Android ni Firebase hasta ejecutar pruebas reales. No subir commits ni desplegar sin autorización."
+    "PAUSADO el 2026-10-21 por solicitud expresa del usuario, que apagará el PC. Reanudar únicamente cuando el usuario lo solicite.",
+    "Worktree: outputs/tarjeta en la carpeta de esta conversación; rama codex/compras-falabella. Leer ROADMAP.md y ESTADO_PROYECTO.md; comprobar git status, diff y log antes de editar.",
+    "Ejecutar node scripts/seguimiento.mjs --check y node --test tests/*.test.mjs. Estado de cierre: 28 puntos verificados de 100; 32/32 pruebas aprobadas.",
+    "Continuar exactamente en 5.1: conectar persistencia-segura.mjs a save/load y todos los escritores. Actualmente NO está importado por index.html; resolver conflictos visibles y conservación de borradores, probar con emuladores y revisar reglas. No marcar 5.1 completa por sus pruebas en memoria.",
+    "Antes de integrar cuotas variables y reparto, coordinar pagos, abonos, deshacer, PDF, backups y validación de participaciones de valor cero; las funciones puras ya están implementadas.",
+    "Datos confirmados: Samsung Galaxy S24; Banco Falabella Chile de ficha Google Play cl.android. Captura positiva transcrita de forma anonimizada en docs/FORMATO_NOTIFICACION.md. Faltan Android/One UI exactos, extras de notificación y muestras negativas auténticas.",
+    "No hay Android SDK/Gradle/ADB encontrados en el entorno ni APK construido. No se creó todavía android/. No asumir detector móvil ni sincronización operativos.",
+    "El prototipo falabella-notificaciones.mjs no corre en el teléfono; requiere puerto nativo y validación física. El flag de soporte físico sigue en falso a propósito.",
+    "Registrar tarea y archivos previstos antes de un bloque extenso; actualizar JSON y regenerar vistas al cerrarlo. No subir commits, desplegar reglas ni tocar datos reales sin autorización.",
+    "Abrir docs/seguimiento/roadmap.html directamente como archivo local: no requiere servidor. La URL 127.0.0.1:8767 era únicamente una vista temporal de esta sesión."
   ],
   "fases": [
     {
@@ -107,8 +131,8 @@
           "dependencias": [
             "0.4"
           ],
-          "estado": "en_curso",
-          "evidencia": ""
+          "estado": "completada",
+          "evidencia": "docs/ADR-001-compras-android.md: fuentes oficiales Android/Firebase consultadas el 2026-10-21."
         },
         {
           "id": "1.2",
@@ -118,19 +142,30 @@
           "dependencias": [
             "1.1"
           ],
-          "estado": "pendiente",
-          "evidencia": ""
+          "estado": "completada",
+          "evidencia": "ADR-001: listener nativo, cola Room/WorkManager, UID, pendientes aislados y confirmación transaccional; contrato v1."
         },
         {
-          "id": "1.3",
-          "titulo": "Verificar formato y origen reales",
-          "peso": 3,
-          "criterio": "Ejemplos anonimizados de compra/no compra y packageName verificado; sin formato inventado.",
+          "id": "1.3a",
+          "titulo": "Documentar formato positivo auténtico",
+          "peso": 1,
+          "criterio": "Transcribir estructura comprobada sin publicar datos financieros y distinguir recepción de fecha bancaria.",
           "dependencias": [
             "1.1"
           ],
-          "estado": "pendiente",
-          "evidencia": ""
+          "estado": "completada",
+          "evidencia": "docs/FORMATO_NOTIFICACION.md: captura positiva revisada; estructura anonimizada y campos ausentes documentados."
+        },
+        {
+          "id": "1.3",
+          "titulo": "Verificar paquete emisor y ejemplos negativos reales",
+          "peso": 2,
+          "criterio": "packageName verificado y muestras de pago/devolución/publicidad auténticas; confirmar contenido accesible en Android.",
+          "dependencias": [
+            "1.1"
+          ],
+          "estado": "bloqueada",
+          "evidencia": "Captura positiva documentada; ficha Google Play cl.android y app instalada confirmadas por el usuario. Pendientes negativos auténticos y diagnóstico físico."
         },
         {
           "id": "1.4",
@@ -140,8 +175,8 @@
           "dependencias": [
             "1.2"
           ],
-          "estado": "pendiente",
-          "evidencia": ""
+          "estado": "completada",
+          "evidencia": "docs/VALIDACION_COMPRAS.md y ADR-001: matriz de 14 casos, compatibilidad, escritor legado y permisos."
         }
       ]
     },
@@ -209,8 +244,8 @@
           "dependencias": [
             "1.2"
           ],
-          "estado": "pendiente",
-          "evidencia": ""
+          "estado": "completada",
+          "evidencia": "compras-pendientes.mjs: contrato mínimo, estados, validaciones e identidad estable; pruebas aprobadas."
         },
         {
           "id": "3.2",
@@ -227,7 +262,7 @@
         {
           "id": "3.3",
           "titulo": "Confirmación atómica y descarte",
-          "peso": 5,
+          "peso": 3,
           "criterio": "Una transacción consume un pendiente exactamente una vez y conserva descartes.",
           "dependencias": [
             "3.2",
@@ -240,11 +275,24 @@
         {
           "id": "3.4",
           "titulo": "Personas, tarjetas y revisión",
-          "peso": 3,
+          "peso": 2,
           "criterio": "Seleccionar entidades existentes y corregir datos sin afectar deuda hasta confirmar.",
           "dependencias": [
             "3.2",
             "4.1"
+          ],
+          "estado": "pendiente",
+          "evidencia": ""
+        },
+        {
+          "id": "3.5",
+          "titulo": "Repartir una compra entre varias personas",
+          "peso": 3,
+          "criterio": "Importes libres por persona o reparto igual; suma exacta, edición, confirmación atómica y saldos sin duplicar la compra.",
+          "dependencias": [
+            "3.4",
+            "4.5",
+            "5.2"
           ],
           "estado": "pendiente",
           "evidencia": ""
@@ -263,8 +311,8 @@
           "dependencias": [
             "1.2"
           ],
-          "estado": "pendiente",
-          "evidencia": ""
+          "estado": "completada",
+          "evidencia": "planes-cuotas.mjs: modalidades, planes variables y adaptador legado sin mutación; pruebas aprobadas."
         },
         {
           "id": "4.2",
@@ -274,13 +322,13 @@
           "dependencias": [
             "4.1"
           ],
-          "estado": "pendiente",
-          "evidencia": ""
+          "estado": "completada",
+          "evidencia": "tests/compras.test.mjs: residuos exhaustivos, abonos, límites y overflow; 28/28 pruebas globales aprobadas."
         },
         {
           "id": "4.3",
           "titulo": "Unificar cálculo manual y automático",
-          "peso": 5,
+          "peso": 3,
           "criterio": "Abonos, vencimientos, pagos, deshacer, PDF y resumen usan una lógica común.",
           "dependencias": [
             "4.2",
@@ -299,6 +347,17 @@
           ],
           "estado": "pendiente",
           "evidencia": ""
+        },
+        {
+          "id": "4.5",
+          "titulo": "Motor de reparto exacto entre personas",
+          "peso": 2,
+          "criterio": "Distribución igual o por importes libres; cuotas por persona conservan totales por fila y columna incluso con redondeo e interés.",
+          "dependencias": [
+            "4.2"
+          ],
+          "estado": "completada",
+          "evidencia": "reparto-compras.mjs: importes libres/iguales y matriz exacta por persona/mes; barrido exhaustivo y enteros grandes aprobados."
         }
       ]
     },
@@ -314,7 +373,7 @@
           "dependencias": [
             "1.4"
           ],
-          "estado": "pendiente",
+          "estado": "en_curso",
           "evidencia": ""
         },
         {
@@ -489,5 +548,6 @@
         }
       ]
     }
-  ]
+  ],
+  "isPausado": true
 }

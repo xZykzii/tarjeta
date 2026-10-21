@@ -46,6 +46,28 @@ function validate() {
   tasks.forEach(validateTask);
   tasks.forEach((tarea) => validateCycles(tarea.id));
   if (!byId.has(plan.actual)) throw Error("Tarea actual inexistente");
+  validateMetadata();
+}
+
+function validateMetadata() {
+  const phaseIds = plan.fases.map((fase) => fase.id);
+  if (new Set(phaseIds).size !== phaseIds.length) throw Error("IDs de fases duplicados");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(plan.fecha)) throw Error("Fecha de snapshot inválida");
+  if (byId.get(plan.ultimaTerminada)?.estado !== "completada") {
+    throw Error("La última tarea terminada debe estar completada");
+  }
+  const arrays = ["arquitectura", "decisiones", "problemas", "archivos", "pruebas", "incompletas", "continuar"];
+  for (const field of arrays) {
+    if (!Array.isArray(plan[field]) || plan[field].some((value) => typeof value !== "string")) {
+      throw Error(`Lista inválida: ${field}`);
+    }
+  }
+  for (const fase of plan.fases) {
+    if (!fase.titulo || !fase.tareas.length) throw Error("Fase vacía o sin título");
+    for (const tarea of fase.tareas) {
+      if (!tarea.titulo || !Array.isArray(tarea.dependencias)) throw Error("Tarea incompleta");
+    }
+  }
 }
 
 function progress(list) {
@@ -92,6 +114,7 @@ function roadmap() {
     "<!-- GENERADO: editar docs/seguimiento/plan.json y ejecutar node scripts/seguimiento.mjs -->",
     "# Roadmap — Compras automáticas de Banco Falabella", "",
     `Actualizado: ${plan.fecha}. Base: \`${plan.base}\`.`, "",
+    ...(plan.isPausado ? ["**PAUSADO por solicitud del usuario. Reanudar únicamente cuando lo pida.**", ""] : []),
     `**Avance global: ${summary.percent}% (${summary.done}/${TOTAL_WEIGHT} puntos verificados).**`, "",
     `**Tarea actual: ${plan.actual} — ${byId.get(plan.actual).titulo}.**`, "",
     "[Abrir roadmap visual](docs/seguimiento/roadmap.html) · [Estado para continuar](ESTADO_PROYECTO.md)", "",
@@ -115,6 +138,7 @@ function recovery() {
     "<!-- GENERADO: editar docs/seguimiento/plan.json y ejecutar node scripts/seguimiento.mjs -->",
     "# Estado del proyecto", "",
     `Snapshot: ${plan.fecha} · Base: \`${plan.base}\` · Rama: \`codex/compras-falabella\`.`, "",
+    ...(plan.isPausado ? ["**PAUSADO por solicitud expresa del usuario antes de apagar el PC. No continuar hasta nueva instrucción.**", ""] : []),
     "## Objetivo", "", plan.objetivo, "",
     "## Arquitectura comprobada", "", list(plan.arquitectura), "",
     "## Decisiones técnicas", "", list(plan.decisiones), "",

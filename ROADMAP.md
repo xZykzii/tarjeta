@@ -3,9 +3,11 @@
 
 Actualizado: 2026-10-21. Base: `58ebee85df3acf3b942f3ade944b40b63aa82af9`.
 
-**Avance global: 8% (8/100 puntos verificados).**
+**PAUSADO por solicitud del usuario. Reanudar únicamente cuando lo pida.**
 
-**Tarea actual: 1.1 — Investigar Android y Firebase.**
+**Avance global: 28% (28/100 puntos verificados).**
+
+**Tarea actual: 5.1 — Resolver concurrencia del documento legado.**
 
 [Abrir roadmap visual](docs/seguimiento/roadmap.html) · [Estado para continuar](ESTADO_PROYECTO.md)
 
@@ -26,16 +28,17 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 0.3 | Roadmap visual local | completada | 2 pt | 0.2 | Gantt oscuro accesible, fases plegables, filtros y porcentajes desde el JSON. | HTML abierto en navegador local; Gantt y fases renderizados. Sin dependencias externas.
 0.4 | Verificar regeneración y persistencia | completada | 2 pt | 0.3 | Abrir HTML, probar controles y comprobar que regenerar conserva el estado. | Generación + --check aprobados; navegador verificó plegado, expansión, búsqueda y progreso tras recarga. JSON persistido en disco.
 
-## Fase 1 — Arquitectura de la integración · 0%
+## Fase 1 — Arquitectura de la integración · 83.3%
 
-Aceptación: 0/12 puntos.
+Aceptación: 10/12 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
-1.1 | Investigar Android y Firebase | en_curso | 3 pt | 0.4 | Documentación oficial vigente, límites y alternativas contrastadas. | Pendiente
-1.2 | Decidir arquitectura y modelo de datos | bloqueada | 4 pt | 1.1 | ADR, contrato de pendientes, aislamiento por UID e idempotencia documentados. | Pendiente
-1.3 | Verificar formato y origen reales | bloqueada | 3 pt | 1.1 | Ejemplos anonimizados de compra/no compra y packageName verificado; sin formato inventado. | Pendiente
-1.4 | Plan de compatibilidad y validación | bloqueada | 2 pt | 1.2 | Cubrir arrays legados, cuotas variables, backup, caché, concurrencia y dispositivo real. | Pendiente
+1.1 | Investigar Android y Firebase | completada | 3 pt | 0.4 | Documentación oficial vigente, límites y alternativas contrastadas. | docs/ADR-001-compras-android.md: fuentes oficiales Android/Firebase consultadas el 2026-10-21.
+1.2 | Decidir arquitectura y modelo de datos | completada | 4 pt | 1.1 | ADR, contrato de pendientes, aislamiento por UID e idempotencia documentados. | ADR-001: listener nativo, cola Room/WorkManager, UID, pendientes aislados y confirmación transaccional; contrato v1.
+1.3a | Documentar formato positivo auténtico | completada | 1 pt | 1.1 | Transcribir estructura comprobada sin publicar datos financieros y distinguir recepción de fecha bancaria. | docs/FORMATO_NOTIFICACION.md: captura positiva revisada; estructura anonimizada y campos ausentes documentados.
+1.3 | Verificar paquete emisor y ejemplos negativos reales | bloqueada | 2 pt | 1.1 | packageName verificado y muestras de pago/devolución/publicidad auténticas; confirmar contenido accesible en Android. | Captura positiva documentada; ficha Google Play cl.android y app instalada confirmadas por el usuario. Pendientes negativos auténticos y diagnóstico físico.
+1.4 | Plan de compatibilidad y validación | completada | 2 pt | 1.2 | Cubrir arrays legados, cuotas variables, backup, caché, concurrencia y dispositivo real. | docs/VALIDACION_COMPRAS.md y ADR-001: matriz de 14 casos, compatibilidad, escritor legado y permisos.
 
 ## Fase 2 — Captura Android · 0%
 
@@ -43,32 +46,34 @@ Aceptación: 0/15 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
-2.1 | App complementaria y permisos explícitos | bloqueada | 4 pt | 1.2 | Proyecto Android separado, listener real, filtro por paquete verificado y autorización transparente. | Pendiente
+2.1 | App complementaria y permisos explícitos | pendiente | 4 pt | 1.2 | Proyecto Android separado, listener real, filtro por paquete verificado y autorización transparente. | Pendiente
 2.2 | Analizador de notificaciones auténticas | bloqueada | 4 pt | 1.3, 2.1 | Extraer solo compras verificadas; desconocidos no generan transacciones. | Pendiente
 2.3 | Cola persistente y deduplicación | bloqueada | 4 pt | 2.2 | Persistencia mínima, reintentos y deduplicación sin fusionar compras legítimas iguales. | Pendiente
 2.4 | Vinculación Firebase y sincronización | bloqueada | 3 pt | 2.3, 6.1 | Sesión del mismo UID; envío seguro e idempotente validado con reglas. | Pendiente
 
-## Fase 3 — Compras sin asignar · 0%
+## Fase 3 — Compras sin asignar · 20%
 
-Aceptación: 0/15 puntos.
+Aceptación: 3/15 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
-3.1 | Contrato y validación de pendientes | bloqueada | 3 pt | 1.2 | Estados, campos, importes y transiciones validados sin tocar saldos. | Pendiente
+3.1 | Contrato y validación de pendientes | completada | 3 pt | 1.2 | Estados, campos, importes y transiciones validados sin tocar saldos. | compras-pendientes.mjs: contrato mínimo, estados, validaciones e identidad estable; pruebas aprobadas.
 3.2 | Bandeja web y contador en vivo | bloqueada | 4 pt | 3.1, 6.1 | Suscripción aislada por UID, lista editable, errores visibles y cancelación al salir. | Pendiente
-3.3 | Confirmación atómica y descarte | bloqueada | 5 pt | 3.2, 4.3, 5.1 | Una transacción consume un pendiente exactamente una vez y conserva descartes. | Pendiente
-3.4 | Personas, tarjetas y revisión | bloqueada | 3 pt | 3.2, 4.1 | Seleccionar entidades existentes y corregir datos sin afectar deuda hasta confirmar. | Pendiente
+3.3 | Confirmación atómica y descarte | bloqueada | 3 pt | 3.2, 4.3, 5.1 | Una transacción consume un pendiente exactamente una vez y conserva descartes. | Pendiente
+3.4 | Personas, tarjetas y revisión | bloqueada | 2 pt | 3.2, 4.1 | Seleccionar entidades existentes y corregir datos sin afectar deuda hasta confirmar. | Pendiente
+3.5 | Repartir una compra entre varias personas | bloqueada | 3 pt | 3.4, 4.5, 5.2 | Importes libres por persona o reparto igual; suma exacta, edición, confirmación atómica y saldos sin duplicar la compra. | Pendiente
 
-## Fase 4 — Modalidades y pesos exactos · 0%
+## Fase 4 — Modalidades y pesos exactos · 58.3%
 
-Aceptación: 0/12 puntos.
+Aceptación: 7/12 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
-4.1 | Motor de planes de cuotas | bloqueada | 3 pt | 1.2 | Una cuota, división exacta en CLP, interés manual y cuotas individuales válidas. | Pendiente
-4.2 | Pruebas de redondeo y límites | bloqueada | 2 pt | 4.1 | Suma exacta, enteros seguros, validación de importes y compatibilidad documentada. | Pendiente
-4.3 | Unificar cálculo manual y automático | bloqueada | 5 pt | 4.2, 5.1 | Abonos, vencimientos, pagos, deshacer, PDF y resumen usan una lógica común. | Pendiente
+4.1 | Motor de planes de cuotas | completada | 3 pt | 1.2 | Una cuota, división exacta en CLP, interés manual y cuotas individuales válidas. | planes-cuotas.mjs: modalidades, planes variables y adaptador legado sin mutación; pruebas aprobadas.
+4.2 | Pruebas de redondeo y límites | completada | 2 pt | 4.1 | Suma exacta, enteros seguros, validación de importes y compatibilidad documentada. | tests/compras.test.mjs: residuos exhaustivos, abonos, límites y overflow; 28/28 pruebas globales aprobadas.
+4.3 | Unificar cálculo manual y automático | bloqueada | 3 pt | 4.2, 5.1 | Abonos, vencimientos, pagos, deshacer, PDF y resumen usan una lógica común. | Pendiente
 4.4 | Formulario de modalidades | bloqueada | 2 pt | 4.3 | Previsualización explícita y sin tasas inferidas, incluso con cuotas diferentes. | Pendiente
+4.5 | Motor de reparto exacto entre personas | completada | 2 pt | 4.2 | Distribución igual o por importes libres; cuotas por persona conservan totales por fila y columna incluso con redondeo e interés. | reparto-compras.mjs: importes libres/iguales y matriz exacta por persona/mes; barrido exhaustivo y enteros grandes aprobados.
 
 ## Fase 5 — Compatibilidad de la PWA · 0%
 
@@ -76,7 +81,7 @@ Aceptación: 0/12 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
-5.1 | Resolver concurrencia del documento legado | bloqueada | 4 pt | 1.4 | Guardados no pierden compras confirmadas, pagos ni cambios de otro dispositivo. | Pendiente
+5.1 | Resolver concurrencia del documento legado | en_curso | 4 pt | 1.4 | Guardados no pierden compras confirmadas, pagos ni cambios de otro dispositivo. | Pendiente
 5.2 | Origen, identificadores y backups | bloqueada | 3 pt | 5.1 | Persistir origen/ID/planes sin romper importación de backups v6 ni datos antiguos. | Pendiente
 5.3 | Integrar registro manual, resúmenes y PDF | bloqueada | 3 pt | 4.3, 5.2 | Mismos cálculos y resultados para registro manual y automático. | Pendiente
 5.4 | Caché, cierre de sesión y regresión | bloqueada | 2 pt | 5.3, 3.3 | Bump del SW y limpieza de suscripciones; funciones previas comprobadas. | Pendiente
@@ -87,7 +92,7 @@ Aceptación: 0/12 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
-6.1 | Reglas y pruebas de aislamiento | bloqueada | 4 pt | 1.2 | Emulador deniega acceso cruzado/anónimo y mutaciones inválidas; reglas vigentes auditadas. | Pendiente
+6.1 | Reglas y pruebas de aislamiento | pendiente | 4 pt | 1.2 | Emulador deniega acceso cruzado/anónimo y mutaciones inválidas; reglas vigentes auditadas. | Pendiente
 6.2 | Recuperación offline y entre dispositivos | bloqueada | 3 pt | 2.4, 3.3 | Reintentos, sesión revocada y concurrencia sin duplicados ni pérdida. | Pendiente
 6.3 | Minimización y ciclo de vida | bloqueada | 2 pt | 2.3, 3.1 | No guardar texto bancario bruto, secretos ni números completos; desconexión y borrado seguros. | Pendiente
 6.4 | Verificación de permisos en Android real | bloqueada | 3 pt | 2.4 | Revocar acceso, reiniciar, reconectar y verificar restricciones del fabricante. | Pendiente
@@ -114,7 +119,7 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 
 ## Problemas y dependencias externas
 
-- Faltan ejemplos auténticos y packageName verificado; el usuario enviará una captura. No implementar un analizador definitivo sin evidencia.
+- Captura positiva revisada. Usuario confirma Samsung Galaxy S24 y ficha oficial Banco Falabella Chile (paquete cl.android). Faltan versión Android, extras reales y muestras negativas auténticas.
 - Reglas de Firestore desplegadas sin verificar; no publicar reglas ni escribir datos reales desde esta sesión.
 - save() sobrescribe arrays completos: riesgo de pérdida entre dispositivos y confirmaciones; requiere resolver concurrencia.
 - Cuotas variables exigen cambios coordinados en pagos, abonos, PDF, importación y resumen.
@@ -125,30 +130,33 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - 0.2 Plan verificable y documentos de recuperación: ROADMAP.md y ESTADO_PROYECTO.md generados desde plan.json; validación de pesos y dependencias aprobada.
 - 0.3 Roadmap visual local: HTML abierto en navegador local; Gantt y fases renderizados. Sin dependencias externas.
 - 0.4 Verificar regeneración y persistencia: Generación + --check aprobados; navegador verificó plegado, expansión, búsqueda y progreso tras recarga. JSON persistido en disco.
+- 1.1 Investigar Android y Firebase: docs/ADR-001-compras-android.md: fuentes oficiales Android/Firebase consultadas el 2026-10-21.
+- 1.2 Decidir arquitectura y modelo de datos: ADR-001: listener nativo, cola Room/WorkManager, UID, pendientes aislados y confirmación transaccional; contrato v1.
+- 1.3a Documentar formato positivo auténtico: docs/FORMATO_NOTIFICACION.md: captura positiva revisada; estructura anonimizada y campos ausentes documentados.
+- 1.4 Plan de compatibilidad y validación: docs/VALIDACION_COMPRAS.md y ADR-001: matriz de 14 casos, compatibilidad, escritor legado y permisos.
+- 3.1 Contrato y validación de pendientes: compras-pendientes.mjs: contrato mínimo, estados, validaciones e identidad estable; pruebas aprobadas.
+- 4.1 Motor de planes de cuotas: planes-cuotas.mjs: modalidades, planes variables y adaptador legado sin mutación; pruebas aprobadas.
+- 4.2 Pruebas de redondeo y límites: tests/compras.test.mjs: residuos exhaustivos, abonos, límites y overflow; 28/28 pruebas globales aprobadas.
+- 4.5 Motor de reparto exacto entre personas: reparto-compras.mjs: importes libres/iguales y matriz exacta por persona/mes; barrido exhaustivo y enteros grandes aprobados.
 
 ## Funcionalidades pendientes
 
-- 1.1 Investigar Android y Firebase (en_curso)
-- 1.2 Decidir arquitectura y modelo de datos (bloqueada)
-- 1.3 Verificar formato y origen reales (bloqueada)
-- 1.4 Plan de compatibilidad y validación (bloqueada)
-- 2.1 App complementaria y permisos explícitos (bloqueada)
+- 1.3 Verificar paquete emisor y ejemplos negativos reales (bloqueada)
+- 2.1 App complementaria y permisos explícitos (pendiente)
 - 2.2 Analizador de notificaciones auténticas (bloqueada)
 - 2.3 Cola persistente y deduplicación (bloqueada)
 - 2.4 Vinculación Firebase y sincronización (bloqueada)
-- 3.1 Contrato y validación de pendientes (bloqueada)
 - 3.2 Bandeja web y contador en vivo (bloqueada)
 - 3.3 Confirmación atómica y descarte (bloqueada)
 - 3.4 Personas, tarjetas y revisión (bloqueada)
-- 4.1 Motor de planes de cuotas (bloqueada)
-- 4.2 Pruebas de redondeo y límites (bloqueada)
+- 3.5 Repartir una compra entre varias personas (bloqueada)
 - 4.3 Unificar cálculo manual y automático (bloqueada)
 - 4.4 Formulario de modalidades (bloqueada)
-- 5.1 Resolver concurrencia del documento legado (bloqueada)
+- 5.1 Resolver concurrencia del documento legado (en_curso)
 - 5.2 Origen, identificadores y backups (bloqueada)
 - 5.3 Integrar registro manual, resúmenes y PDF (bloqueada)
 - 5.4 Caché, cierre de sesión y regresión (bloqueada)
-- 6.1 Reglas y pruebas de aislamiento (bloqueada)
+- 6.1 Reglas y pruebas de aislamiento (pendiente)
 - 6.2 Recuperación offline y entre dispositivos (bloqueada)
 - 6.3 Minimización y ciclo de vida (bloqueada)
 - 6.4 Verificación de permisos en Android real (bloqueada)

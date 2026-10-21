@@ -38,7 +38,7 @@ footer{margin-top:22px;font-size:11px;color:var(--muted);display:flex;justify-co
 @media(prefers-reduced-motion:no-preference){button,.bar{transition:background .16s}}
 </style>
 <main class="shell">
-<header><div><div class="eyebrow">CONTROL DE CUOTAS / DESARROLLO</div><h1>De la notificación a la compra.</h1><p>Roadmap de integración · Banco Falabella + Android</p></div><div class="badge">Seguimiento local persistente</div></header>
+<header><div><div class="eyebrow">CONTROL DE CUOTAS / DESARROLLO</div><h1>De la notificación a la compra.</h1><p>Roadmap de integración · Banco Falabella + Android</p></div><div class="badge" id="session-status">Seguimiento local persistente</div></header>
 <section class="stats" aria-label="Resumen del proyecto">
 <div class="stat"><label>ACEPTACIÓN VERIFICADA</label><strong id="global">0%</strong><small id="points"></small><div class="progress"><span id="global-bar"></span></div></div>
 <div class="stat"><label>ESTADO DEL PLAN</label><strong id="done"></strong><small>tareas completadas</small><p id="blocked"></p></div>
@@ -170,6 +170,10 @@ function init() {
   text("blocked", `${tasks.filter((t) => state(t) === "bloqueada").length} tareas bloqueadas por dependencia o requisito externo`);
   text("next", `${PLAN.actual} · ${byId.get(PLAN.actual).titulo}`);
   text("next-state", names[state(byId.get(PLAN.actual))]);
+  if (PLAN.isPausado) {
+    text("session-status", "Pausado por el usuario");
+    text("next-state", "Siguiente al reanudar · desarrollo detenido");
+  }
   text("snapshot", `Snapshot ${PLAN.fecha} · ${PLAN.base.slice(0,7)}`);
   PLAN.fases.forEach((fase) => document.getElementById("slots").append(el("span", "", `FASE ${fase.id}`)));
   PLAN.problemas.forEach((risk) => document.getElementById("risks").append(el("li", "", risk)));
