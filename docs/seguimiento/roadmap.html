@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Falabella · Roadmap de desarrollo</title>
+<style>
+:root{color-scheme:dark;--bg:#091019;--panel:#101b28;--line:#213142;--muted:#99aabd;--text:#edf4fc;--lime:#b5ef73;--blue:#69beff;--orange:#ffac69;--red:#ff7e91;--row:58px;--label:360px}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 85% 0,#183046 0,transparent 55%),var(--bg);color:var(--text);font:14px/1.5 system-ui,sans-serif;min-height:100vh}
+button,input,select{font:inherit}button,a,input,select{outline-offset:4px}button{cursor:pointer}a{color:var(--blue)}
+.shell{max-width:1660px;margin:auto;padding:36px}.eyebrow{font-size:11px;letter-spacing:.16em;color:var(--lime);text-transform:uppercase;font-weight:700}
+header{display:flex;justify-content:space-between;gap:30px;align-items:flex-start}h1{font-size:clamp(25px,3vw,38px);letter-spacing:-.04em;margin:8px 0}p{margin:0;color:var(--muted)}
+.badge{border:1px solid #3c5740;border-radius:22px;padding:7px 12px;color:var(--lime);white-space:nowrap;font-size:12px}.badge::before{content:'●';margin-right:7px}
+.stats{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:16px;margin:28px 0 20px}.stat{padding:20px 24px;border:1px solid var(--line);background:#101b28cc;border-radius:14px;min-width:0}
+.stat label{display:block;color:var(--muted);font-size:12px}.stat strong{font-size:30px;letter-spacing:-.04em}.stat small{font-size:12px;color:var(--muted);margin-left:10px}
+.progress{height:5px;border-radius:5px;background:#243447;margin-top:12px;overflow:hidden}.progress span{display:block;background:var(--lime);height:100%}.stat .next{font-size:15px;letter-spacing:0;display:block;margin-top:8px;line-height:1.6}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.toolbar input{flex:1;min-width:180px}.toolbar button,.toolbar input,.toolbar select{background:#132131;border:1px solid #2c4054;border-radius:8px;padding:9px 13px;color:var(--text)}
+.legend{display:flex;gap:18px;margin-left:auto;font-size:12px;color:var(--muted)}.legend span::before{content:'●';margin-right:6px;color:var(--color)}
+.board{border:1px solid var(--line);border-radius:14px;overflow:auto;background:#0b1520;max-height:68vh;scrollbar-color:#344e66 #101b28}
+.grid{min-width:1080px;position:relative}.grid-head{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:var(--label) 1fr;height:58px;background:#142234;border-bottom:1px solid var(--line)}
+.grid-head .label{font-size:11px;color:var(--muted);letter-spacing:.1em;display:flex;align-items:center;padding:0 20px;background:#142234;position:sticky;left:0;z-index:6}
+.slots{display:grid;grid-template-columns:repeat(9,1fr)}.slots span{padding:12px 10px;color:var(--muted);font-size:10px;border-left:1px solid var(--line);display:flex;align-items:center}
+.row{display:grid;grid-template-columns:var(--label) 1fr;min-height:var(--row);border-bottom:1px solid #192735}.row:last-child{border-bottom:0}
+.row .label{position:sticky;left:0;z-index:3;background:#0f1a27;display:flex;align-items:center;gap:10px;padding:10px 18px;border-right:1px solid var(--line);min-width:0}
+.phase .label{background:#17283a}.phase{min-height:52px}.phase button{color:var(--text);border:0;background:none;text-align:left;display:flex;align-items:center;gap:10px;width:100%;padding:0;font-weight:650}
+.phase button .percent{margin-left:auto;color:var(--lime);font:12px ui-monospace,monospace}.phase .track{background-color:#102031}
+.task .label{padding-left:34px}.task .label button{background:none;border:0;color:inherit;text-align:left;padding:0;line-height:1.35;flex:1;font-size:12px}.task .label button:hover{text-decoration:underline}
+.check{width:15px;height:15px;border:1px solid #607389;border-radius:4px;font-size:10px;text-align:center;flex-shrink:0;line-height:13px}.completada .check{color:#0c1720;background:var(--lime);border-color:var(--lime)}
+.en_curso .check{color:var(--blue);border-color:var(--blue)}.bloqueada .check{color:var(--red);border-color:var(--red)}.id{font-family:ui-monospace,monospace;color:var(--muted);font-size:10px;display:block}
+.track{position:relative;display:flex;align-items:center;background-image:linear-gradient(to right,#22324660 1px,transparent 1px);background-size:11.111% 100%;padding:0}
+.bar{height:26px;border-radius:6px;border:1px solid #496078;background:#263b51;color:#c6d7e9;position:absolute;font-size:10px;display:flex;align-items:center;justify-content:center;min-width:34px;white-space:nowrap;z-index:1}
+.completada .bar{background:#2c503c;color:#d6f5b5;border-color:#638c52}.en_curso .bar{background:#1c5076;color:#d7efff;border-color:#67beff;box-shadow:0 0 18px #69beff20}
+.bloqueada .bar{background:repeating-linear-gradient(135deg,#392b3a,#392b3a 5px,#302737 5px,#302737 10px);color:#ffc4cc;border-color:#825160}.phase .bar{height:6px;border:0;background:#35516c;min-width:0}
+.marker{position:absolute;top:0;bottom:0;width:1px;background:var(--orange);z-index:2;pointer-events:none}.marker::before{display:none;content:'ACTUAL';position:absolute;top:3px;left:4px;color:#16100b;background:var(--orange);border-radius:3px;font-size:8px;font-weight:bold;padding:2px 4px}
+.selected .marker::before{display:block}.selected .label{box-shadow:inset 3px 0 var(--orange);background:#192a3b}.details{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;margin-top:20px}.detail{padding:22px;border:1px solid var(--line);border-radius:12px;background:#101b28}
+h2{font-size:16px;margin:0 0 10px}h3{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin:18px 0 5px}.detail p,.detail li{font-size:13px}.detail ul{margin:0;padding-left:18px;color:var(--muted)}
+footer{margin-top:22px;font-size:11px;color:var(--muted);display:flex;justify-content:space-between;gap:20px}.empty{padding:30px;color:var(--muted)}.hidden{display:none}
+@media(max-width:760px){.shell{padding:20px 14px}header{display:block}.badge{display:inline-block;margin-top:14px}.stats{grid-template-columns:1fr}.stat{padding:15px 18px}.details{grid-template-columns:1fr}.legend{margin-left:0;flex-wrap:wrap}.toolbar{gap:8px}footer{display:block}.board{max-height:65vh}}
+@media(prefers-reduced-motion:no-preference){button,.bar{transition:background .16s}}
+</style>
+<main class="shell">
+<header><div><div class="eyebrow">CONTROL DE CUOTAS / DESARROLLO</div><h1>De la notificación a la compra.</h1><p>Roadmap de integración · Banco Falabella + Android</p></div><div class="badge">Seguimiento local persistente</div></header>
+<section class="stats" aria-label="Resumen del proyecto">
+<div class="stat"><label>ACEPTACIÓN VERIFICADA</label><strong id="global">0%</strong><small id="points"></small><div class="progress"><span id="global-bar"></span></div></div>
+<div class="stat"><label>ESTADO DEL PLAN</label><strong id="done"></strong><small>tareas completadas</small><p id="blocked"></p></div>
+<div class="stat"><label>AHORA / PRÓXIMO PASO</label><strong class="next" id="next"></strong><p id="next-state"></p></div>
+</section>
+<div class="toolbar">
+<input id="search" type="search" placeholder="Buscar tarea, fase o dependencia…" aria-label="Buscar tareas">
+<select id="filter" aria-label="Filtrar estado"><option value="todos">Todos los estados</option><option value="pendiente">Pendientes disponibles</option><option value="en_curso">En curso</option><option value="completada">Completadas</option><option value="bloqueada">Bloqueadas</option></select>
+<button id="expand" type="button">Expandir fases</button><button id="collapse" type="button">Contraer fases</button>
+<div class="legend"><span style="--color:var(--lime)">Completada</span><span style="--color:var(--blue)">En curso</span><span style="--color:#879bb0">Pendiente</span><span style="--color:var(--red)">Bloqueada</span></div>
+</div>
+<section class="board" tabindex="0" aria-label="Gantt por secuencia lógica, desplazable"><div class="grid"><div class="grid-head"><div class="label">FASE / TAREA · CRITERIOS</div><div class="slots" id="slots"></div></div><div id="rows"></div></div></section>
+<section class="details"><article class="detail" aria-live="polite"><div class="eyebrow">INSPECCIONAR TAREA</div><h2 id="detail-title"></h2><h3>Criterio de finalización</h3><p id="criterion"></p><h3>Dependencias / bloqueo</h3><p id="dependencies"></p><h3>Evidencia</h3><p id="evidence"></p></article>
+<article class="detail"><h2>Continuidad sin depender del chat</h2><p>El estado vive en el repositorio. Esta vista se genera desde <code>plan.json</code>; no modifica estados desde el navegador.</p><h3>Actualizar</h3><p>Editar <code>docs/seguimiento/plan.json</code> y ejecutar <code>node scripts/seguimiento.mjs</code>.</p><h3>Impedimentos y riesgos</h3><ul id="risks"></ul><h3>Retomar</h3><p>Leer <a href="../../ESTADO_PROYECTO.md">ESTADO_PROYECTO.md</a> y <a href="../../ROADMAP.md">ROADMAP.md</a>, comprobar Git y verificar las tareas antes de continuar.</p></article></section>
+<footer><span>Pesos de aceptación · solo suma lo completado y verificado. La línea marca la tarea actual, no la fecha ni tiempo restante.</span><span id="snapshot"></span></footer>
+</main>
+<script>
+"use strict";
+const PLAN = {"version":1,"titulo":"Compras automáticas · Banco Falabella","fecha":"2026-10-21","base":"58ebee85df3acf3b942f3ade944b40b63aa82af9","objetivo":"Detectar compras reales desde Android, revisarlas sin asignación e incorporarlas solo al confirmar, conservando toda la PWA actual.","actual":"1.1","ultimaTerminada":"0.4","arquitectura":["PWA HTML/CSS/JS sin framework; index.html contiene UI, pagos y Firebase JS 10.12.0.","Google Auth; users/{uid} contiene arrays items/tarjetas/personas, saldos e historial; getDoc/setDoc merge sin escucha en vivo.","logic.mjs contiene cálculos derivados; pdf-export.mjs produce PDF; SW cuotas-v15; backup v6.","monto es valor por cuota; total es saldo derivado. No se admiten aún cuotas desiguales."],"decisiones":["Seguimiento separado de la PWA. docs/seguimiento/plan.json es la única fuente de verdad; Markdown y HTML se regeneran.","Los pesos suman 100 puntos de aceptación. Solo completadas y con evidencia aportan avance; no es una estimación de tiempo.","Gantt por orden lógico de ejecución, sin fechas ni duración inventadas. Dependencias independientes permiten trabajo fuera del orden visual."],"problemas":["Faltan ejemplos auténticos y packageName verificado; el usuario enviará una captura. No implementar un analizador definitivo sin evidencia.","Reglas de Firestore desplegadas sin verificar; no publicar reglas ni escribir datos reales desde esta sesión.","save() sobrescribe arrays completos: riesgo de pérdida entre dispositivos y confirmaciones; requiere resolver concurrencia.","Cuotas variables exigen cambios coordinados en pagos, abonos, PDF, importación y resumen."],"archivos":["docs/INSPECCION_INICIAL.md","docs/seguimiento/plan.json","scripts/seguimiento.mjs","docs/seguimiento/plantilla.html","ROADMAP.md","ESTADO_PROYECTO.md","docs/seguimiento/roadmap.html"],"pruebas":["12/12 pruebas preexistentes aprobadas (node --test tests/*.test.mjs).","Seguimiento generado y --check aprobado; controles de fases, búsqueda y recarga probados en navegador."],"incompletas":["Ningún cambio funcional en la PWA. Todavía no hay detector ni sincronización Android."],"continuar":["Leer ROADMAP.md y ESTADO_PROYECTO.md; comprobar git status y git diff antes de editar.","Ejecutar node scripts/seguimiento.mjs --check y node --test tests/*.test.mjs; comprobar evidencia de tareas completadas.","Abrir docs/seguimiento/roadmap.html. Consultar actual y dependencias en el JSON.","Antes de un bloque extenso registrar tarea y archivos previstos en plan.json; regenerar. Al cerrarlo registrar evidencia, pruebas y siguiente tarea.","No dar por operativo Android ni Firebase hasta ejecutar pruebas reales. No subir commits ni desplegar sin autorización."],"fases":[{"id":"0","titulo":"Plan y continuidad","tareas":[{"id":"0.1","titulo":"Inspección inicial del repositorio","peso":2,"criterio":"Identificar stack, datos, cálculos y riesgos sin modificar la PWA.","dependencias":[],"estado":"completada","evidencia":"docs/INSPECCION_INICIAL.md; base 58ebee8"},{"id":"0.2","titulo":"Plan verificable y documentos de recuperación","peso":2,"criterio":"JSON validado y dos Markdown generados con criterios, dependencias y siguiente tarea.","dependencias":["0.1"],"estado":"completada","evidencia":"ROADMAP.md y ESTADO_PROYECTO.md generados desde plan.json; validación de pesos y dependencias aprobada."},{"id":"0.3","titulo":"Roadmap visual local","peso":2,"criterio":"Gantt oscuro accesible, fases plegables, filtros y porcentajes desde el JSON.","dependencias":["0.2"],"estado":"completada","evidencia":"HTML abierto en navegador local; Gantt y fases renderizados. Sin dependencias externas."},{"id":"0.4","titulo":"Verificar regeneración y persistencia","peso":2,"criterio":"Abrir HTML, probar controles y comprobar que regenerar conserva el estado.","dependencias":["0.3"],"estado":"completada","evidencia":"Generación + --check aprobados; navegador verificó plegado, expansión, búsqueda y progreso tras recarga. JSON persistido en disco."}]},{"id":"1","titulo":"Arquitectura de la integración","tareas":[{"id":"1.1","titulo":"Investigar Android y Firebase","peso":3,"criterio":"Documentación oficial vigente, límites y alternativas contrastadas.","dependencias":["0.4"],"estado":"en_curso","evidencia":""},{"id":"1.2","titulo":"Decidir arquitectura y modelo de datos","peso":4,"criterio":"ADR, contrato de pendientes, aislamiento por UID e idempotencia documentados.","dependencias":["1.1"],"estado":"pendiente","evidencia":""},{"id":"1.3","titulo":"Verificar formato y origen reales","peso":3,"criterio":"Ejemplos anonimizados de compra/no compra y packageName verificado; sin formato inventado.","dependencias":["1.1"],"estado":"pendiente","evidencia":""},{"id":"1.4","titulo":"Plan de compatibilidad y validación","peso":2,"criterio":"Cubrir arrays legados, cuotas variables, backup, caché, concurrencia y dispositivo real.","dependencias":["1.2"],"estado":"pendiente","evidencia":""}]},{"id":"2","titulo":"Captura Android","tareas":[{"id":"2.1","titulo":"App complementaria y permisos explícitos","peso":4,"criterio":"Proyecto Android separado, listener real, filtro por paquete verificado y autorización transparente.","dependencias":["1.2"],"estado":"pendiente","evidencia":""},{"id":"2.2","titulo":"Analizador de notificaciones auténticas","peso":4,"criterio":"Extraer solo compras verificadas; desconocidos no generan transacciones.","dependencias":["1.3","2.1"],"estado":"pendiente","evidencia":""},{"id":"2.3","titulo":"Cola persistente y deduplicación","peso":4,"criterio":"Persistencia mínima, reintentos y deduplicación sin fusionar compras legítimas iguales.","dependencias":["2.2"],"estado":"pendiente","evidencia":""},{"id":"2.4","titulo":"Vinculación Firebase y sincronización","peso":3,"criterio":"Sesión del mismo UID; envío seguro e idempotente validado con reglas.","dependencias":["2.3","6.1"],"estado":"pendiente","evidencia":""}]},{"id":"3","titulo":"Compras sin asignar","tareas":[{"id":"3.1","titulo":"Contrato y validación de pendientes","peso":3,"criterio":"Estados, campos, importes y transiciones validados sin tocar saldos.","dependencias":["1.2"],"estado":"pendiente","evidencia":""},{"id":"3.2","titulo":"Bandeja web y contador en vivo","peso":4,"criterio":"Suscripción aislada por UID, lista editable, errores visibles y cancelación al salir.","dependencias":["3.1","6.1"],"estado":"pendiente","evidencia":""},{"id":"3.3","titulo":"Confirmación atómica y descarte","peso":5,"criterio":"Una transacción consume un pendiente exactamente una vez y conserva descartes.","dependencias":["3.2","4.3","5.1"],"estado":"pendiente","evidencia":""},{"id":"3.4","titulo":"Personas, tarjetas y revisión","peso":3,"criterio":"Seleccionar entidades existentes y corregir datos sin afectar deuda hasta confirmar.","dependencias":["3.2","4.1"],"estado":"pendiente","evidencia":""}]},{"id":"4","titulo":"Modalidades y pesos exactos","tareas":[{"id":"4.1","titulo":"Motor de planes de cuotas","peso":3,"criterio":"Una cuota, división exacta en CLP, interés manual y cuotas individuales válidas.","dependencias":["1.2"],"estado":"pendiente","evidencia":""},{"id":"4.2","titulo":"Pruebas de redondeo y límites","peso":2,"criterio":"Suma exacta, enteros seguros, validación de importes y compatibilidad documentada.","dependencias":["4.1"],"estado":"pendiente","evidencia":""},{"id":"4.3","titulo":"Unificar cálculo manual y automático","peso":5,"criterio":"Abonos, vencimientos, pagos, deshacer, PDF y resumen usan una lógica común.","dependencias":["4.2","5.1"],"estado":"pendiente","evidencia":""},{"id":"4.4","titulo":"Formulario de modalidades","peso":2,"criterio":"Previsualización explícita y sin tasas inferidas, incluso con cuotas diferentes.","dependencias":["4.3"],"estado":"pendiente","evidencia":""}]},{"id":"5","titulo":"Compatibilidad de la PWA","tareas":[{"id":"5.1","titulo":"Resolver concurrencia del documento legado","peso":4,"criterio":"Guardados no pierden compras confirmadas, pagos ni cambios de otro dispositivo.","dependencias":["1.4"],"estado":"pendiente","evidencia":""},{"id":"5.2","titulo":"Origen, identificadores y backups","peso":3,"criterio":"Persistir origen/ID/planes sin romper importación de backups v6 ni datos antiguos.","dependencias":["5.1"],"estado":"pendiente","evidencia":""},{"id":"5.3","titulo":"Integrar registro manual, resúmenes y PDF","peso":3,"criterio":"Mismos cálculos y resultados para registro manual y automático.","dependencias":["4.3","5.2"],"estado":"pendiente","evidencia":""},{"id":"5.4","titulo":"Caché, cierre de sesión y regresión","peso":2,"criterio":"Bump del SW y limpieza de suscripciones; funciones previas comprobadas.","dependencias":["5.3","3.3"],"estado":"pendiente","evidencia":""}]},{"id":"6","titulo":"Seguridad y confiabilidad","tareas":[{"id":"6.1","titulo":"Reglas y pruebas de aislamiento","peso":4,"criterio":"Emulador deniega acceso cruzado/anónimo y mutaciones inválidas; reglas vigentes auditadas.","dependencias":["1.2"],"estado":"pendiente","evidencia":""},{"id":"6.2","titulo":"Recuperación offline y entre dispositivos","peso":3,"criterio":"Reintentos, sesión revocada y concurrencia sin duplicados ni pérdida.","dependencias":["2.4","3.3"],"estado":"pendiente","evidencia":""},{"id":"6.3","titulo":"Minimización y ciclo de vida","peso":2,"criterio":"No guardar texto bancario bruto, secretos ni números completos; desconexión y borrado seguros.","dependencias":["2.3","3.1"],"estado":"pendiente","evidencia":""},{"id":"6.4","titulo":"Verificación de permisos en Android real","peso":3,"criterio":"Revocar acceso, reiniciar, reconectar y verificar restricciones del fabricante.","dependencias":["2.4"],"estado":"pendiente","evidencia":""}]},{"id":"7","titulo":"Validación de extremo a extremo","tareas":[{"id":"7.1","titulo":"Suite automática de dominio e integración","peso":3,"criterio":"Los 14 casos solicitados están trazados; pasar pruebas de reglas y concurrencia.","dependencias":["5.4","6.2"],"estado":"pendiente","evidencia":""},{"id":"7.2","titulo":"Pruebas UI escritorio y móvil","peso":2,"criterio":"Revisar bandeja, asignación, errores, confirmación y cálculos sin datos reales.","dependencias":["5.4"],"estado":"pendiente","evidencia":""},{"id":"7.3","titulo":"Compra auténtica y segundo plano","peso":3,"criterio":"Dispositivo real detecta, sincroniza con web cerrada y confirma una vez.","dependencias":["1.3","6.4","7.1"],"estado":"pendiente","evidencia":""},{"id":"7.4","titulo":"Auditar integridad y regresiones","peso":2,"criterio":"Datos existentes y deudas no cambian salvo confirmación explícita; informe de pruebas.","dependencias":["7.2","7.3"],"estado":"pendiente","evidencia":""}]},{"id":"8","titulo":"Entrega y continuidad","tareas":[{"id":"8.1","titulo":"Guías de instalación y recuperación","peso":2,"criterio":"Configuración Android/Firebase, permisos, respaldo, reversión y límites reproducibles.","dependencias":["7.1"],"estado":"pendiente","evidencia":""},{"id":"8.2","titulo":"Entrega verificada y roadmap final","peso":2,"criterio":"Abrir/ejecutar artefactos, registrar pendientes reales y conservar seguimiento.","dependencias":["8.1","7.4"],"estado":"pendiente","evidencia":""}]}]};
+const PERCENT = 100;
+const MIN_BAR_WIDTH = 4;
+const PHASE_WIDTH = PERCENT / PLAN.fases.length;
+const tasks = PLAN.fases.flatMap((fase) => fase.tareas);
+const byId = new Map(tasks.map((tarea) => [tarea.id, tarea]));
+const closed = new Set();
+const names = { pendiente:"Pendiente", en_curso:"En curso", completada:"Completada", bloqueada:"Bloqueada" };
+let selected = PLAN.actual;
+
+function el(tag, className = "", text = "") {
+  const node = document.createElement(tag);
+  node.className = className;
+  node.textContent = text;
+  return node;
+}
+function text(id, value) { document.getElementById(id).textContent = value; }
+function blockedBy(tarea) { return tarea.dependencias.filter((dep) => byId.get(dep).estado !== "completada"); }
+function state(tarea) {
+  return tarea.estado !== "completada" && blockedBy(tarea).length ? "bloqueada" : tarea.estado;
+}
+function progress(list) {
+  const total = list.reduce((sum, t) => sum + t.peso, 0);
+  const done = list.filter((t) => t.estado === "completada").reduce((sum, t) => sum + t.peso, 0);
+  return { total, done, percent: Math.round(done / total * PERCENT * 10) / 10 };
+}
+function showDetails(tarea) {
+  selected = tarea.id;
+  text("detail-title", `${tarea.id} · ${tarea.titulo}`);
+  text("criterion", tarea.criterio);
+  text("dependencies", tarea.dependencias.length ? tarea.dependencias.map((dep) => `${dep}: ${names[state(byId.get(dep))]}`).join(" · ") : "Sin dependencias.");
+  text("evidence", tarea.evidencia || "Todavía no hay evidencia de finalización.");
+}
+function bar(track, left, width, label, className = "") {
+  const node = el("div", `bar ${className}`, label);
+  node.style.left = `${left}%`;
+  node.style.width = `${width}%`;
+  track.append(node);
+}
+function addMarker(track) {
+  const phaseIndex = PLAN.fases.findIndex((fase) => fase.tareas.some((t) => t.id === PLAN.actual));
+  const phase = PLAN.fases[phaseIndex];
+  const taskIndex = phase.tareas.findIndex((t) => t.id === PLAN.actual);
+  const marker = el("span", "marker");
+  marker.style.left = `${phaseIndex * PHASE_WIDTH + taskIndex / phase.tareas.length * PHASE_WIDTH}%`;
+  track.append(marker);
+}
+function taskRow(tarea, phaseIndex, index, count) {
+  const row = el("div", `row task ${state(tarea)}${selected === tarea.id ? " selected" : ""}`);
+  const label = el("div", "label");
+  const check = el("span", "check", tarea.estado === "completada" ? "✓" : state(tarea) === "bloqueada" ? "!" : tarea.estado === "en_curso" ? "●" : "");
+  check.setAttribute("aria-label", names[state(tarea)]);
+  const button = el("button");
+  button.type = "button";
+  button.append(el("span", "id", `${tarea.id} · ${tarea.peso} pt · ${names[state(tarea)]}`), el("span", "", tarea.titulo));
+  button.addEventListener("click", () => { showDetails(tarea); render(); });
+  label.append(check, button);
+  const track = el("div", "track");
+  bar(track, phaseIndex * PHASE_WIDTH + index / count * PHASE_WIDTH,
+    Math.max(MIN_BAR_WIDTH, PHASE_WIDTH / count), tarea.id);
+  track.title = `${tarea.titulo}: ${names[state(tarea)]}. ${tarea.criterio}`;
+  addMarker(track);
+  row.append(label, track);
+  return row;
+}
+function phaseRow(fase, index) {
+  const summary = progress(fase.tareas);
+  const row = el("div", "row phase");
+  const label = el("div", "label");
+  const button = el("button");
+  button.type = "button";
+  button.setAttribute("aria-expanded", String(!closed.has(fase.id)));
+  button.append(el("span", "", closed.has(fase.id) ? "›" : "⌄"), el("span", "", `${fase.id}. ${fase.titulo}`), el("span", "percent", `${summary.percent}%`));
+  button.addEventListener("click", () => {
+    if (closed.has(fase.id)) closed.delete(fase.id); else closed.add(fase.id);
+    render();
+  });
+  label.append(button);
+  const track = el("div", "track");
+  bar(track, index * PHASE_WIDTH, PHASE_WIDTH * summary.percent / PERCENT, "");
+  addMarker(track);
+  row.append(label, track);
+  return row;
+}
+function isVisible(tarea, fase) {
+  const term = document.getElementById("search").value.toLocaleLowerCase("es").trim();
+  const filter = document.getElementById("filter").value;
+  const haystack = `${tarea.id} ${tarea.titulo} ${fase.titulo} ${tarea.dependencias.join(" ")}`.toLocaleLowerCase("es");
+  return (!term || haystack.includes(term)) && (filter === "todos" || state(tarea) === filter);
+}
+function render() {
+  const rows = document.getElementById("rows");
+  rows.replaceChildren();
+  PLAN.fases.forEach((fase, phaseIndex) => {
+    const visible = fase.tareas.filter((tarea) => isVisible(tarea, fase));
+    if (!visible.length) return;
+    rows.append(phaseRow(fase, phaseIndex));
+    if (closed.has(fase.id)) return;
+    fase.tareas.forEach((tarea, index) => {
+      if (isVisible(tarea, fase)) rows.append(taskRow(tarea, phaseIndex, index, fase.tareas.length));
+    });
+  });
+  if (!rows.children.length) rows.append(el("p", "empty", "No hay tareas que coincidan con el filtro."));
+}
+function init() {
+  const summary = progress(tasks);
+  text("global", `${summary.percent}%`);
+  text("points", `${summary.done} / ${summary.total} puntos`);
+  document.getElementById("global-bar").style.width = `${summary.percent}%`;
+  text("done", `${tasks.filter((t) => t.estado === "completada").length} / ${tasks.length}`);
+  text("blocked", `${tasks.filter((t) => state(t) === "bloqueada").length} tareas bloqueadas por dependencia o requisito externo`);
+  text("next", `${PLAN.actual} · ${byId.get(PLAN.actual).titulo}`);
+  text("next-state", names[state(byId.get(PLAN.actual))]);
+  text("snapshot", `Snapshot ${PLAN.fecha} · ${PLAN.base.slice(0,7)}`);
+  PLAN.fases.forEach((fase) => document.getElementById("slots").append(el("span", "", `FASE ${fase.id}`)));
+  PLAN.problemas.forEach((risk) => document.getElementById("risks").append(el("li", "", risk)));
+  document.getElementById("search").addEventListener("input", render);
+  document.getElementById("filter").addEventListener("change", render);
+  document.getElementById("expand").addEventListener("click", () => { closed.clear(); render(); });
+  document.getElementById("collapse").addEventListener("click", () => { PLAN.fases.forEach((fase) => closed.add(fase.id)); render(); });
+  showDetails(byId.get(PLAN.actual));
+  render();
+}
+init();
+</script>
+</html>
