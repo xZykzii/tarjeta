@@ -3,9 +3,9 @@
 
 Actualizado: 2026-10-21. Base: `58ebee85df3acf3b942f3ade944b40b63aa82af9`.
 
-**Avance global: 43% (43/100 puntos verificados).**
+**Avance global: 51% (51/100 puntos verificados).**
 
-**Tarea actual: 2.1 — App complementaria y permisos explícitos.**
+**Tarea actual: 3.2 — Bandeja web y contador en vivo.**
 
 [Abrir roadmap visual](docs/seguimiento/roadmap.html) · [Estado para continuar](ESTADO_PROYECTO.md)
 
@@ -40,13 +40,13 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 1.3 | Verificar paquete emisor y ejemplos negativos reales | bloqueada | 2 pt | 1.1 | packageName verificado y muestras de pago/devolución/publicidad auténticas; confirmar contenido accesible en Android. | Captura positiva documentada; ficha Google Play cl.android y app instalada confirmadas por el usuario. Pendientes negativos auténticos y diagnóstico físico.
 1.4 | Plan de compatibilidad y validación | completada | 2 pt | 1.2 | Cubrir arrays legados, cuotas variables, backup, caché, concurrencia y dispositivo real. | docs/VALIDACION_COMPRAS.md y ADR-001: matriz de 14 casos, compatibilidad, escritor legado y permisos.
 
-## Fase 2 — Captura Android · 0%
+## Fase 2 — Captura Android · 26.7%
 
-Aceptación: 0/15 puntos.
+Aceptación: 4/15 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
-2.1 | App complementaria y permisos explícitos | pendiente | 4 pt | 1.2 | Proyecto Android separado, listener real, filtro por paquete verificado y autorización transparente. | Pendiente
+2.1 | App complementaria y permisos explícitos | completada | 4 pt | 1.2 | Proyecto Android separado, listener real, filtro por paquete verificado y autorización transparente. | android/: listener nativo protegido, filtro cl.android instalado y consentimiento separado de Ajustes. APK debug compilado y firma verificada; 19 pruebas JVM + 3 Robolectric aprobadas. Sin Internet/Firebase/deuda; prueba física S24 pendiente. android/README.md y PRUEBA_S24.md.
 2.2 | Analizador de notificaciones auténticas | en_espera | 4 pt | 1.3, 2.1 | Extraer solo compras verificadas; desconocidos no generan transacciones. | Pendiente
 2.3 | Cola persistente y deduplicación | en_espera | 4 pt | 2.2 | Persistencia mínima, reintentos y deduplicación sin fusionar compras legítimas iguales. | Pendiente
 2.4 | Vinculación Firebase y sincronización | en_espera | 3 pt | 2.3, 6.1 | Sesión del mismo UID; envío seguro e idempotente validado con reglas. | Pendiente
@@ -58,7 +58,7 @@ Aceptación: 3/15 puntos.
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
 3.1 | Contrato y validación de pendientes | completada | 3 pt | 1.2 | Estados, campos, importes y transiciones validados sin tocar saldos. | compras-pendientes.mjs: contrato mínimo, estados, validaciones e identidad estable; pruebas aprobadas.
-3.2 | Bandeja web y contador en vivo | en_espera | 4 pt | 3.1, 6.1 | Suscripción aislada por UID, lista editable, errores visibles y cancelación al salir. | Pendiente
+3.2 | Bandeja web y contador en vivo | pendiente | 4 pt | 3.1, 6.1 | Suscripción aislada por UID, lista editable, errores visibles y cancelación al salir. | Pendiente
 3.3 | Confirmación atómica y descarte | en_espera | 3 pt | 3.2, 4.3, 5.1 | Una transacción consume un pendiente exactamente una vez y conserva descartes. | Pendiente
 3.4 | Personas, tarjetas y revisión | en_espera | 2 pt | 3.2, 4.1 | Seleccionar entidades existentes y corregir datos sin afectar deuda hasta confirmar. | Pendiente
 3.5 | Repartir una compra entre varias personas | en_espera | 3 pt | 3.4, 4.5, 5.2 | Importes libres por persona o reparto igual; suma exacta, edición, confirmación atómica y saldos sin duplicar la compra. | Pendiente
@@ -86,13 +86,13 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 5.3 | Integrar registro manual, resúmenes y PDF | completada | 3 pt | 4.3, 5.2 | Mismos cálculos y resultados para registro manual y automático. | PWA y logic usan adaptador común; PDF personal/general generados en UI, texto comprobado y páginas renderizadas sin cortes. Personal solo muestra participación propia; registro histórico mantiene fórmulas.
 5.4 | Caché, cierre de sesión y regresión | en_espera | 2 pt | 5.3, 3.3 | Bump del SW y limpieza de suscripciones; funciones previas comprobadas. | Pendiente
 
-## Fase 6 — Seguridad y confiabilidad · 0%
+## Fase 6 — Seguridad y confiabilidad · 33.3%
 
-Aceptación: 0/12 puntos.
+Aceptación: 4/12 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
-6.1 | Reglas y pruebas de aislamiento | pendiente | 4 pt | 1.2 | Emulador deniega acceso cruzado/anónimo y mutaciones inválidas; reglas vigentes auditadas. | Pendiente
+6.1 | Reglas y pruebas de aislamiento | completada | 4 pt | 1.2 | Emulador deniega acceso cruzado/anónimo y mutaciones inválidas; reglas vigentes auditadas. | 9 pruebas SDK/emulador aprobadas en entrega previa. Reglas vigentes auditadas el 2026-10-21 mediante GET autenticado de release/ruleset, hash documentado en docs/AUDITORIA_REGLAS.md; sin leer documentos, escribir ni desplegar. Reglas finales de confirmación pendientes.
 6.2 | Recuperación offline y entre dispositivos | en_espera | 3 pt | 2.4, 3.3 | Reintentos, sesión revocada y concurrencia sin duplicados ni pérdida. | Pendiente
 6.3 | Minimización y ciclo de vida | en_espera | 2 pt | 2.3, 3.1 | No guardar texto bancario bruto, secretos ni números completos; desconexión y borrado seguros. | Pendiente
 6.4 | Verificación de permisos en Android real | en_espera | 3 pt | 2.4 | Revocar acceso, reiniciar, reconectar y verificar restricciones del fabricante. | Pendiente
@@ -120,10 +120,11 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 ## Problemas y dependencias externas
 
 - Captura positiva revisada. Usuario confirma Samsung Galaxy S24 y ficha oficial Banco Falabella Chile (paquete cl.android). Faltan versión Android, extras reales y muestras negativas auténticas.
-- Reglas de Firestore desplegadas sin verificar; no publicar reglas ni escribir datos reales desde esta sesión.
+- Reglas vigentes auditadas solo por lectura; el contrato nuevo de revisión y pendientes requiere despliegue coordinado posterior. No se escribió en producción.
 - Guardado protegido localmente con CAS y revisión; falta auditar/desplegar reglas para bloquear clientes antiguos en producción. No publicar solo la PWA.
 - Captura automática y reparto todavía no tienen interfaz de revisión/confirmación. La edición de planes existentes conserva importes y pagos para evitar cambios financieros accidentales.
 - La revisión automática rechazó iniciar el servidor localhost sin motivo adicional; no se pudo restaurar la URL en esta sesión. Servidor probado en puerto efímero; el usuario puede iniciarlo con npm run roadmap.
+- APK debug disponible para prueba voluntaria en S24; sin teléfono conectado ni permisos concedidos. Lint: cero errores, una advertencia ObsoleteSdkInt por carpeta vacía; limpieza/repetición rechazadas por revisión automática sin motivo adicional.
 
 ## Funcionalidades completadas
 
@@ -135,6 +136,7 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - 1.2 Decidir arquitectura y modelo de datos: ADR-001: listener nativo, cola Room/WorkManager, UID, pendientes aislados y confirmación transaccional; contrato v1.
 - 1.3a Documentar formato positivo auténtico: docs/FORMATO_NOTIFICACION.md: captura positiva revisada; estructura anonimizada y campos ausentes documentados.
 - 1.4 Plan de compatibilidad y validación: docs/VALIDACION_COMPRAS.md y ADR-001: matriz de 14 casos, compatibilidad, escritor legado y permisos.
+- 2.1 App complementaria y permisos explícitos: android/: listener nativo protegido, filtro cl.android instalado y consentimiento separado de Ajustes. APK debug compilado y firma verificada; 19 pruebas JVM + 3 Robolectric aprobadas. Sin Internet/Firebase/deuda; prueba física S24 pendiente. android/README.md y PRUEBA_S24.md.
 - 3.1 Contrato y validación de pendientes: compras-pendientes.mjs: contrato mínimo, estados, validaciones e identidad estable; pruebas aprobadas.
 - 4.1 Motor de planes de cuotas: planes-cuotas.mjs: modalidades, planes variables y adaptador legado sin mutación; pruebas aprobadas.
 - 4.2 Pruebas de redondeo y límites: tests/compras.test.mjs: residuos exhaustivos, abonos, límites y overflow; 28/28 pruebas globales aprobadas.
@@ -144,20 +146,19 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - 5.1 Resolver concurrencia del documento legado: save/load conectados a CAS real, cola y recuperación de borrador; 32 pruebas Node + 9 Firestore/emulador y flujo UI ficticio aprobados. docs/GUARDADO_SEGURO.md; reglas no desplegadas.
 - 5.2 Origen, identificadores y backups: datos-compras.mjs conserva ID/origen/plan/grupo en save y backup v7; v6/legado probado. Backup descargado por UI y restaurado con IDs, pagos, cuotas y saldo verificados.
 - 5.3 Integrar registro manual, resúmenes y PDF: PWA y logic usan adaptador común; PDF personal/general generados en UI, texto comprobado y páginas renderizadas sin cortes. Personal solo muestra participación propia; registro histórico mantiene fórmulas.
+- 6.1 Reglas y pruebas de aislamiento: 9 pruebas SDK/emulador aprobadas en entrega previa. Reglas vigentes auditadas el 2026-10-21 mediante GET autenticado de release/ruleset, hash documentado en docs/AUDITORIA_REGLAS.md; sin leer documentos, escribir ni desplegar. Reglas finales de confirmación pendientes.
 
 ## Funcionalidades pendientes
 
 - 1.3 Verificar paquete emisor y ejemplos negativos reales (bloqueada)
-- 2.1 App complementaria y permisos explícitos (pendiente)
 - 2.2 Analizador de notificaciones auténticas (en_espera)
 - 2.3 Cola persistente y deduplicación (en_espera)
 - 2.4 Vinculación Firebase y sincronización (en_espera)
-- 3.2 Bandeja web y contador en vivo (en_espera)
+- 3.2 Bandeja web y contador en vivo (pendiente)
 - 3.3 Confirmación atómica y descarte (en_espera)
 - 3.4 Personas, tarjetas y revisión (en_espera)
 - 3.5 Repartir una compra entre varias personas (en_espera)
 - 5.4 Caché, cierre de sesión y regresión (en_espera)
-- 6.1 Reglas y pruebas de aislamiento (pendiente)
 - 6.2 Recuperación offline y entre dispositivos (en_espera)
 - 6.3 Minimización y ciclo de vida (en_espera)
 - 6.4 Verificación de permisos en Android real (en_espera)

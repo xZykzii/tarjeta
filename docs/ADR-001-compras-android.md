@@ -6,7 +6,7 @@
 
 ## Contexto
 
-La PWA actual no dispone de la API nativa para observar otras aplicaciones Android. La notificación es un aviso informativo, no una fuente que pruebe la liquidación bancaria. No se conoce el formato ni el paquete emisor real. No hay acceso a credenciales bancarias ni se necesita.
+La PWA actual no dispone de la API nativa para observar otras aplicaciones Android. La notificación es un aviso informativo, no una fuente que pruebe la liquidación bancaria. La captura positiva permite documentar una gramática provisional. El usuario confirmó Galaxy S24 y la app de la ficha oficial `cl.android`; faltan observar el emisor y los extras en el teléfono y obtener negativos auténticos. No hay acceso a credenciales bancarias ni se necesita.
 
 ## Decisión
 
@@ -77,7 +77,13 @@ El listener necesita autorización del usuario y conexión del servicio; no prom
 
 La captura continúa sin la web abierta. La **confirmación** requiere conexión para leer y escribir atómicamente. Un envío pendiente se muestra como tal, nunca como sincronizado antes de confirmación del servidor. Cerrar sesión invalida el envío y evita que una cola del usuario anterior se asigne al nuevo UID.
 
-Pendientes externos: ejemplos auténticos positivos/negativos, paquete verificado, teléfono y versión Android; registro de app/huellas en Firebase; auditoría de reglas actuales y validación física. En este entorno no se encontró Android SDK, Gradle ni ADB; no hay APK compilado ni detector validado.
+Pendientes externos: negativos auténticos, extras y emisor observados en el S24, versión Android/One UI, registro de app/huellas en Firebase y validación física. La auditoría de reglas actuales se completó por lectura del release y su fuente; no se leyeron documentos ni se modificó producción. Ver `AUDITORIA_REGLAS.md`.
+
+### Primera etapa implementada
+
+`android/` contiene la app Kotlin, listener protegido, consentimiento separado del permiso Android y núcleo JVM con corpus compartido con JS. El diagnóstico inicial es voluntario y solo mantiene el último resultado normalizado en RAM. No dispone de permiso de Internet, Firebase, Room, WorkManager ni cola persistente. Se evita persistir compras sin UID para que no se atribuyan después a otra cuenta.
+
+El titular aceptó la licencia SDK e instalación local de herramientas. SDK API 35, Build Tools 35.0.0 y Platform Tools están fuera del repositorio; no se cambió el PATH global. Gradle 8.11.1/AGP 8.9.2/Kotlin 2.2.21 generan un APK debug firmado. Pasaron 19 pruebas JVM y tres de componentes bajo Robolectric, además de 68 Node. Lint no tiene errores y conserva una advertencia de carpeta vacía con calificador redundante. Ninguna de estas pruebas demuestra entrega real de notificaciones o comportamiento de Samsung. Guía física: `android/PRUEBA_S24.md`.
 
 ## Fuentes oficiales consultadas — 2026-10-21
 

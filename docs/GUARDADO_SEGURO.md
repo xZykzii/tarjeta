@@ -19,7 +19,7 @@ La comparación de contenido detecta también cambios de un escritor anterior qu
 
 ## Evidencia de pruebas
 
-- Suite Node existente y de dominio: 53 pruebas aprobadas, incluidas cinco de seguimiento.
+- Suite Node existente y de dominio: 68 pruebas aprobadas, incluidas cinco de seguimiento y quince del corpus bancario anonimizado.
 - Emulador Firestore con SDK 10.12.0 real: 9 pruebas aprobadas. Incluyen migración no destructiva de revisión, dos clientes concurrentes, escritor antiguo, creación inválida, acceso cruzado/anónimo, campos legados y contrato mínimo de pendientes.
 - Hallazgo comprobado: las reglas pueden devolver `permission-denied` antes del reintento automático de una transacción concurrente. Una segunda lectura transaccional sin escrituras distingue base cambiada de denegación real. No se repite la escritura.
 - Navegador con datos ficticios y puerto de almacenamiento explícitamente identificado como prueba: alta manual, conflicto, bloqueo del reintento conflictivo, cancelación/confirmación de recarga, recuperación del cambio remoto, fallo de red y reintento único, pago y deshacer con restitución de saldo.
@@ -40,7 +40,7 @@ Las pruebas del emulador utilizan exclusivamente `demo-cuotas-local`, con puerto
 
 ## Límites y puerta de publicación
 
-Las reglas desplegadas siguen sin auditar. Antes de publicar, compararlas con `firestore.rules`, preservar las condiciones legítimas que existan y coordinar el bloqueo de clientes antiguos con la PWA nueva. No se han desplegado las reglas propuestas.
+Las reglas desplegadas se auditaron el 2026-10-21 mediante lectura autenticada del release y ruleset, sin acceder a documentos ni escribir. Mantienen aislamiento por UID; la protección de revisión y el contrato nuevo todavía requieren las reglas propuestas. Evidencia y límites en `AUDITORIA_REGLAS.md`. Antes de publicar, coordinar el bloqueo de clientes antiguos con la PWA nueva. No se han desplegado las reglas propuestas.
 
 Las reglas de pendientes permiten creación mínima y lectura por el titular; la resolución está denegada hasta implementar y probar la confirmación atómica. Por tanto, esta versión **no activa** la bandeja ni la captura Android.
 
