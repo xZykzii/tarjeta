@@ -3,9 +3,9 @@
 
 Actualizado: 2026-10-21. Base: `58ebee85df3acf3b942f3ade944b40b63aa82af9`.
 
-**Avance global: 51% (51/100 puntos verificados).**
+**Avance global: 65% (65/100 puntos verificados).**
 
-**Tarea actual: 3.2 — Bandeja web y contador en vivo.**
+**Tarea actual: 2.3 — Cola persistente y deduplicación.**
 
 [Abrir roadmap visual](docs/seguimiento/roadmap.html) · [Estado para continuar](ESTADO_PROYECTO.md)
 
@@ -51,17 +51,17 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 2.3 | Cola persistente y deduplicación | en_espera | 4 pt | 2.2 | Persistencia mínima, reintentos y deduplicación sin fusionar compras legítimas iguales. | Pendiente
 2.4 | Vinculación Firebase y sincronización | en_espera | 3 pt | 2.3, 6.1 | Sesión del mismo UID; envío seguro e idempotente validado con reglas. | Pendiente
 
-## Fase 3 — Compras sin asignar · 20%
+## Fase 3 — Compras sin asignar · 100%
 
-Aceptación: 3/15 puntos.
+Aceptación: 15/15 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
 3.1 | Contrato y validación de pendientes | completada | 3 pt | 1.2 | Estados, campos, importes y transiciones validados sin tocar saldos. | compras-pendientes.mjs: contrato mínimo, estados, validaciones e identidad estable; pruebas aprobadas.
-3.2 | Bandeja web y contador en vivo | pendiente | 4 pt | 3.1, 6.1 | Suscripción aislada por UID, lista editable, errores visibles y cancelación al salir. | Pendiente
-3.3 | Confirmación atómica y descarte | en_espera | 3 pt | 3.2, 4.3, 5.1 | Una transacción consume un pendiente exactamente una vez y conserva descartes. | Pendiente
-3.4 | Personas, tarjetas y revisión | en_espera | 2 pt | 3.2, 4.1 | Seleccionar entidades existentes y corregir datos sin afectar deuda hasta confirmar. | Pendiente
-3.5 | Repartir una compra entre varias personas | en_espera | 3 pt | 3.4, 4.5, 5.2 | Importes libres por persona o reparto igual; suma exacta, edición, confirmación atómica y saldos sin duplicar la compra. | Pendiente
+3.2 | Bandeja web y contador en vivo | completada | 4 pt | 3.1, 6.1 | Suscripción aislada por UID, lista editable, errores visibles y cancelación al salir. | Suscripción limitada por UID, metadatos de caché, contador y errores visibles; cancelación al salir y callbacks tardíos aislados. Node y UI ficticia aprobadas. docs/BANDEJA_COMPRAS.md.
+3.3 | Confirmación atómica y descarte | completada | 3 pt | 3.2, 4.3, 5.1 | Una transacción consume un pendiente exactamente una vez y conserva descartes. | resolverCompraRemota crea recibo inmutable, añade participaciones y resuelve pendiente en una transacción; descarte terminal sin deuda. 16 pruebas Firestore/emulador, incluidas concurrencia e idempotencia.
+3.4 | Personas, tarjetas y revisión | completada | 2 pt | 3.2, 4.1 | Seleccionar entidades existentes y corregir datos sin afectar deuda hasta confirmar. | Revisión permite descripción, fecha explícita, personas/tarjeta existentes y modalidades; revalida catálogos dentro de transacción. Original bancario conservado, errores no generan deuda.
+3.5 | Repartir una compra entre varias personas | completada | 3 pt | 3.4, 4.5, 5.2 | Importes libres por persona o reparto igual; suma exacta, edición, confirmación atómica y saldos sin duplicar la compra. | Edición del reparto completo antes de confirmar, importes libres/iguales y previsualización por persona/mes. UI ficticia 700/300 y 500/500; grupo atómico conserva suma y saldos. Edición financiera posterior a pagos protegida.
 
 ## Fase 4 — Modalidades y pesos exactos · 100%
 
@@ -75,16 +75,16 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 4.4 | Formulario de modalidades | completada | 2 pt | 4.3 | Previsualización explícita y sin tasas inferidas, incluso con cuotas diferentes. | ui-plan-cuotas.mjs y alta manual conectados. Cuatro modalidades previsualizadas en UI; alta 34/33/33, cancelación sin deuda y cuota única pagada/editada verificadas. 53 pruebas Node; caché v18.
 4.5 | Motor de reparto exacto entre personas | completada | 2 pt | 4.2 | Distribución igual o por importes libres; cuotas por persona conservan totales por fila y columna incluso con redondeo e interés. | reparto-compras.mjs: importes libres/iguales y matriz exacta por persona/mes; barrido exhaustivo y enteros grandes aprobados.
 
-## Fase 5 — Compatibilidad de la PWA · 83.3%
+## Fase 5 — Compatibilidad de la PWA · 100%
 
-Aceptación: 10/12 puntos.
+Aceptación: 12/12 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
 5.1 | Resolver concurrencia del documento legado | completada | 4 pt | 1.4 | Guardados no pierden compras confirmadas, pagos ni cambios de otro dispositivo. | save/load conectados a CAS real, cola y recuperación de borrador; 32 pruebas Node + 9 Firestore/emulador y flujo UI ficticio aprobados. docs/GUARDADO_SEGURO.md; reglas no desplegadas.
 5.2 | Origen, identificadores y backups | completada | 3 pt | 5.1 | Persistir origen/ID/planes sin romper importación de backups v6 ni datos antiguos. | datos-compras.mjs conserva ID/origen/plan/grupo en save y backup v7; v6/legado probado. Backup descargado por UI y restaurado con IDs, pagos, cuotas y saldo verificados.
 5.3 | Integrar registro manual, resúmenes y PDF | completada | 3 pt | 4.3, 5.2 | Mismos cálculos y resultados para registro manual y automático. | PWA y logic usan adaptador común; PDF personal/general generados en UI, texto comprobado y páginas renderizadas sin cortes. Personal solo muestra participación propia; registro histórico mantiene fórmulas.
-5.4 | Caché, cierre de sesión y regresión | en_espera | 2 pt | 5.3, 3.3 | Bump del SW y limpieza de suscripciones; funciones previas comprobadas. | Pendiente
+5.4 | Caché, cierre de sesión y regresión | completada | 2 pt | 5.3, 3.3 | Bump del SW y limpieza de suscripciones; funciones previas comprobadas. | SW v19 incluye bandeja y sus dependencias. 84 Node y 16 emulador; UI ejecutó confirmación, descarte, caché/error/recuperación y logout. Suscripciones/diálogos se cancelan al cambiar sesión. Sin despliegue.
 
 ## Fase 6 — Seguridad y confiabilidad · 33.3%
 
@@ -104,7 +104,7 @@ Aceptación: 0/10 puntos.
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
 7.1 | Suite automática de dominio e integración | en_espera | 3 pt | 5.4, 6.2 | Los 14 casos solicitados están trazados; pasar pruebas de reglas y concurrencia. | Pendiente
-7.2 | Pruebas UI escritorio y móvil | en_espera | 2 pt | 5.4 | Revisar bandeja, asignación, errores, confirmación y cálculos sin datos reales. | Pendiente
+7.2 | Pruebas UI escritorio y móvil | pendiente | 2 pt | 5.4 | Revisar bandeja, asignación, errores, confirmación y cálculos sin datos reales. | Pendiente
 7.3 | Compra auténtica y segundo plano | en_espera | 3 pt | 1.3, 6.4, 7.1 | Dispositivo real detecta, sincroniza con web cerrada y confirma una vez. | Pendiente
 7.4 | Auditar integridad y regresiones | en_espera | 2 pt | 7.2, 7.3 | Datos existentes y deudas no cambian salvo confirmación explícita; informe de pruebas. | Pendiente
 
@@ -122,9 +122,10 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - Captura positiva revisada. Usuario confirma Samsung Galaxy S24 y ficha oficial Banco Falabella Chile (paquete cl.android). Faltan versión Android, extras reales y muestras negativas auténticas.
 - Reglas vigentes auditadas solo por lectura; el contrato nuevo de revisión y pendientes requiere despliegue coordinado posterior. No se escribió en producción.
 - Guardado protegido localmente con CAS y revisión; falta desplegar coordinadamente las reglas para bloquear clientes antiguos en producción. No publicar solo la PWA.
-- Captura automática y reparto todavía no tienen interfaz de revisión/confirmación. La edición de planes existentes conserva importes y pagos para evitar cambios financieros accidentales.
 - La revisión automática rechazó iniciar el servidor localhost sin motivo adicional; no se pudo restaurar la URL en esta sesión. Servidor probado en puerto efímero; el usuario puede iniciarlo con npm run roadmap.
 - Captura del S24 aportada por el usuario: app instalada, cl.android detectado, consentimiento y acceso Android concedidos, servicio conectado. Primera compra nueva recibida y reconocida con campos coincidentes en dos capturas; falta cobertura de otros avisos y comportamiento prolongado. Lint: cero errores, una advertencia ObsoleteSdkInt por carpeta vacía; limpieza/repetición rechazadas por revisión automática sin motivo adicional.
+- Bandeja/confirmación/reparto implementados y probados solo localmente. La PWA pública, sus reglas y el APK de diagnóstico siguen sin sincronización nueva. No desplegar sin autorización.
+- No hay app Android registrada en Firebase. Preparar variante conectada, cola por UID y reintentos; configuración OAuth/registro y activación remota requieren revisión concreta.
 
 ## Funcionalidades completadas
 
@@ -138,6 +139,10 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - 1.4 Plan de compatibilidad y validación: docs/VALIDACION_COMPRAS.md y ADR-001: matriz de 14 casos, compatibilidad, escritor legado y permisos.
 - 2.1 App complementaria y permisos explícitos: android/: listener nativo protegido, filtro cl.android instalado y consentimiento separado de Ajustes. APK debug compilado y firma verificada; 19 pruebas JVM + 3 Robolectric aprobadas. Sin Internet/Firebase/deuda; prueba física S24 pendiente. android/README.md y PRUEBA_S24.md.
 - 3.1 Contrato y validación de pendientes: compras-pendientes.mjs: contrato mínimo, estados, validaciones e identidad estable; pruebas aprobadas.
+- 3.2 Bandeja web y contador en vivo: Suscripción limitada por UID, metadatos de caché, contador y errores visibles; cancelación al salir y callbacks tardíos aislados. Node y UI ficticia aprobadas. docs/BANDEJA_COMPRAS.md.
+- 3.3 Confirmación atómica y descarte: resolverCompraRemota crea recibo inmutable, añade participaciones y resuelve pendiente en una transacción; descarte terminal sin deuda. 16 pruebas Firestore/emulador, incluidas concurrencia e idempotencia.
+- 3.4 Personas, tarjetas y revisión: Revisión permite descripción, fecha explícita, personas/tarjeta existentes y modalidades; revalida catálogos dentro de transacción. Original bancario conservado, errores no generan deuda.
+- 3.5 Repartir una compra entre varias personas: Edición del reparto completo antes de confirmar, importes libres/iguales y previsualización por persona/mes. UI ficticia 700/300 y 500/500; grupo atómico conserva suma y saldos. Edición financiera posterior a pagos protegida.
 - 4.1 Motor de planes de cuotas: planes-cuotas.mjs: modalidades, planes variables y adaptador legado sin mutación; pruebas aprobadas.
 - 4.2 Pruebas de redondeo y límites: tests/compras.test.mjs: residuos exhaustivos, abonos, límites y overflow; 28/28 pruebas globales aprobadas.
 - 4.3 Unificar cálculo manual y automático: cuotas-item.mjs conectado a pagos/abonos/deshacer, calendario, resúmenes y reportes. 49 pruebas Node; UI ficticia 34/33/33, reparto 700/300, pago/deshacer exacto. docs/CUOTAS_EXACTAS.md.
@@ -146,6 +151,7 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - 5.1 Resolver concurrencia del documento legado: save/load conectados a CAS real, cola y recuperación de borrador; 32 pruebas Node + 9 Firestore/emulador y flujo UI ficticio aprobados. docs/GUARDADO_SEGURO.md; reglas no desplegadas.
 - 5.2 Origen, identificadores y backups: datos-compras.mjs conserva ID/origen/plan/grupo en save y backup v7; v6/legado probado. Backup descargado por UI y restaurado con IDs, pagos, cuotas y saldo verificados.
 - 5.3 Integrar registro manual, resúmenes y PDF: PWA y logic usan adaptador común; PDF personal/general generados en UI, texto comprobado y páginas renderizadas sin cortes. Personal solo muestra participación propia; registro histórico mantiene fórmulas.
+- 5.4 Caché, cierre de sesión y regresión: SW v19 incluye bandeja y sus dependencias. 84 Node y 16 emulador; UI ejecutó confirmación, descarte, caché/error/recuperación y logout. Suscripciones/diálogos se cancelan al cambiar sesión. Sin despliegue.
 - 6.1 Reglas y pruebas de aislamiento: 9 pruebas SDK/emulador aprobadas en entrega previa. Reglas vigentes auditadas el 2026-10-21 mediante GET autenticado de release/ruleset, hash documentado en docs/AUDITORIA_REGLAS.md; sin leer documentos, escribir ni desplegar. Reglas finales de confirmación pendientes.
 
 ## Funcionalidades pendientes
@@ -154,16 +160,11 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - 2.2 Analizador de notificaciones auténticas (en_espera)
 - 2.3 Cola persistente y deduplicación (en_espera)
 - 2.4 Vinculación Firebase y sincronización (en_espera)
-- 3.2 Bandeja web y contador en vivo (pendiente)
-- 3.3 Confirmación atómica y descarte (en_espera)
-- 3.4 Personas, tarjetas y revisión (en_espera)
-- 3.5 Repartir una compra entre varias personas (en_espera)
-- 5.4 Caché, cierre de sesión y regresión (en_espera)
 - 6.2 Recuperación offline y entre dispositivos (en_espera)
 - 6.3 Minimización y ciclo de vida (en_espera)
 - 6.4 Verificación de permisos en Android real (en_espera)
 - 7.1 Suite automática de dominio e integración (en_espera)
-- 7.2 Pruebas UI escritorio y móvil (en_espera)
+- 7.2 Pruebas UI escritorio y móvil (pendiente)
 - 7.3 Compra auténtica y segundo plano (en_espera)
 - 7.4 Auditar integridad y regresiones (en_espera)
 - 8.1 Guías de instalación y recuperación (en_espera)

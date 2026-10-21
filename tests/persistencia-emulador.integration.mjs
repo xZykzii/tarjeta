@@ -5,6 +5,8 @@ import { initializeTestEnvironment, assertFails, assertSucceeds } from "@firebas
 import { doc, getDoc, setDoc, updateDoc, deleteDoc, runTransaction, serverTimestamp } from "firebase/firestore";
 import { baseDocumento, guardarConRevision } from "../persistencia-segura.mjs";
 import { crearPendiente } from "../compras-pendientes.mjs";
+import { resolverCompraRemota } from "../confirmacion-compras.mjs";
+import { crearPlanCuotas } from "../planes-cuotas.mjs";
 
 const PROJECT_ID = "demo-cuotas-local";
 const OWNER = "usuario_prueba";
@@ -134,4 +136,108 @@ test("captura rechaza moneda, importe y fecha de servidor falsificados", async (
   await assertFails(setDoc(evento(db), pendiente({ montoOriginal: -1 })));
   await assertFails(setDoc(evento(db), pendiente({ creadaEn: RECEIVED_AT })));
   await assertFails(setDoc(evento(db), pendiente({ recibidaEn: -1 })));
+});
+
+function revisionCompartida() {
+  return { item: "Compra compartida", fechaCompra: "2026-10-21", tarjeta: "Ejemplo",
+    planCuotas: crearPlanCuotas({ modalidad: "sin_interes", montoOriginal: 1000, numeroCuotas: 3 }),
+    asignaciones: [{ persona: "A", monto: 700 }, { persona: "B", monto: 300 }] };
+}
+
+async function prepararEvento() {
+  const original = { ...datos(), personas: ["A", "B"], revision: 1 };
+  await sembrar(original);
+  const db = dbDe(OWNER);
+  await setDoc(evento(db), pendiente({ montoOriginal: 1000, comercio: "Ejemplo" }));
+  const { creadaEn, ...esperado } = (await getDoc(evento(db))).data();
+  return { db, esperado, base: baseDocumento(original), revision: revisionCompartida() };
+}
+
+function resolver(config, accion = "confirmar") {
+  return resolverCompraRemota({ db: config.db, doc, runTransaction, serverTimestamp },
+    { ...config, uid: OWNER, accion });
+}
+
+test("confirmar grupo 700/300 crea recibo y resolución atómicos; repetir no duplica", async () => {
+  const config = await prepararEvento();
+  const primera = await resolver(config);
+  assert.equal(primera.hasCambio, true);
+  const segunda = await resolver(config);
+  assert.equal(segunda.hasCambio, false);
+  const remoto = (await getDoc(usuario(config.db))).data();
+  assert.equal(remoto.revision, 2);
+  assert.equal(remoto.items.length, 2);
+  assert.deepEqual(remoto.items.map((item) => item.cuotasAsignadas.reduce((a, b) => a + b)), [700, 300]);
+  const resuelto = (await getDoc(evento(config.db))).data();
+  assert.equal(resuelto.estado, "confirmada");
+  assert.equal(resuelto.comercio, "Ejemplo");
+  const ref = doc(config.db, "users", OWNER, "comprasConfirmadas", `auto_${EVENT}`);
+  await assertSucceeds(getDoc(ref));
+  await assertFails(updateDoc(ref, { item: "cambiar recibo" }));
+  await assertFails(deleteDoc(ref));
+  await assertFails(getDoc(doc(dbDe(OTHER), "users", OWNER, "comprasConfirmadas", `auto_${EVENT}`)));
+});
+
+test("descartar es idempotente, no cambia arrays ni permite reabrir o confirmar", async () => {
+  const config = await prepararEvento();
+  await resolver(config, "descartar");
+  assert.equal((await resolver(config, "descartar")).hasCambio, false);
+  await assert.rejects(resolver(config));
+  const remoto = (await getDoc(usuario(config.db))).data();
+  assert.equal(remoto.revision, 1);
+  assert.equal(remoto.items.length, 0);
+  await assertFails(updateDoc(evento(config.db), { estado: "sin_asignar" }));
+});
+
+test("la base obsoleta y las personas eliminadas no crean deuda", async () => {
+  const config = await prepararEvento();
+  await updateDoc(usuario(config.db), { revision: 2, personas: ["A"] });
+  await assert.rejects(resolver(config), (error) => error.code === "conflicto_guardado");
+  const base = baseDocumento((await getDoc(usuario(config.db))).data());
+  await assert.rejects(resolver({ ...config, base }), /persona/);
+  assert.equal((await getDoc(evento(config.db))).data().estado, "sin_asignar");
+});
+
+test("dos confirmaciones concurrentes solo incorporan un grupo", async () => {
+  const config = await prepararEvento();
+  const resultados = await Promise.allSettled([resolver(config), resolver({ ...config, db: dbDe(OWNER) })]);
+  assert.ok(resultados.some((resultado) => resultado.status === "fulfilled"));
+  assert.equal((await getDoc(usuario(config.db))).data().items.length, 2);
+  assert.equal((await resolver(config)).hasCambio, false);
+});
+
+test("las reglas rechazan un recibo aislado o una confirmación sin añadir participaciones", async () => {
+  const config = await prepararEvento();
+  const ref = doc(config.db, "users", OWNER, "comprasConfirmadas", `auto_${EVENT}`);
+  const recibo = { schemaVersion: 1, compraId: `auto_${EVENT}`, eventId: EVENT, origen: "automatico",
+    ...revisionCompartida(), items: [{ persona: "A" }], creadaEn: serverTimestamp() };
+  await assertFails(setDoc(ref, recibo));
+  await assertFails(runTransaction(config.db, async (tx) => {
+    tx.set(ref, recibo);
+    tx.update(evento(config.db), { estado: "confirmada", compraId: `auto_${EVENT}`, resueltaEn: serverTimestamp() });
+  }));
+  assert.equal((await getDoc(evento(config.db))).data().estado, "sin_asignar");
+});
+
+test("confirmar conserva íntegros los registros legados sin ID y campos desconocidos", async () => {
+  const config = await prepararEvento();
+  const legado = { persona: "A", tarjeta: "Ejemplo", item: "Histórico", monto: 10.5, totales: 2, pagadas: 1 };
+  const anterior = { ...datos([legado]), personas: ["A", "B"], revision: 1, campoLegado: "preservar" };
+  await sembrar(anterior);
+  await resolver({ ...config, base: baseDocumento(anterior) });
+  const remoto = (await getDoc(usuario(config.db))).data();
+  assert.deepEqual(remoto.items[0], legado);
+  assert.equal(remoto.items.length, 3);
+  assert.equal(remoto.campoLegado, "preservar");
+});
+
+test("confirmar y descartar a la vez solo dejan una resolución coherente", async () => {
+  const config = await prepararEvento();
+  await Promise.allSettled([resolver(config), resolver({ ...config, db: dbDe(OWNER) }, "descartar")]);
+  const resuelto = (await getDoc(evento(config.db))).data();
+  const remoto = (await getDoc(usuario(config.db))).data();
+  const recibo = await getDoc(doc(config.db, "users", OWNER, "comprasConfirmadas", `auto_${EVENT}`));
+  assert.ok(["confirmada", "descartada"].includes(resuelto.estado));
+  assert.equal(recibo.exists(), resuelto.estado === "confirmada");
+  assert.equal(remoto.items.length, resuelto.estado === "confirmada" ? 2 : 0);
 });

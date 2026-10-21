@@ -1,4 +1,4 @@
-const CACHE_NAME = "cuotas-v18";
+const CACHE_NAME = "cuotas-v19";
 
 const urlsToCache = [
   "./",
@@ -11,6 +11,13 @@ const urlsToCache = [
   "./datos-compras.mjs",
   "./planes-cuotas.mjs",
   "./ui-plan-cuotas.mjs",
+  "./compras-pendientes.mjs",
+  "./reparto-compras.mjs",
+  "./confirmacion-compras.mjs",
+  "./repositorio-pendientes.mjs",
+  "./ui-pendientes.mjs",
+  "./ui-revision-compra.mjs",
+  "./compras.css",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png"

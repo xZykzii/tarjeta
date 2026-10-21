@@ -42,6 +42,6 @@ Las pruebas del emulador utilizan exclusivamente `demo-cuotas-local`, con puerto
 
 Las reglas desplegadas se auditaron el 2026-10-21 mediante lectura autenticada del release y ruleset, sin acceder a documentos ni escribir. Mantienen aislamiento por UID; la protección de revisión y el contrato nuevo todavía requieren las reglas propuestas. Evidencia y límites en `AUDITORIA_REGLAS.md`. Antes de publicar, coordinar el bloqueo de clientes antiguos con la PWA nueva. No se han desplegado las reglas propuestas.
 
-Las reglas de pendientes permiten creación mínima y lectura por el titular; la resolución está denegada hasta implementar y probar la confirmación atómica. Por tanto, esta versión **no activa** la bandeja ni la captura Android.
+Las reglas propuestas permiten captura mínima y resolución atómica con recibo inmutable, probada localmente. La bandeja web está implementada y descrita en `BANDEJA_COMPRAS.md`. No se activó en producción ni está conectada al APK de diagnóstico.
 
 Las reglas validan el contenedor histórico, sin reescribir cada compra antigua. El servicio de confirmación deberá añadir validación de planes, asignaciones y transiciones al implementar las tareas posteriores. El archivo actual no es una certificación de toda la integración futura.

@@ -136,10 +136,13 @@ function actualizarPreview(dialog) {
 }
 
 /** Diálogo reutilizable por el alta manual y la futura revisión de pendientes. */
-export function solicitarPlanCuotas({ planInicial = null } = {}) {
+export function solicitarPlanCuotas({ planInicial = null, montoInicial = null } = {}) {
   if (document.querySelector(".plan-dialog")) return Promise.resolve(null);
   const dialog = crearDialogo();
   rellenarPlan(dialog, planInicial);
+  if (!planInicial && Number.isSafeInteger(montoInicial) && montoInicial > 0) {
+    dialog.querySelector('[name="montoOriginal"]').value = montoInicial;
+  }
   document.body.append(dialog);
   actualizarPreview(dialog);
   return new Promise((resolve) => {

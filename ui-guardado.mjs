@@ -154,6 +154,20 @@ class ControlGuardado {
     return true;
   }
 
+  async ejecutarOperacion(operacion) {
+    if (!this.puedeModificar()) throw new Error("Resuelve el guardado pendiente antes de continuar.");
+    const generacion = this.generacion;
+    this.pendientes++;
+    this.actualizar();
+    try { return await this.cola.ejecutar(operacion); }
+    catch (error) {
+      this.registrarError(error, generacion);
+      throw error;
+    } finally {
+      if (generacion === this.generacion) { this.pendientes--; this.actualizar(); }
+    }
+  }
+
   avisarCierre(event) {
     if (!this.borradores.size && !this.pendientes) return;
     event.preventDefault();
@@ -176,6 +190,7 @@ export function crearControlGuardado(opciones) {
     iniciar: (uid) => control.iniciar(uid),
     cargar: (datos) => control.cargar(datos),
     guardar: (datos) => control.ejecutarGuardado(datos),
+    ejecutar: (operacion) => control.ejecutarOperacion(operacion),
     registrarError: (error) => control.registrarError(error),
     puedeModificar: () => control.puedeModificar(),
     puedeCerrarSesion: () => control.puedeCerrarSesion()

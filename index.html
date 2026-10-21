@@ -17,6 +17,7 @@
   <meta name="twitter:image" content="https://xzykzii.github.io/tarjeta/og.png" />
   <meta name="color-scheme" content="dark light" />
   <link rel="manifest" href="./manifest.json" />
+  <link rel="stylesheet" href="./compras.css" />
   <meta name="theme-color" content="#0a0a0b" />
   <script>
     if ("serviceWorker" in navigator) {
@@ -1183,6 +1184,8 @@
       </div>
     </section>
 
+    <div id="bandeja-compras"></div>
+
     <!-- Card tabs -->
     <div class="card-tabs-section">
       <div class="card-tabs-head">
@@ -1452,12 +1455,15 @@
   } from "./cuotas-item.mjs";
   import { normalizarCompra, normalizarCompras, serializarCompra, crearBackup, leerBackup, MAX_BACKUP_BYTES } from "./datos-compras.mjs";
   import { solicitarPlanCuotas, descripcionPlanCuotas } from "./ui-plan-cuotas.mjs";
+  import { crearBandejaCompras } from "./ui-pendientes.mjs";
+  import { escucharPendientes } from "./repositorio-pendientes.mjs";
+  import { resolverCompraRemota } from "./confirmacion-compras.mjs";
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
     getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import {
-    getFirestore, doc, getDoc, runTransaction
+    getFirestore, doc, getDoc, runTransaction, collection, query, where, limit, onSnapshot, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -1502,6 +1508,37 @@
       icon: "⚠", iconType: "danger", confirm: "Descartar borrador", cancel: "Volver"
     })
   });
+
+  const sdkCompras = { db, doc, runTransaction, collection, query, where, limit, onSnapshot, serverTimestamp };
+  const bandejaCompras = crearBandejaCompras({
+    contenedor: document.getElementById("bandeja-compras"),
+    escuchar: (uid, recibir, fallar) => escucharPendientes(sdkCompras, uid, recibir, fallar),
+    catalogo: () => ({ personas: [...personas], tarjetas: [...tarjetas] }),
+    puedeModificar: () => controlGuardado.puedeModificar(),
+    confirmar: (aviso, revision) => resolverAviso("confirmar", aviso, revision),
+    descartar: (aviso) => resolverAviso("descartar", aviso)
+  });
+
+  async function resolverAviso(accion, esperado, revision = null) {
+    if (!currentUser || !controlGuardado.puedeModificar()) throw new Error("Recarga los datos antes de continuar.");
+    const uid = currentUser.uid;
+    const resultado = await controlGuardado.ejecutar((base) => {
+      if (currentUser?.uid !== uid) throw new Error("La sesión cambió.");
+      return resolverCompraRemota(sdkCompras, { uid, accion, esperado, revision, base });
+    });
+    if (currentUser?.uid !== uid) return;
+    if (resultado.documento) aplicarDocumentoConfirmado(resultado.documento);
+    else if (accion === "confirmar") await loadData();
+    toast(accion === "confirmar" ? "Compra confirmada sin duplicar el aviso." : "Aviso descartado. Tus deudas no cambiaron.");
+  }
+
+  function aplicarDocumentoConfirmado(datos) {
+    items = normalizarCompras(datos.items, datos.tarjetas[0]);
+    tarjetas = datos.tarjetas; personas = datos.personas;
+    tarjetaActiva = datos.tarjetaActiva; saldos = datos.saldos; historial = datos.historial;
+    controlGuardado.cargar(datos);
+    renderCardTabs(); renderPersonaSelect(); renderTabla(); updateSaldoUI();
+  }
 
   // ── Theme ──
   const themeToggle = document.getElementById("themeToggle");
@@ -3268,6 +3305,7 @@
   });
 
   onAuthStateChanged(auth, async user => {
+    bandejaCompras.detener();
     document.querySelector(".plan-dialog")?.close();
     limpiarFormularioCompra();
     controlGuardado.iniciar(user?.uid || null);
@@ -3287,7 +3325,7 @@
       const initial = (user.displayName || user.email || "?")[0].toUpperCase();
       document.getElementById("headerAvatar").textContent = initial;
       document.getElementById("login-info").textContent = "";
-      await loadData();
+      if (await loadData() && currentUser?.uid === user.uid) bandejaCompras.iniciar(user.uid);
     } else {
       loginBox.classList.remove("hidden");
       contenido.classList.add("hidden");

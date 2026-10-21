@@ -52,6 +52,45 @@ service cloud.firestore {
         && datos.compraId == null && datos.creadaEn == request.time;
     }
 
+    function resolucionValida(uid, eventId) {
+      let datos = request.resource.data;
+      let compraId = 'auto_' + eventId;
+      let recibo = /databases/$(database)/documents/users/$(uid)/comprasConfirmadas/$(compraId);
+      return resource.data.estado == 'sin_asignar'
+        && datos.diff(resource.data).affectedKeys().hasOnly(['estado', 'compraId', 'resueltaEn'])
+        && datos.resueltaEn == request.time
+        && ((datos.estado == 'descartada' && datos.compraId == null)
+          || (datos.estado == 'confirmada' && datos.compraId == compraId
+            && !exists(recibo) && getAfter(recibo).data.eventId == eventId
+            && getAfter(recibo).data.creadaEn == request.time));
+    }
+
+    function reciboValido(uid, compraId) {
+      let datos = request.resource.data;
+      let usuario = /databases/$(database)/documents/users/$(uid);
+      let pendiente = /databases/$(database)/documents/users/$(uid)/comprasPendientes/$(datos.eventId);
+      return datos.keys().hasAll(['schemaVersion', 'compraId', 'eventId', 'origen', 'item',
+          'fechaCompra', 'tarjeta', 'planCuotas', 'asignaciones', 'items', 'creadaEn'])
+        && datos.keys().hasOnly(['schemaVersion', 'compraId', 'eventId', 'origen', 'item',
+          'fechaCompra', 'tarjeta', 'planCuotas', 'asignaciones', 'items', 'creadaEn'])
+        && datos.schemaVersion == 1 && datos.origen == 'automatico'
+        && datos.eventId is string && datos.eventId.matches('^[a-zA-Z0-9_-]{16,128}$')
+        && datos.compraId == compraId && compraId == 'auto_' + datos.eventId
+        && datos.item is string && datos.item.size() > 0 && datos.item.size() <= 200
+        && datos.fechaCompra is string && datos.fechaCompra.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && datos.tarjeta is string && get(usuario).data.tarjetas.hasAny([datos.tarjeta])
+        && datos.planCuotas is map && datos.asignaciones is list && datos.items is list
+        && datos.items.size() > 0 && datos.items.size() <= 100
+        && datos.asignaciones.size() == datos.items.size() && datos.creadaEn == request.time
+        && get(pendiente).data.estado == 'sin_asignar'
+        && getAfter(pendiente).data.estado == 'confirmada'
+        && getAfter(pendiente).data.compraId == compraId
+        && getAfter(pendiente).data.resueltaEn == request.time
+        && getAfter(usuario).data.revision == get(usuario).data.get('revision', 0) + 1
+        && getAfter(usuario).data.items == get(usuario).data.items.concat(datos.items)
+        && getAfter(usuario).data.diff(get(usuario).data).affectedKeys().hasOnly(['items', 'revision']);
+    }
+
     match /users/{uid} {
       allow read: if esTitular(uid);
       allow create: if esTitular(uid) && documentoUsuarioValido()
@@ -64,7 +103,14 @@ service cloud.firestore {
       match /comprasPendientes/{eventId} {
         allow read: if esTitular(uid);
         allow create: if esTitular(uid) && pendienteValido(eventId);
-        // Se habilitarán resoluciones cuando exista confirmación atómica probada.
+        allow update: if esTitular(uid) && resolucionValida(uid, eventId);
+        allow delete: if false;
+      }
+
+      match /comprasConfirmadas/{compraId} {
+        allow read: if esTitular(uid);
+        allow create: if esTitular(uid) && reciboValido(uid, compraId);
+        // Recibo de confirmación original. Pagos posteriores viven en el documento legado.
         allow update, delete: if false;
       }
     }

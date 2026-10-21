@@ -181,6 +181,23 @@ export function crearColaGuardado(guardar) {
     base = null;
   }
 
+  function ejecutar(operacion) {
+    const generacionActual = generacion;
+    const resultado = ultima.then(async () => {
+      if (hasBloqueo || !base || generacion !== generacionActual) {
+        throw new Error("Recarga los datos antes de continuar.");
+      }
+      const salida = await operacion(structuredClone(base));
+      if (generacion !== generacionActual) throw new Error("La sesión cambió durante la operación.");
+      if (salida.documento) base = baseDocumento(salida.documento);
+      return salida;
+    });
+    ultima = resultado.catch(() => {
+      if (generacion === generacionActual) hasBloqueo = true;
+    });
+    return resultado;
+  }
+
   function reintentar(datos) {
     // Conserva la misma base; nunca convierte un borrador viejo en escritura
     // sobre una revisión nueva. Si el servidor cambió, volverá a dar conflicto.
@@ -188,7 +205,7 @@ export function crearColaGuardado(guardar) {
     return encolar(datos);
   }
 
-  return { cargar, encolar, invalidar, reintentar };
+  return { cargar, encolar, invalidar, reintentar, ejecutar };
 }
 
 // Requisitos de activación:

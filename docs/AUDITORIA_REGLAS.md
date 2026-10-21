@@ -26,12 +26,12 @@ Se ejecutan con `npm run test:reglas`, exclusivamente contra `demo-cuotas-local`
 ## Condiciones antes de publicar
 
 - Coordinar las reglas de revisión con la PWA nueva y su renovación de caché.
-- Completar y probar las transiciones atómicas de confirmar y descartar; hoy
-  la propuesta deniega resolver pendientes hasta implementar ese contrato.
+- La propuesta local ya implementa transiciones atómicas con recibo inmutable,
+  probadas en emulador. Revisar `BANDEJA_COMPRAS.md` y coordinar su activación.
 - Verificar configuración, identidad y permisos del cliente Android antes de
   habilitar sincronización. El APK de diagnóstico no tiene Internet ni Firebase.
 - Repetir las pruebas del emulador cuando cambien las reglas o persistencia.
 - Obtener autorización expresa para el despliegue; esta auditoría no lo incluye.
 
-La tarea 6.1 cubre inspección y aislamiento local. Las reglas finales del flujo
-completo, su despliegue y la validación entre dispositivos siguen pendientes.
+La tarea 6.1 cubre inspección y aislamiento local. La propuesta de resolución
+está probada localmente; despliegue y validación entre dispositivos siguen pendientes.

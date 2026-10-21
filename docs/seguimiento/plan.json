@@ -4,14 +4,15 @@
   "fecha": "2026-10-21",
   "base": "58ebee85df3acf3b942f3ade944b40b63aa82af9",
   "objetivo": "Detectar compras reales desde Android, revisarlas sin asignación e incorporarlas solo al confirmar, conservando toda la PWA actual. Permitir repartir una compra entre varias personas con importes elegidos y suma exacta.",
-  "actual": "3.2",
-  "ultimaTerminada": "6.1",
+  "actual": "2.3",
+  "ultimaTerminada": "5.4",
   "arquitectura": [
     "PWA HTML/CSS/JS sin framework; index.html contiene UI, pagos y Firebase JS 10.12.0.",
     "Google Auth; users/{uid} conserva arrays y añade revisión de guardado. save usa transacción CAS y cola; getDoc valida base. Sin escucha en vivo todavía.",
     "cuotas-item.mjs es el adaptador común PWA/resúmenes/PDF; datos-compras preserva IDs y planes; ui-plan-cuotas ofrece configurador; SW cuotas-v18 y backup v7 compatible con v6.",
     "Legados conservan monto por cuota; planes explícitos y participaciones usan sus importes exactos sin duplicar contrato. El alta manual permite modalidades explícitas con previsualización.",
-    "Android separado: Kotlin con core JVM, NotificationListenerService y Activity nativa. Primera versión diagnóstico RAM sin Internet/Firebase; Gradle 8.11.1, AGP 8.9.2, Kotlin 2.2.21, API 35/mínimo 28."
+    "Android separado: Kotlin con core JVM, NotificationListenerService y Activity nativa. Primera versión diagnóstico RAM sin Internet/Firebase; Gradle 8.11.1, AGP 8.9.2, Kotlin 2.2.21, API 35/mínimo 28.",
+    "Bandeja y confirmación locales implementadas: onSnapshot por UID; recibo inmutable comprasConfirmadas/auto_{eventId}, participaciones + resolución atómicas y control CAS compartido. SW v19."
   ],
   "decisiones": [
     "Seguimiento separado de la PWA. docs/seguimiento/plan.json es la única fuente de verdad; Markdown y HTML se regeneran.",
@@ -23,15 +24,17 @@
     "Reanudación: conectar CAS/cola a escritores actuales, mostrar borrador recuperable ante fallo y probar aislamiento/concurrencia en emulador local antes de habilitar flujo automático.",
     "Roadmap reparado: servidor Node local reproducible en npm run roadmap; consulta plan.json sin caché cada 3 segundos, conserva vista válida y muestra conexión. Espera por dependencia se distingue de bloqueo explícito; no cambia pesos ni aceptación.",
     "El configurador exige el original de forma explícita y mantiene la entrada habitual por valor de cuota. Configurar o cancelar no escribe deuda; solo guardar aplica el plan. La edición financiera de planes existentes sigue protegida.",
-    "Primera app Android verificable por etapas: diagnóstico local voluntario y temporal, sin permiso de Internet ni deuda; no persistir compras antes de vincular el UID. Cola/Firebase se habilitarán en sus tareas, sin confundir diagnóstico con sincronización."
+    "Primera app Android verificable por etapas: diagnóstico local voluntario y temporal, sin permiso de Internet ni deuda; no persistir compras antes de vincular el UID. Cola/Firebase se habilitarán en sus tareas, sin confundir diagnóstico con sincronización.",
+    "La confirmación creará un recibo inmutable en comprasConfirmadas/{compraId}, añadirá todas sus participaciones al array legado y resolverá el pendiente en la misma transacción. Las reglas getAfter exigirán las tres partes; descartar no modifica deuda. No desplegar sin autorización."
   ],
   "problemas": [
     "Captura positiva revisada. Usuario confirma Samsung Galaxy S24 y ficha oficial Banco Falabella Chile (paquete cl.android). Faltan versión Android, extras reales y muestras negativas auténticas.",
     "Reglas vigentes auditadas solo por lectura; el contrato nuevo de revisión y pendientes requiere despliegue coordinado posterior. No se escribió en producción.",
     "Guardado protegido localmente con CAS y revisión; falta desplegar coordinadamente las reglas para bloquear clientes antiguos en producción. No publicar solo la PWA.",
-    "Captura automática y reparto todavía no tienen interfaz de revisión/confirmación. La edición de planes existentes conserva importes y pagos para evitar cambios financieros accidentales.",
     "La revisión automática rechazó iniciar el servidor localhost sin motivo adicional; no se pudo restaurar la URL en esta sesión. Servidor probado en puerto efímero; el usuario puede iniciarlo con npm run roadmap.",
-    "Captura del S24 aportada por el usuario: app instalada, cl.android detectado, consentimiento y acceso Android concedidos, servicio conectado. Primera compra nueva recibida y reconocida con campos coincidentes en dos capturas; falta cobertura de otros avisos y comportamiento prolongado. Lint: cero errores, una advertencia ObsoleteSdkInt por carpeta vacía; limpieza/repetición rechazadas por revisión automática sin motivo adicional."
+    "Captura del S24 aportada por el usuario: app instalada, cl.android detectado, consentimiento y acceso Android concedidos, servicio conectado. Primera compra nueva recibida y reconocida con campos coincidentes en dos capturas; falta cobertura de otros avisos y comportamiento prolongado. Lint: cero errores, una advertencia ObsoleteSdkInt por carpeta vacía; limpieza/repetición rechazadas por revisión automática sin motivo adicional.",
+    "Bandeja/confirmación/reparto implementados y probados solo localmente. La PWA pública, sus reglas y el APK de diagnóstico siguen sin sincronización nueva. No desplegar sin autorización.",
+    "No hay app Android registrada en Firebase. Preparar variante conectada, cola por UID y reintentos; configuración OAuth/registro y activación remota requieren revisión concreta."
   ],
   "archivos": [
     "docs/INSPECCION_INICIAL.md",
@@ -53,7 +56,7 @@
     "ui-guardado.mjs",
     "firestore.rules",
     "firebase.json",
-    "tests/persistencia-emulador.test.mjs",
+    "tests/persistencia-emulador.integration.mjs",
     "package.json",
     "package-lock.json",
     ".gitignore",
@@ -74,7 +77,14 @@
     "android/gradle/wrapper/gradle-wrapper.properties",
     "tests/fixtures/notificaciones-falabella.json",
     "tests/corpus-falabella.test.mjs",
-    "docs/AUDITORIA_REGLAS.md"
+    "docs/AUDITORIA_REGLAS.md",
+    "confirmacion-compras.mjs",
+    "repositorio-pendientes.mjs",
+    "ui-pendientes.mjs",
+    "ui-revision-compra.mjs",
+    "compras.css",
+    "tests/confirmacion.test.mjs",
+    "docs/BANDEJA_COMPRAS.md"
   ],
   "pruebas": [
     "12/12 pruebas preexistentes aprobadas (node --test tests/*.test.mjs).",
@@ -91,20 +101,24 @@
     "Node: 68/68 aprobadas, incluidos 15 casos compartidos con Kotlin. Positivos anonimizados; negativos y distribución de extras sintéticos.",
     "Auditoría remota de reglas completada por lectura autenticada del release/ruleset; fuente y procedencia privadas, SHA-256 documentado. No se leyeron documentos financieros ni se cambió producción.",
     "S24, evidencia parcial del usuario: captura de la pantalla real con paquete instalado, consentimiento, acceso concedido y servicio conectado. Cero avisos/reconocimientos; no acredita recepción, parser ni sincronización. No suma puntos de aceptación.",
-    "Primera compra real en S24: usuario confirmó detección y aportó notificación bancaria y resultado de Cuotas. Un aviso recibido y uno reconocido; monto, comercio y terminación coinciden. Sin datos financieros publicados. No prueba negativos, deduplicación, persistencia ni sincronización."
+    "Primera compra real en S24: usuario confirmó detección y aportó notificación bancaria y resultado de Cuotas. Un aviso recibido y uno reconocido; monto, comercio y terminación coinciden. Sin datos financieros publicados. No prueba negativos, deduplicación, persistencia ni sincronización.",
+    "Bloque bandeja: 84/84 Node y 14/14 Firestore emulador aprobadas. UI ficticia verificó reparto 700/300 con total 1000, partes iguales 500/500, descarte, offline, error visible/recuperación y logout. Ver docs/BANDEJA_COMPRAS.md.",
+    "Corrección adicional: gramática auténtica «Tu Adicional compró» soportada por JS/Kotlin v2, corpus 24 casos, 31 Android aprobadas y APK 0.1.1 firmado. No se conserva nombre ni se asigna persona. Prueba física nueva pendiente.",
+    "Firebase CLI consultó apps Android por lectura: ninguna registrada para este proyecto. No se creó app ni configuración remota.",
+    "Cierre de bandeja: 16/16 SDK/emulador, incluyendo conservación byte a byte de objetos legados sin ID y carrera confirmar/descartar con una sola resolución coherente. 84 Node. UI final revisada tras evitar caché del servidor de pruebas."
   ],
   "incompletas": [
     "1.3/2.2: puerto Kotlin provisional con corpus compartido; primera recepción y normalización positiva verificadas en S24 mediante capturas. Faltan distribución exacta de extras, negativos auténticos, actualizaciones y validación física más amplia.",
     "2.3/2.4: no hay cola persistente, deduplicación, cuenta Firebase ni sincronización Android. No convertir diagnóstico en deuda.",
-    "3.2 es la siguiente tarea independiente: bandeja por UID con errores visibles y limpieza de suscripción; después confirmación atómica y reparto.",
-    "6.1 auditada con propuesta local probada. Faltan reglas finales de resolución, despliegue coordinado y validación entre dispositivos. No se modificó producción."
+    "6.1 auditada con propuesta local probada. Faltan reglas finales de resolución, despliegue coordinado y validación entre dispositivos. No se modificó producción.",
+    "En preparación Android: variante conectada separada de diagnóstico, Room por UID, identidad persistente, WorkManager y Google Auth. Antes de modificar: android/app/build.gradle.kts, source sets conectada/diagnostico, DestinoCompras.kt y documentos de configuración. No activar envío sin consentimiento y cuenta."
   ],
   "continuar": [
     "REANUDADO el 2026-10-21 por solicitud explícita del usuario. Continuar tareas verificables y conservar estado tras cada bloque.",
     "Worktree: outputs/tarjeta en la carpeta de esta conversación; rama codex/compras-falabella. Leer ROADMAP.md y ESTADO_PROYECTO.md; comprobar git status, diff y log antes de editar.",
-    "Base vigente: 51/100 puntos, 68 Node, 22 Android y 9 Firestore/emulador (estos últimos de la entrega previa). Ver fuentes de evidencia; no repetir pruebas sin cambios o preocupación nueva.",
-    "Continuar 3.2: bandeja web aislada por UID con estados de carga/error y cancelación al salir. Mantener confirmación/descarte deshabilitados hasta su transacción y reglas probadas. La prueba física Android avanza en paralelo cuando el titular pueda hacerla.",
-    "La UI de reparto debe editar/confirmar el grupo completo y conservar importes por persona y por mes. Todavía no está implementada; no confundir fixtures importados con captura operativa.",
+    "Base vigente: 65/100 puntos, 84 Node, 31 Android y 16 Firestore/emulador aprobadas. Nuevas pruebas solo cuando cambien los módulos o exista preocupación pendiente.",
+    "Continuar Android 2.3/2.4: cola mínima por UID, WorkManager y conexión Google configurada. Mantener diagnóstico sin Internet disponible por separado. No declarar deduplicación bancaria ni soporte físico general con una sola positiva.",
+    "La bandeja ya edita y confirma el grupo completo con importes por persona/mes. Aún no se publica ni recibe datos del APK. La redistribución financiera de grupos ya pagados no está habilitada.",
     "Datos confirmados: Samsung Galaxy S24; Banco Falabella Chile de ficha Google Play cl.android. Captura positiva transcrita de forma anonimizada en docs/FORMATO_NOTIFICACION.md. Faltan Android/One UI exactos, extras de notificación y muestras negativas auténticas.",
     "SDK API 35, Build Tools 35.0.0, Platform Tools y Gradle instalados fuera del repo en work/herramientas con aceptación explícita del titular; sin PATH global. APK debug en outputs/apk; guía android/PRUEBA_S24.md. No hay teléfono conectado por ADB. La captura del usuario verifica instalación, autorización y conexión mostradas en S24; dos capturas posteriores verifican recepción y reconocimiento de una compra nueva con campos coincidentes.",
     "El prototipo JS tiene puerto Kotlin y corpus compartido; el flag conservador del prototipo JS sigue en falso hasta su validación integral; la primera positiva física del puerto Kotlin ya está documentada. La app solo mantiene resultados en RAM. No activar persistencia o sincronización antes de vincular y verificar UID.",
@@ -257,7 +271,7 @@
           "dependencias": [
             "2.2"
           ],
-          "estado": "pendiente",
+          "estado": "en_curso",
           "evidencia": ""
         },
         {
@@ -298,8 +312,8 @@
             "3.1",
             "6.1"
           ],
-          "estado": "pendiente",
-          "evidencia": ""
+          "estado": "completada",
+          "evidencia": "Suscripción limitada por UID, metadatos de caché, contador y errores visibles; cancelación al salir y callbacks tardíos aislados. Node y UI ficticia aprobadas. docs/BANDEJA_COMPRAS.md."
         },
         {
           "id": "3.3",
@@ -311,8 +325,8 @@
             "4.3",
             "5.1"
           ],
-          "estado": "pendiente",
-          "evidencia": ""
+          "estado": "completada",
+          "evidencia": "resolverCompraRemota crea recibo inmutable, añade participaciones y resuelve pendiente en una transacción; descarte terminal sin deuda. 16 pruebas Firestore/emulador, incluidas concurrencia e idempotencia."
         },
         {
           "id": "3.4",
@@ -323,8 +337,8 @@
             "3.2",
             "4.1"
           ],
-          "estado": "pendiente",
-          "evidencia": ""
+          "estado": "completada",
+          "evidencia": "Revisión permite descripción, fecha explícita, personas/tarjeta existentes y modalidades; revalida catálogos dentro de transacción. Original bancario conservado, errores no generan deuda."
         },
         {
           "id": "3.5",
@@ -336,8 +350,8 @@
             "4.5",
             "5.2"
           ],
-          "estado": "pendiente",
-          "evidencia": ""
+          "estado": "completada",
+          "evidencia": "Edición del reparto completo antes de confirmar, importes libres/iguales y previsualización por persona/mes. UI ficticia 700/300 y 500/500; grupo atómico conserva suma y saldos. Edición financiera posterior a pagos protegida."
         }
       ]
     },
@@ -450,8 +464,8 @@
             "5.3",
             "3.3"
           ],
-          "estado": "pendiente",
-          "evidencia": ""
+          "estado": "completada",
+          "evidencia": "SW v19 incluye bandeja y sus dependencias. 84 Node y 16 emulador; UI ejecutó confirmación, descarte, caché/error/recuperación y logout. Suscripciones/diálogos se cancelan al cambiar sesión. Sin despliegue."
         }
       ]
     },
