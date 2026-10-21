@@ -19,7 +19,7 @@ function node(tag = "div") {
   };
 }
 
-function browser() {
+function browser(fixture = plan) {
   const nodes = new Map([...template.matchAll(/id="([^"]+)"/g)].map((match) => [match[1], node()]));
   nodes.get("filter").value = "todos";
   const find = (id) => {
@@ -33,7 +33,7 @@ function browser() {
     AbortSignal, setInterval() {}
   });
   const source = template.match(/<script>([\s\S]*?)<\/script>/)[1]
-    .replace("/*__PLAN__*/null", JSON.stringify(plan));
+    .replace("/*__PLAN__*/null", JSON.stringify(fixture));
   runInContext(source, context);
   return { context, nodes, errors, run:(source) => runInContext(source, context) };
 }
@@ -78,7 +78,14 @@ test("ir a actual abre su fase y el marcador no sigue a la tarea inspeccionada",
 });
 
 test("las dependencias pendientes se distinguen de impedimentos explícitos", () => {
-  const page = browser();
+  const fixture = structuredClone(plan);
+  const tasks = fixture.fases.flatMap((fase) => fase.tareas);
+  const tLast = tasks.at(-1);
+  const tPrev = tasks.at(-2);
+  tPrev.estado = "pendiente";
+  tLast.estado = "pendiente";
+  tLast.dependencias = [tPrev.id];
+  const page = browser(fixture);
   const states = page.run('tasks.map((t) => ({ id:t.id, source:t.estado, effective:state(t), deps:blockedBy(t).length }))');
   assert.ok(states.some((t) => t.effective === "en_espera"));
   assert.ok(states.every((t) => t.effective !== "bloqueada" || t.source === "bloqueada"));
@@ -89,15 +96,18 @@ test("la actualización en vivo rechaza ciclos y aceptación con dependencias si
   const page = browser();
   page.context.location.protocol = "http:";
   const invalid = structuredClone(plan);
-  const task = invalid.fases.flatMap((fase) => fase.tareas).find((t) => t.estado === "pendiente" && t.dependencias.length);
+  const task = invalid.fases.flatMap((fase) => fase.tareas).find((t) => t.dependencias.length);
   task.dependencias = [task.id];
   page.context.fetch = async () => ({ ok:true, json:async () => invalid });
   await page.run("refreshPlan()");
   assert.equal(page.nodes.get("connection").dataset.state, "error");
   const inconsistent = structuredClone(plan);
-  const pending = inconsistent.fases.flatMap((fase) => fase.tareas).find((t) => t.estado === "pendiente" && t.dependencias.some((id) => plan.fases.flatMap((fase) => fase.tareas).find((d) => d.id === id).estado !== "completada"));
-  pending.estado = "completada";
-  pending.evidencia = "Declaración incompatible con sus dependencias";
+  const depTask = inconsistent.fases.flatMap((fase) => fase.tareas).find((t) => t.dependencias.length);
+  const depId = depTask.dependencias[0];
+  const dependency = inconsistent.fases.flatMap((fase) => fase.tareas).find((t) => t.id === depId);
+  dependency.estado = "pendiente";
+  depTask.estado = "completada";
+  depTask.evidencia = "Declaración incompatible con sus dependencias";
   page.context.fetch = async () => ({ ok:true, json:async () => inconsistent });
   await page.run("refreshPlan()");
   assert.equal(page.nodes.get("connection").dataset.state, "error");

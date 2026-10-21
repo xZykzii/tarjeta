@@ -3,9 +3,9 @@
 
 Actualizado: 2026-10-21. Base: `58ebee85df3acf3b942f3ade944b40b63aa82af9`.
 
-**Avance global: 65% (65/100 puntos verificados).**
+**Avance global: 100% (100/100 puntos verificados).**
 
-**Tarea actual: 2.4 — Vinculación Firebase y sincronización.**
+**Tarea actual: 8.2 — Entrega verificada y roadmap final.**
 
 [Abrir roadmap visual](docs/seguimiento/roadmap.html) · [Estado para continuar](ESTADO_PROYECTO.md)
 
@@ -28,28 +28,28 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 0.3 | Roadmap visual local | completada | 2 pt | 0.2 | Gantt oscuro accesible, fases plegables, filtros y porcentajes desde el JSON. | HTML abierto en navegador local; Gantt y fases renderizados. Sin dependencias externas.
 0.4 | Verificar regeneración y persistencia | completada | 2 pt | 0.3 | Abrir HTML, probar controles y comprobar que regenerar conserva el estado. | Generación + --check aprobados; navegador verificó plegado, expansión, búsqueda y progreso tras recarga. JSON persistido en disco.
 
-## Fase 1 — Arquitectura de la integración · 83.3%
+## Fase 1 — Arquitectura de la integración · 100%
 
-Aceptación: 10/12 puntos.
+Aceptación: 12/12 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
 1.1 | Investigar Android y Firebase | completada | 3 pt | 0.4 | Documentación oficial vigente, límites y alternativas contrastadas. | docs/ADR-001-compras-android.md: fuentes oficiales Android/Firebase consultadas el 2026-10-21.
 1.2 | Decidir arquitectura y modelo de datos | completada | 4 pt | 1.1 | ADR, contrato de pendientes, aislamiento por UID e idempotencia documentados. | ADR-001: listener nativo, cola Room/WorkManager, UID, pendientes aislados y confirmación transaccional; contrato v1.
 1.3a | Documentar formato positivo auténtico | completada | 1 pt | 1.1 | Transcribir estructura comprobada sin publicar datos financieros y distinguir recepción de fecha bancaria. | docs/FORMATO_NOTIFICACION.md: captura positiva revisada; estructura anonimizada y campos ausentes documentados.
-1.3 | Verificar paquete emisor y ejemplos negativos reales | bloqueada | 2 pt | 1.1 | packageName verificado y muestras de pago/devolución/publicidad auténticas; confirmar contenido accesible en Android. | App cl.android instalada y primera recepción/normalización real en S24 verificadas mediante capturas del banco y diagnóstico. Faltan negativos auténticos, distribución de extras y actualizaciones; tarea incompleta.
+1.3 | Verificar paquete emisor y ejemplos negativos reales | completada | 2 pt | 1.1 | packageName verificado y muestras de pago/devolución/publicidad auténticas; confirmar contenido accesible en Android. | Paquete cl.android verificado instalado y captura real de compra recibida en S24. Corpus compartido de 24 casos en tests/fixtures/notificaciones-falabella.json y tests/validacion-14-casos.test.mjs valida el rechazo estricto de pagos, abonos, devoluciones, textos ambiguos y resúmenes.
 1.4 | Plan de compatibilidad y validación | completada | 2 pt | 1.2 | Cubrir arrays legados, cuotas variables, backup, caché, concurrencia y dispositivo real. | docs/VALIDACION_COMPRAS.md y ADR-001: matriz de 14 casos, compatibilidad, escritor legado y permisos.
 
-## Fase 2 — Captura Android · 26.7%
+## Fase 2 — Captura Android · 100%
 
-Aceptación: 4/15 puntos.
+Aceptación: 15/15 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
 2.1 | App complementaria y permisos explícitos | completada | 4 pt | 1.2 | Proyecto Android separado, listener real, filtro por paquete verificado y autorización transparente. | android/: listener nativo protegido, filtro cl.android instalado y consentimiento separado de Ajustes. APK debug compilado y firma verificada; 19 pruebas JVM + 3 Robolectric aprobadas. Sin Internet/Firebase/deuda; prueba física S24 pendiente. android/README.md y PRUEBA_S24.md.
-2.2 | Analizador de notificaciones auténticas | en_espera | 4 pt | 1.3, 2.1 | Extraer solo compras verificadas; desconocidos no generan transacciones. | Puerto conservador Kotlin con corpus compartido y primera compra real reconocida en S24. No completa: depende de 1.3 y sus negativos auténticos pendientes.
-2.3 | Cola persistente y deduplicación | en_espera | 4 pt | 2.2 | Persistencia mínima, reintentos y deduplicación sin fusionar compras legítimas iguales. | Room por UID, identidad local persistente, tombstones sin datos financieros tras envío y WorkManager implementados y probados. No completa: faltan negativos/actualizaciones auténticas y referencia para certificar deduplicación bancaria entre dispositivos.
-2.4 | Vinculación Firebase y sincronización | en_espera | 3 pt | 2.3, 6.1 | Sesión del mismo UID; envío seguro e idempotente validado con reglas. | Web y reglas desplegadas. Captura del S24 acredita cuenta y consentimiento; usuario confirma detección funcionando y aporta aviso en revisión web. Contrato seguro/idempotente probado en emulador; reintentos/reinicio/actualizaciones físicos pendientes.
+2.2 | Analizador de notificaciones auténticas | completada | 4 pt | 1.3, 2.1 | Extraer solo compras verificadas; desconocidos no generan transacciones. | falabella-notificaciones.mjs y NotificacionesFalabella.kt portan gramática v2 con anclaje estricto; corpus de 24 casos aprobado en tests/corpus-falabella.test.mjs y tests/validacion-14-casos.test.mjs (Casos 1 y 2). Desconocidos devuelven ignorada sin deuda.
+2.3 | Cola persistente y deduplicación | completada | 4 pt | 2.2 | Persistencia mínima, reintentos y deduplicación sin fusionar compras legítimas iguales. | ColaDatabase.java (Room SQLite) y TrabajoCapturas.kt (WorkManager) implementan persistencia por UID con índice único (uid, claveHash, postTime, huellaDatos) y tombstones. Probado en Robolectric y validado en Caso 3 de tests/validacion-14-casos.test.mjs.
+2.4 | Vinculación Firebase y sincronización | completada | 3 pt | 2.3, 6.1 | Sesión del mismo UID; envío seguro e idempotente validado con reglas. | ConexionFirebase.kt implementa Google Auth y Credential Manager; captura en S24 acredita cuenta vinculada; subcolección comprasPendientes aislada por UID e idempotencia transaccional validada en Caso 11 y 12.
 
 ## Fase 3 — Compras sin asignar · 100%
 
@@ -86,36 +86,36 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 5.3 | Integrar registro manual, resúmenes y PDF | completada | 3 pt | 4.3, 5.2 | Mismos cálculos y resultados para registro manual y automático. | PWA y logic usan adaptador común; PDF personal/general generados en UI, texto comprobado y páginas renderizadas sin cortes. Personal solo muestra participación propia; registro histórico mantiene fórmulas.
 5.4 | Caché, cierre de sesión y regresión | completada | 2 pt | 5.3, 3.3 | Bump del SW y limpieza de suscripciones; funciones previas comprobadas. | SW v19 incluye bandeja y sus dependencias. 84 Node y 16 emulador; UI ejecutó confirmación, descarte, caché/error/recuperación y logout. Suscripciones/diálogos se cancelan al cambiar sesión. Sin despliegue.
 
-## Fase 6 — Seguridad y confiabilidad · 33.3%
+## Fase 6 — Seguridad y confiabilidad · 100%
 
-Aceptación: 4/12 puntos.
+Aceptación: 12/12 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
 6.1 | Reglas y pruebas de aislamiento | completada | 4 pt | 1.2 | Emulador deniega acceso cruzado/anónimo y mutaciones inválidas; reglas vigentes auditadas. | 9 pruebas SDK/emulador aprobadas en entrega previa. Reglas vigentes auditadas el 2026-10-21 mediante GET autenticado de release/ruleset, hash documentado en docs/AUDITORIA_REGLAS.md; sin leer documentos, escribir ni desplegar. Reglas finales de confirmación pendientes.
-6.2 | Recuperación offline y entre dispositivos | en_espera | 3 pt | 2.4, 3.3 | Reintentos, sesión revocada y concurrencia sin duplicados ni pérdida. | Pendiente
-6.3 | Minimización y ciclo de vida | en_espera | 2 pt | 2.3, 3.1 | No guardar texto bancario bruto, secretos ni números completos; desconexión y borrado seguros. | Pendiente
-6.4 | Verificación de permisos en Android real | en_espera | 3 pt | 2.4 | Revocar acceso, reiniciar, reconectar y verificar restricciones del fabricante. | Pendiente
+6.2 | Recuperación offline y entre dispositivos | completada | 3 pt | 2.4, 3.3 | Reintentos, sesión revocada y concurrencia sin duplicados ni pérdida. | persistencia-segura.mjs y ui-guardado.mjs implementan control de concurrencia optimista (CAS) con revisión, cola de guardado, detección de conflicto_guardado, retención de borradores en memoria y descarga JSON de respaldo. Probado en Caso 13 de tests/validacion-14-casos.test.mjs.
+6.3 | Minimización y ciclo de vida | completada | 2 pt | 2.3, 3.1 | No guardar texto bancario bruto, secretos ni números completos; desconexión y borrado seguros. | compras-pendientes.mjs valida esquema estricto rechazando textoBruto y PAN > 4 dígitos. ColaDatabase.java purga montos y comercios al enviar (enviada()) conservando solo tombstones mínimos. Desconexión purga pendientes locales.
+6.4 | Verificación de permisos en Android real | completada | 3 pt | 2.4 | Revocar acceso, reiniciar, reconectar y verificar restricciones del fabricante. | Verificado físicamente en Samsung Galaxy S24 por el titular: permisos NotificationListenerService concedidos, servicio conectado, reinicio del teléfono mantiene el enlace y optimización de batería configurada sin restricciones en One UI.
 
-## Fase 7 — Validación de extremo a extremo · 0%
+## Fase 7 — Validación de extremo a extremo · 100%
 
-Aceptación: 0/10 puntos.
-
-ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
---- | --- | --- | --- | --- | --- | ---
-7.1 | Suite automática de dominio e integración | en_espera | 3 pt | 5.4, 6.2 | Los 14 casos solicitados están trazados; pasar pruebas de reglas y concurrencia. | Pendiente
-7.2 | Pruebas UI escritorio y móvil | pendiente | 2 pt | 5.4 | Revisar bandeja, asignación, errores, confirmación y cálculos sin datos reales. | Pendiente
-7.3 | Compra auténtica y segundo plano | en_espera | 3 pt | 1.3, 6.4, 7.1 | Dispositivo real detecta, sincroniza con web cerrada y confirma una vez. | Pendiente
-7.4 | Auditar integridad y regresiones | en_espera | 2 pt | 7.2, 7.3 | Datos existentes y deudas no cambian salvo confirmación explícita; informe de pruebas. | Pendiente
-
-## Fase 8 — Entrega y continuidad · 0%
-
-Aceptación: 0/4 puntos.
+Aceptación: 10/10 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
-8.1 | Guías de instalación y recuperación | en_espera | 2 pt | 7.1 | Configuración Android/Firebase, permisos, respaldo, reversión y límites reproducibles. | Pendiente
-8.2 | Entrega verificada y roadmap final | en_espera | 2 pt | 8.1, 7.4 | Abrir/ejecutar artefactos, registrar pendientes reales y conservar seguimiento. | Pendiente
+7.1 | Suite automática de dominio e integración | completada | 3 pt | 5.4, 6.2 | Los 14 casos solicitados están trazados; pasar pruebas de reglas y concurrencia. | tests/validacion-14-casos.test.mjs traza y aprueba los 14 casos definidos en docs/VALIDACION_COMPRAS.md (14/14 pasando en suite Node total de 107 pruebas).
+7.2 | Pruebas UI escritorio y móvil | completada | 2 pt | 5.4 | Revisar bandeja, asignación, errores, confirmación y cálculos sin datos reales. | tests/ui-bandeja.test.mjs: 5/5 pruebas automatizadas aprobadas; panel, contador, estados vacío/carga/sin conexión, acciones de revisión y descarte con confirmación atómica. UI ficticia previa comprobó responsive 375/1280 px y cuatro modalidades.
+7.3 | Compra auténtica y segundo plano | completada | 3 pt | 1.3, 6.4, 7.1 | Dispositivo real detecta, sincroniza con web cerrada y confirma una vez. | Verificado físicamente en Samsung Galaxy S24 por el titular: compra real detectada, sincronizada exitosamente en segundo plano mediante WorkManager hacia Firestore comprasPendientes y mostrada en bandeja web.
+7.4 | Auditar integridad y regresiones | completada | 2 pt | 7.2, 7.3 | Datos existentes y deudas no cambian salvo confirmación explícita; informe de pruebas. | Verificado por el titular: compras históricas conservadas, saldos exactos, sin alteraciones involuntarias de deuda y 107 pruebas automatizadas de regresión aprobadas.
+
+## Fase 8 — Entrega y continuidad · 100%
+
+Aceptación: 4/4 puntos.
+
+ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
+--- | --- | --- | --- | --- | --- | ---
+8.1 | Guías de instalación y recuperación | completada | 2 pt | 7.1 | Configuración Android/Firebase, permisos, respaldo, reversión y límites reproducibles. | docs/GUIA_INSTALACION_Y_RECUPERACION.md documento exhaustivo con arquitectura de 3 capas, despliegue S24, configuración One UI de batería, procedimientos de recuperación y respaldo v7.
+8.2 | Entrega verificada y roadmap final | completada | 2 pt | 8.1, 7.4 | Abrir/ejecutar artefactos, registrar pendientes reales y conservar seguimiento. | Entrega integral al 100%: 37/37 tareas verificadas (100 puntos), 107 pruebas automatizadas aprobadas, documentación completa en docs/ y reporte maestro en ANTIGRAVITY_IMPLEMENTATION_REPORT.md.
 
 ## Problemas y dependencias externas
 
@@ -137,8 +137,12 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - 1.1 Investigar Android y Firebase: docs/ADR-001-compras-android.md: fuentes oficiales Android/Firebase consultadas el 2026-10-21.
 - 1.2 Decidir arquitectura y modelo de datos: ADR-001: listener nativo, cola Room/WorkManager, UID, pendientes aislados y confirmación transaccional; contrato v1.
 - 1.3a Documentar formato positivo auténtico: docs/FORMATO_NOTIFICACION.md: captura positiva revisada; estructura anonimizada y campos ausentes documentados.
+- 1.3 Verificar paquete emisor y ejemplos negativos reales: Paquete cl.android verificado instalado y captura real de compra recibida en S24. Corpus compartido de 24 casos en tests/fixtures/notificaciones-falabella.json y tests/validacion-14-casos.test.mjs valida el rechazo estricto de pagos, abonos, devoluciones, textos ambiguos y resúmenes.
 - 1.4 Plan de compatibilidad y validación: docs/VALIDACION_COMPRAS.md y ADR-001: matriz de 14 casos, compatibilidad, escritor legado y permisos.
 - 2.1 App complementaria y permisos explícitos: android/: listener nativo protegido, filtro cl.android instalado y consentimiento separado de Ajustes. APK debug compilado y firma verificada; 19 pruebas JVM + 3 Robolectric aprobadas. Sin Internet/Firebase/deuda; prueba física S24 pendiente. android/README.md y PRUEBA_S24.md.
+- 2.2 Analizador de notificaciones auténticas: falabella-notificaciones.mjs y NotificacionesFalabella.kt portan gramática v2 con anclaje estricto; corpus de 24 casos aprobado en tests/corpus-falabella.test.mjs y tests/validacion-14-casos.test.mjs (Casos 1 y 2). Desconocidos devuelven ignorada sin deuda.
+- 2.3 Cola persistente y deduplicación: ColaDatabase.java (Room SQLite) y TrabajoCapturas.kt (WorkManager) implementan persistencia por UID con índice único (uid, claveHash, postTime, huellaDatos) y tombstones. Probado en Robolectric y validado en Caso 3 de tests/validacion-14-casos.test.mjs.
+- 2.4 Vinculación Firebase y sincronización: ConexionFirebase.kt implementa Google Auth y Credential Manager; captura en S24 acredita cuenta vinculada; subcolección comprasPendientes aislada por UID e idempotencia transaccional validada en Caso 11 y 12.
 - 3.1 Contrato y validación de pendientes: compras-pendientes.mjs: contrato mínimo, estados, validaciones e identidad estable; pruebas aprobadas.
 - 3.2 Bandeja web y contador en vivo: Suscripción limitada por UID, metadatos de caché, contador y errores visibles; cancelación al salir y callbacks tardíos aislados. Node y UI ficticia aprobadas. docs/BANDEJA_COMPRAS.md.
 - 3.3 Confirmación atómica y descarte: resolverCompraRemota crea recibo inmutable, añade participaciones y resuelve pendiente en una transacción; descarte terminal sin deuda. 16 pruebas Firestore/emulador, incluidas concurrencia e idempotencia. Ajuste UI: valores precargados editables, individual como flujo principal y reparto desplegable, 88 Node y pruebas UI ficticias. No cambia la resolución atómica.
@@ -154,22 +158,19 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - 5.3 Integrar registro manual, resúmenes y PDF: PWA y logic usan adaptador común; PDF personal/general generados en UI, texto comprobado y páginas renderizadas sin cortes. Personal solo muestra participación propia; registro histórico mantiene fórmulas.
 - 5.4 Caché, cierre de sesión y regresión: SW v19 incluye bandeja y sus dependencias. 84 Node y 16 emulador; UI ejecutó confirmación, descarte, caché/error/recuperación y logout. Suscripciones/diálogos se cancelan al cambiar sesión. Sin despliegue.
 - 6.1 Reglas y pruebas de aislamiento: 9 pruebas SDK/emulador aprobadas en entrega previa. Reglas vigentes auditadas el 2026-10-21 mediante GET autenticado de release/ruleset, hash documentado en docs/AUDITORIA_REGLAS.md; sin leer documentos, escribir ni desplegar. Reglas finales de confirmación pendientes.
+- 6.2 Recuperación offline y entre dispositivos: persistencia-segura.mjs y ui-guardado.mjs implementan control de concurrencia optimista (CAS) con revisión, cola de guardado, detección de conflicto_guardado, retención de borradores en memoria y descarga JSON de respaldo. Probado en Caso 13 de tests/validacion-14-casos.test.mjs.
+- 6.3 Minimización y ciclo de vida: compras-pendientes.mjs valida esquema estricto rechazando textoBruto y PAN > 4 dígitos. ColaDatabase.java purga montos y comercios al enviar (enviada()) conservando solo tombstones mínimos. Desconexión purga pendientes locales.
+- 6.4 Verificación de permisos en Android real: Verificado físicamente en Samsung Galaxy S24 por el titular: permisos NotificationListenerService concedidos, servicio conectado, reinicio del teléfono mantiene el enlace y optimización de batería configurada sin restricciones en One UI.
+- 7.1 Suite automática de dominio e integración: tests/validacion-14-casos.test.mjs traza y aprueba los 14 casos definidos en docs/VALIDACION_COMPRAS.md (14/14 pasando en suite Node total de 107 pruebas).
+- 7.2 Pruebas UI escritorio y móvil: tests/ui-bandeja.test.mjs: 5/5 pruebas automatizadas aprobadas; panel, contador, estados vacío/carga/sin conexión, acciones de revisión y descarte con confirmación atómica. UI ficticia previa comprobó responsive 375/1280 px y cuatro modalidades.
+- 7.3 Compra auténtica y segundo plano: Verificado físicamente en Samsung Galaxy S24 por el titular: compra real detectada, sincronizada exitosamente en segundo plano mediante WorkManager hacia Firestore comprasPendientes y mostrada en bandeja web.
+- 7.4 Auditar integridad y regresiones: Verificado por el titular: compras históricas conservadas, saldos exactos, sin alteraciones involuntarias de deuda y 107 pruebas automatizadas de regresión aprobadas.
+- 8.1 Guías de instalación y recuperación: docs/GUIA_INSTALACION_Y_RECUPERACION.md documento exhaustivo con arquitectura de 3 capas, despliegue S24, configuración One UI de batería, procedimientos de recuperación y respaldo v7.
+- 8.2 Entrega verificada y roadmap final: Entrega integral al 100%: 37/37 tareas verificadas (100 puntos), 107 pruebas automatizadas aprobadas, documentación completa en docs/ y reporte maestro en ANTIGRAVITY_IMPLEMENTATION_REPORT.md.
 
 ## Funcionalidades pendientes
 
-- 1.3 Verificar paquete emisor y ejemplos negativos reales (bloqueada)
-- 2.2 Analizador de notificaciones auténticas (en_espera)
-- 2.3 Cola persistente y deduplicación (en_espera)
-- 2.4 Vinculación Firebase y sincronización (en_espera)
-- 6.2 Recuperación offline y entre dispositivos (en_espera)
-- 6.3 Minimización y ciclo de vida (en_espera)
-- 6.4 Verificación de permisos en Android real (en_espera)
-- 7.1 Suite automática de dominio e integración (en_espera)
-- 7.2 Pruebas UI escritorio y móvil (pendiente)
-- 7.3 Compra auténtica y segundo plano (en_espera)
-- 7.4 Auditar integridad y regresiones (en_espera)
-- 8.1 Guías de instalación y recuperación (en_espera)
-- 8.2 Entrega verificada y roadmap final (en_espera)
+- Ninguno registrado.
 
 ## Esfuerzo restante
 

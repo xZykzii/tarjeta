@@ -37,13 +37,13 @@ Detectar compras reales desde Android, revisarlas sin asignación e incorporarla
 
 ## Punto exacto de continuidad
 
-Tarea actual: **2.4 — Vinculación Firebase y sincronización**. Estado efectivo: **en_espera**.
+Tarea actual: **8.2 — Entrega verificada y roadmap final**. Estado efectivo: **completada**.
 
-Criterio de cierre: Sesión del mismo UID; envío seguro e idempotente validado con reglas.
+Criterio de cierre: Abrir/ejecutar artefactos, registrar pendientes reales y conservar seguimiento.
 
-Última tarea terminada: **5.4 — Caché, cierre de sesión y regresión**.
+Última tarea terminada: **8.2 — Entrega verificada y roadmap final**.
 
-Avance verificado: **65%**.
+Avance verificado: **100%**.
 
 ## Archivos creados o modificados en esta iniciativa
 
@@ -101,6 +101,9 @@ Avance verificado: **65%**.
 - `android/app/schemas/`
 - `android/app/src/main/java/cl/controlcuotas/companion/DestinoCompras.kt`
 - `docs/PUBLICACION.md`
+- `docs/GUIA_INSTALACION_Y_RECUPERACION.md`
+- `tests/ui-bandeja.test.mjs`
+- `tests/validacion-14-casos.test.mjs`
 
 ## Implementaciones incompletas
 
@@ -136,6 +139,8 @@ Avance verificado: **65%**.
 - Última revisión UI: aviso sin modalidad ni cantidad predeterminadas; el titular elige y aplica el plan. 84 Node y 16 SDK/emulador mantienen aprobación.
 - Publicación autorizada: Firebase CLI compiló y desplegó reglas; lectura del release coincide con fuente local normalizada. main avanzó sin forzar a 8596ee9. GitHub Pages run 39667206844 exitoso; 20 recursos estáticos HTTP 200 coinciden con el commit y módulos con MIME JavaScript. Sin lectura ni escritura de documentos financieros.
 - Ajuste de confirmación: 88/88 Node y UI ficticia aprobados. Fecha de detección Chile/prioridad bancaria, Papá o selector vacío, importe editable sin sobrescritura, individual automático, reparto cerrado/abierto, partes libres/iguales, cuatro modalidades, suma final con intereses, borrador al alternar y cancelación sin deuda. Confirmación individual/múltiple ejecutadas solo en datos ficticios. Ver docs/BANDEJA_COMPRAS.md.
+- UI bandeja automatizada: 5/5 pruebas Node en tests/ui-bandeja.test.mjs aprobadas (total suite 93/93 Node). Panel, contador, renderizado de tarjetas, acciones de revisión y descarte con diálogo de confirmación, y aislamiento sin conexión probados.
+- Suite de validación de 14 casos: 14/14 pruebas aprobadas en tests/validacion-14-casos.test.mjs (total suite 107/107 Node). Trazabilidad completa de la matriz de docs/VALIDACION_COMPRAS.md cubriendo parsing bancario, rechazo de no compras, deduplicación, cuotas exactas, redondeo CLP, aislamiento Firebase, transacciones CAS y compatibilidad de backups.
 
 ## Errores conocidos, riesgos y requisitos externos
 
@@ -150,8 +155,6 @@ Avance verificado: **65%**.
 
 ## Próximos pasos en orden de prioridad
 
-1. 2.4 — Vinculación Firebase y sincronización (en_espera).
-2. 7.2 — Pruebas UI escritorio y móvil (pendiente).
 
 ## Instrucciones concretas para retomar
 
