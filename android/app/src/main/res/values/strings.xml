@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="listener_label">Cuotas · avisos de Banco Falabella</string>
+    <string name="eyebrow">CONTROL DE CUOTAS / ANDROID</string>
+    <string name="title">Verificar mis notificaciones</string>
+    <string name="intro">Primera etapa: diagnóstico local de avisos de compra. Esta versión no registra deuda ni se conecta a Firebase.</string>
+    <string name="privacy_title">Tú decides el acceso</string>
+    <string name="privacy">Android concede un acceso amplio a notificaciones. Este servicio filtra primero el paquete cl.android y los resúmenes; después lee solo título, texto y texto ampliado de Banco Falabella. No abre acciones, enlaces ni otras aplicaciones.</string>
+    <string name="consent">Autorizar diagnóstico local</string>
+    <string name="consent_help">Activarlo permite analizar nuevos avisos del banco en este teléfono, incluso con esta pantalla cerrada. No se recuperan avisos antiguos. Puedes pausarlo o revocar el acceso en Ajustes.</string>
+    <string name="settings">Abrir acceso a notificaciones</string>
+    <string name="rebind">Solicitar reconexión del servicio</string>
+    <string name="status_title">Estado del servicio</string>
+    <string name="capture_title">Último resultado local</string>
+    <string name="limits">Los importes reconocidos solo permanecen en memoria y se pierden al cerrar el proceso. Los contadores son callbacks, no compras únicas: Android puede actualizar un mismo aviso. Cola, deduplicación y sincronización todavía no están disponibles.</string>
+    <string name="clear">Limpiar diagnóstico de memoria</string>
+    <string name="unknown_date">La notificación no informa fecha bancaria, cuotas ni intereses. No se deducen de la hora del teléfono.</string>
+</resources>

@@ -3,6 +3,8 @@ node_modules/
 .firebase/
 android/local.properties
 android/.gradle/
+android/.kotlin/
+android/.idea/
 android/**/build/
 *.jks
 *.keystore
