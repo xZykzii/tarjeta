@@ -27,11 +27,12 @@ header{display:flex;justify-content:space-between;gap:30px;align-items:flex-star
 .check{width:15px;height:15px;border:1px solid #607389;border-radius:4px;font-size:10px;text-align:center;flex-shrink:0;line-height:13px}.completada .check{color:#0c1720;background:var(--lime);border-color:var(--lime)}
 .en_curso .check{color:var(--blue);border-color:var(--blue)}.bloqueada .check{color:var(--red);border-color:var(--red)}.id{font-family:ui-monospace,monospace;color:var(--muted);font-size:10px;display:block}
 .track{position:relative;display:flex;align-items:center;background-image:linear-gradient(to right,#22324660 1px,transparent 1px);background-size:11.111% 100%;padding:0}
-.bar{height:26px;border-radius:6px;border:1px solid #496078;background:#263b51;color:#c6d7e9;position:absolute;font-size:10px;display:flex;align-items:center;justify-content:center;min-width:34px;white-space:nowrap;z-index:1}
+.bar{height:26px;border-radius:4px;border:1px solid #496078;background:#263b51;color:#c6d7e9;position:absolute;font-size:10px;display:flex;align-items:center;justify-content:center;min-width:0;overflow:hidden;white-space:nowrap;z-index:1}
 .completada .bar{background:#2c503c;color:#d6f5b5;border-color:#638c52}.en_curso .bar{background:#1c5076;color:#d7efff;border-color:#67beff;box-shadow:0 0 18px #69beff20}
 .bloqueada .bar{background:repeating-linear-gradient(135deg,#392b3a,#392b3a 5px,#302737 5px,#302737 10px);color:#ffc4cc;border-color:#825160}.phase .bar{height:6px;border:0;background:#35516c;min-width:0}
 .marker{position:absolute;top:0;bottom:0;width:1px;background:var(--orange);z-index:2;pointer-events:none}.marker::before{display:none;content:'ACTUAL';position:absolute;top:3px;left:4px;color:#16100b;background:var(--orange);border-radius:3px;font-size:8px;font-weight:bold;padding:2px 4px}
-.selected .marker::before{display:block}.selected .label{box-shadow:inset 3px 0 var(--orange);background:#192a3b}.details{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;margin-top:20px}.detail{padding:22px;border:1px solid var(--line);border-radius:12px;background:#101b28}
+.actual .marker::before{display:block}.selected .label{box-shadow:inset 3px 0 var(--orange);background:#192a3b}.details{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;margin-top:20px}.detail{padding:22px;border:1px solid var(--line);border-radius:12px;background:#101b28}
+.connection{margin:12px 0;color:var(--muted);font-size:12px}.connection[data-state="error"]{color:var(--orange)}
 h2{font-size:16px;margin:0 0 10px}h3{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin:18px 0 5px}.detail p,.detail li{font-size:13px}.detail ul{margin:0;padding-left:18px;color:var(--muted)}
 footer{margin-top:22px;font-size:11px;color:var(--muted);display:flex;justify-content:space-between;gap:20px}.empty{padding:30px;color:var(--muted)}.hidden{display:none}
 @media(max-width:760px){.shell{padding:20px 14px}header{display:block}.badge{display:inline-block;margin-top:14px}.stats{grid-template-columns:1fr}.stat{padding:15px 18px}.details{grid-template-columns:1fr}.legend{margin-left:0;flex-wrap:wrap}.toolbar{gap:8px}footer{display:block}.board{max-height:65vh}}
@@ -46,10 +47,12 @@ footer{margin-top:22px;font-size:11px;color:var(--muted);display:flex;justify-co
 </section>
 <div class="toolbar">
 <input id="search" type="search" placeholder="Buscar tarea, fase o dependencia…" aria-label="Buscar tareas">
-<select id="filter" aria-label="Filtrar estado"><option value="todos">Todos los estados</option><option value="pendiente">Pendientes disponibles</option><option value="en_curso">En curso</option><option value="completada">Completadas</option><option value="bloqueada">Bloqueadas</option></select>
+<select id="filter" aria-label="Filtrar estado"><option value="todos">Todos los estados</option><option value="pendiente">Pendientes disponibles</option><option value="en_espera">Esperan otra tarea</option><option value="en_curso">En curso</option><option value="completada">Completadas</option><option value="bloqueada">Bloqueadas</option></select>
+<button id="current" type="button">Ir a tarea actual</button><button id="refresh" type="button">Actualizar</button>
 <button id="expand" type="button">Expandir fases</button><button id="collapse" type="button">Contraer fases</button>
 <div class="legend"><span style="--color:var(--lime)">Completada</span><span style="--color:var(--blue)">En curso</span><span style="--color:#879bb0">Pendiente</span><span style="--color:var(--red)">Bloqueada</span></div>
 </div>
+<p class="connection" id="connection" role="status">Copia local del estado.</p>
 <section class="board" tabindex="0" aria-label="Gantt por secuencia lógica, desplazable"><div class="grid"><div class="grid-head"><div class="label">FASE / TAREA · CRITERIOS</div><div class="slots" id="slots"></div></div><div id="rows"></div></div></section>
 <section class="details"><article class="detail" aria-live="polite"><div class="eyebrow">INSPECCIONAR TAREA</div><h2 id="detail-title"></h2><h3>Criterio de finalización</h3><p id="criterion"></p><h3>Dependencias / bloqueo</h3><p id="dependencies"></p><h3>Evidencia</h3><p id="evidence"></p></article>
 <article class="detail"><h2>Continuidad sin depender del chat</h2><p>El estado vive en el repositorio. Esta vista se genera desde <code>plan.json</code>; no modifica estados desde el navegador.</p><h3>Actualizar</h3><p>Editar <code>docs/seguimiento/plan.json</code> y ejecutar <code>node scripts/seguimiento.mjs</code>.</p><h3>Impedimentos y riesgos</h3><ul id="risks"></ul><h3>Retomar</h3><p>Leer <a href="../../ESTADO_PROYECTO.md">ESTADO_PROYECTO.md</a> y <a href="../../ROADMAP.md">ROADMAP.md</a>, comprobar Git y verificar las tareas antes de continuar.</p></article></section>
@@ -57,15 +60,18 @@ footer{margin-top:22px;font-size:11px;color:var(--muted);display:flex;justify-co
 </main>
 <script>
 "use strict";
-const PLAN = /*__PLAN__*/null;
+let PLAN = /*__PLAN__*/null;
 const PERCENT = 100;
-const MIN_BAR_WIDTH = 4;
-const PHASE_WIDTH = PERCENT / PLAN.fases.length;
-const tasks = PLAN.fases.flatMap((fase) => fase.tareas);
-const byId = new Map(tasks.map((tarea) => [tarea.id, tarea]));
-const closed = new Set();
-const names = { pendiente:"Pendiente", en_curso:"En curso", completada:"Completada", bloqueada:"Bloqueada" };
+const POLL_MS = 3000;
+const FETCH_TIMEOUT_MS = 5000;
+let PHASE_WIDTH = PERCENT / PLAN.fases.length;
+let tasks = PLAN.fases.flatMap((fase) => fase.tareas);
+let byId = new Map(tasks.map((tarea) => [tarea.id, tarea]));
+const closed = new Set(PLAN.fases.filter((fase) => fase.tareas.every((t) => t.estado === "completada")).map((fase) => fase.id));
+const names = { pendiente:"Pendiente", en_espera:"Espera otra tarea", en_curso:"En curso", completada:"Completada", bloqueada:"Bloqueada" };
 let selected = PLAN.actual;
+let isFetching = false;
+let lastJson = JSON.stringify(PLAN);
 
 function el(tag, className = "", text = "") {
   const node = document.createElement(tag);
@@ -76,7 +82,8 @@ function el(tag, className = "", text = "") {
 function text(id, value) { document.getElementById(id).textContent = value; }
 function blockedBy(tarea) { return tarea.dependencias.filter((dep) => byId.get(dep).estado !== "completada"); }
 function state(tarea) {
-  return tarea.estado !== "completada" && blockedBy(tarea).length ? "bloqueada" : tarea.estado;
+  if (["completada", "bloqueada"].includes(tarea.estado)) return tarea.estado;
+  return blockedBy(tarea).length ? "en_espera" : tarea.estado;
 }
 function progress(list) {
   const total = list.reduce((sum, t) => sum + t.peso, 0);
@@ -105,7 +112,8 @@ function addMarker(track) {
   track.append(marker);
 }
 function taskRow(tarea, phaseIndex, index, count) {
-  const row = el("div", `row task ${state(tarea)}${selected === tarea.id ? " selected" : ""}`);
+  const row = el("div", `row task ${state(tarea)}${selected === tarea.id ? " selected" : ""}${PLAN.actual === tarea.id ? " actual" : ""}`);
+  row.id = `task-${tarea.id}`;
   const label = el("div", "label");
   const check = el("span", "check", tarea.estado === "completada" ? "✓" : state(tarea) === "bloqueada" ? "!" : tarea.estado === "en_curso" ? "●" : "");
   check.setAttribute("aria-label", names[state(tarea)]);
@@ -116,7 +124,7 @@ function taskRow(tarea, phaseIndex, index, count) {
   label.append(check, button);
   const track = el("div", "track");
   bar(track, phaseIndex * PHASE_WIDTH + index / count * PHASE_WIDTH,
-    Math.max(MIN_BAR_WIDTH, PHASE_WIDTH / count), tarea.id);
+    PHASE_WIDTH / count, tarea.id);
   track.title = `${tarea.titulo}: ${names[state(tarea)]}. ${tarea.criterio}`;
   addMarker(track);
   row.append(label, track);
@@ -161,28 +169,94 @@ function render() {
   });
   if (!rows.children.length) rows.append(el("p", "empty", "No hay tareas que coincidan con el filtro."));
 }
-function init() {
+function updateSummary() {
   const summary = progress(tasks);
   text("global", `${summary.percent}%`);
   text("points", `${summary.done} / ${summary.total} puntos`);
   document.getElementById("global-bar").style.width = `${summary.percent}%`;
   text("done", `${tasks.filter((t) => t.estado === "completada").length} / ${tasks.length}`);
-  text("blocked", `${tasks.filter((t) => state(t) === "bloqueada").length} tareas bloqueadas por dependencia o requisito externo`);
+  text("blocked", `${tasks.filter((t) => state(t) === "bloqueada").length} bloqueadas · ${tasks.filter((t) => state(t) === "en_espera").length} esperan otra tarea`);
   text("next", `${PLAN.actual} · ${byId.get(PLAN.actual).titulo}`);
   text("next-state", names[state(byId.get(PLAN.actual))]);
+  text("session-status", PLAN.isPausado ? "Pausado por el usuario" : "Desarrollo en curso");
   if (PLAN.isPausado) {
     text("session-status", "Pausado por el usuario");
     text("next-state", "Siguiente al reanudar · desarrollo detenido");
   }
   text("snapshot", `Snapshot ${PLAN.fecha} · ${PLAN.base.slice(0,7)}`);
-  PLAN.fases.forEach((fase) => document.getElementById("slots").append(el("span", "", `FASE ${fase.id}`)));
-  PLAN.problemas.forEach((risk) => document.getElementById("risks").append(el("li", "", risk)));
+  document.getElementById("slots").replaceChildren(...PLAN.fases.map((fase) => el("span", "", `FASE ${fase.id}`)));
+  document.getElementById("risks").replaceChildren(...PLAN.problemas.map((risk) => el("li", "", risk)));
+}
+function goToCurrent() {
+  document.getElementById("search").value = "";
+  document.getElementById("filter").value = "todos";
+  const fase = PLAN.fases.find((fase) => fase.tareas.some((t) => t.id === PLAN.actual));
+  closed.delete(fase.id);
+  showDetails(byId.get(PLAN.actual));
+  render();
+  document.getElementById(`task-${PLAN.actual}`).scrollIntoView({ block:"nearest", inline:"nearest" });
+}
+function validatePlan(value) {
+  if (value?.version !== 1 || !Array.isArray(value.fases) || !value.fases.length) throw Error("Plan incompatible");
+  if (!Array.isArray(value.problemas) || value.problemas.some((risk) => typeof risk !== "string")) throw Error("Riesgos inválidos");
+  const list = value.fases.flatMap((fase) => {
+    if (typeof fase.id !== "string" || typeof fase.titulo !== "string" || !Array.isArray(fase.tareas) || !fase.tareas.length) throw Error("Fase inválida");
+    return fase.tareas;
+  });
+  const ids = new Set(list.map((t) => t.id));
+  if (ids.size !== list.length || !ids.has(value.actual)) throw Error("Identidad inválida");
+  for (const t of list) {
+    if (typeof t.id !== "string" || typeof t.titulo !== "string" || typeof t.criterio !== "string") throw Error("Tarea inválida");
+    if (!["pendiente", "completada", "bloqueada", "en_curso"].includes(t.estado)) throw Error("Estado inválido");
+    if (!Number.isInteger(t.peso) || t.peso <= 0 || !Array.isArray(t.dependencias) || t.dependencias.some((dep) => !ids.has(dep))) throw Error("Dependencia o peso inválido");
+    if (t.estado === "completada" && (typeof t.evidencia !== "string" || !t.evidencia.trim())) throw Error("Falta evidencia");
+  }
+  if (list.reduce((sum, t) => sum + t.peso, 0) !== PERCENT || typeof value.fecha !== "string" || typeof value.base !== "string") throw Error("Resumen inválido");
+  return value;
+}
+function applyPlan(value) {
+  PLAN = validatePlan(value);
+  PHASE_WIDTH = PERCENT / PLAN.fases.length;
+  tasks = PLAN.fases.flatMap((fase) => fase.tareas);
+  byId = new Map(tasks.map((t) => [t.id, t]));
+  if (!byId.has(selected)) selected = PLAN.actual;
+  updateSummary();
+  showDetails(byId.get(selected));
+  render();
+}
+async function refreshPlan() {
+  if (location.protocol === "file:") {
+    text("connection", "Copia sin conexión · vuelve a abrir este archivo tras regenerarlo, o ejecuta npm run roadmap para actualización automática.");
+    return;
+  }
+  if (isFetching) return;
+  isFetching = true;
+  try {
+    const response = await fetch("./plan.json", { cache:"no-store", signal:AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+    if (!response.ok) throw Error(`HTTP ${response.status}`);
+    const value = validatePlan(await response.json());
+    const json = JSON.stringify(value);
+    if (json !== lastJson) { applyPlan(value); lastJson = json; }
+    text("connection", "Conectado · se comprueban cambios cada 3 segundos. El avance cambia al verificar tareas.");
+    document.getElementById("connection").dataset.state = "ok";
+  } catch (error) {
+    console.error("No se pudo actualizar el roadmap:", error);
+    text("connection", "No se pudo actualizar · se conserva el último estado válido. Ejecuta npm run roadmap para restablecer el servidor.");
+    document.getElementById("connection").dataset.state = "error";
+  } finally { isFetching = false; }
+}
+function init() {
+  updateSummary();
   document.getElementById("search").addEventListener("input", render);
   document.getElementById("filter").addEventListener("change", render);
   document.getElementById("expand").addEventListener("click", () => { closed.clear(); render(); });
   document.getElementById("collapse").addEventListener("click", () => { PLAN.fases.forEach((fase) => closed.add(fase.id)); render(); });
+  document.getElementById("current").addEventListener("click", goToCurrent);
+  document.getElementById("refresh").addEventListener("click", refreshPlan);
   showDetails(byId.get(PLAN.actual));
   render();
+  refreshPlan();
+  if (location.protocol !== "file:") setInterval(refreshPlan, POLL_MS);
 }
 init();
 </script>

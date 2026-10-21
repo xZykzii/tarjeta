@@ -23,6 +23,7 @@ Detectar compras reales desde Android, revisarlas sin asignación e incorporarla
 - Ampliación 2026-10-21: reparto entre varias personas con importes libres o partes iguales. Se redistribuyeron solo pesos pendientes; total sigue en 100 y se conservan los 17 puntos ya verificados.
 - Dispositivo de validación: Samsung Galaxy S24, confirmado por el usuario. Paquete de la ficha oficial cl.android confirmado como app instalada; Android/One UI exactos aún no informados.
 - Reanudación: conectar CAS/cola a escritores actuales, mostrar borrador recuperable ante fallo y probar aislamiento/concurrencia en emulador local antes de habilitar flujo automático.
+- Roadmap reparado: servidor Node local reproducible en npm run roadmap; consulta plan.json sin caché cada 3 segundos, conserva vista válida y muestra conexión. Espera por dependencia se distingue de bloqueo explícito; no cambia pesos ni aceptación.
 
 ## Punto exacto de continuidad
 
@@ -60,10 +61,15 @@ Avance verificado: **32%**.
 - `package-lock.json`
 - `.gitignore`
 - `docs/GUARDADO_SEGURO.md`
+- `cuotas-item.mjs`
+- `datos-compras.mjs`
+- `tests/cuotas-integradas.test.mjs`
+- `scripts/roadmap-servidor.mjs`
+- `tests/roadmap.test.mjs`
 
 ## Implementaciones incompletas
 
-- Motor de cuotas/reparto aún sin conectar a UI, pagos, PDF y backup; siguiente bloque 4.3 y 5.2 coordinados.
+- Bloque 4.3/5.2 en curso: cuotas-item y datos-compras creados; index/logic/PDF/backup se están conectando. No cerrar hasta pruebas de planes variables, participaciones con ceros e importación v6/v7.
 - Reglas locales probadas para guardado y captura mínima; pendientes update/delete denegados hasta confirmación atómica. 6.1 no completa: auditoría real y reglas finales pendientes.
 - Prototipo de analizador no se ejecuta en Android; faltan extras y negativos auténticos. Galaxy S24 y ficha cl.android confirmados.
 - Sin APK, permisos del teléfono, sincronización móvil ni cambios de producción.
@@ -77,6 +83,7 @@ Avance verificado: **32%**.
 - Cierre por pausa: 32/32 pruebas Node aprobadas tras las últimas modificaciones; seguimiento --check correcto. Nuevos helpers y puente de notificación aún no tienen pruebas específicas; no declarar cobertura total.
 - Reanudación: 32/32 Node y 9/9 Firestore emulador aprobadas; UI ficticia verificó alta, conflicto, recarga, reconexión, pago y deshacer.
 - Hallazgo corregido: denegación de reglas en carrera se reclasifica mediante lectura sin escritura; nunca se reenvía borrador contra una base nueva.
+- Roadmap: 4/4 pruebas aprobadas de actualización, filtros/selección, marcador actual, dependencias y servidor limitado al seguimiento. Inspección visual de la pestaña rechazada por política de acceso del navegador; no se intentó eludir.
 
 ## Errores conocidos, riesgos y requisitos externos
 
@@ -84,6 +91,7 @@ Avance verificado: **32%**.
 - Reglas de Firestore desplegadas sin verificar; no publicar reglas ni escribir datos reales desde esta sesión.
 - Guardado protegido localmente con CAS y revisión; falta auditar/desplegar reglas para bloquear clientes antiguos en producción. No publicar solo la PWA.
 - Cuotas variables exigen cambios coordinados en pagos, abonos, PDF, importación y resumen.
+- La revisión automática rechazó iniciar el servidor localhost sin motivo adicional; no se pudo restaurar la URL en esta sesión. Servidor probado en puerto efímero; el usuario puede iniciarlo con npm run roadmap.
 
 ## Próximos pasos en orden de prioridad
 
@@ -103,6 +111,6 @@ Avance verificado: **32%**.
 - No hay Android SDK/Gradle/ADB encontrados en el entorno ni APK construido. No se creó todavía android/. No asumir detector móvil ni sincronización operativos.
 - El prototipo falabella-notificaciones.mjs no corre en el teléfono; requiere puerto nativo y validación física. El flag de soporte físico sigue en falso a propósito.
 - Registrar tarea y archivos previstos antes de un bloque extenso; actualizar JSON y regenerar vistas al cerrarlo. No subir commits, desplegar reglas ni tocar datos reales sin autorización.
-- Abrir docs/seguimiento/roadmap.html directamente como archivo local: no requiere servidor. La URL 127.0.0.1:8767 era únicamente una vista temporal de esta sesión.
+- Ejecutar npm run roadmap y abrir http://127.0.0.1:8767/docs/seguimiento/roadmap.html para seguimiento en vivo; Ctrl+C cierra el servidor. También abre como archivo local con snapshot, que requiere reabrir tras regenerar.
 
 La persistencia es el repositorio, no el chat, el almacenamiento del navegador ni una promesa de detectar créditos. Si la sesión se corta durante una edición, revisar el diff y regenerar antes de confiar en las vistas. Las operaciones Git remotas y el despliegue requieren autorización explícita.

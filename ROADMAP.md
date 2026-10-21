@@ -11,7 +11,9 @@ Actualizado: 2026-10-21. Base: `58ebee85df3acf3b942f3ade944b40b63aa82af9`.
 
 ## Cómo se mide y actualiza
 
-Solo las tareas completadas con criterio verificado y evidencia suman su peso. En curso suma cero hasta verificarse. El porcentaje mide aceptación, no tiempo transcurrido ni restante. El Gantt muestra orden lógico, no fechas estimadas. Bloqueada por dependencia se deriva automáticamente, sin modificar el estado persistido.
+Solo las tareas completadas con criterio verificado y evidencia suman su peso. En curso suma cero hasta verificarse. El porcentaje mide aceptación, no tiempo transcurrido ni restante. El Gantt muestra orden lógico, no fechas estimadas. En espera indica dependencias pendientes; bloqueada indica un impedimento registrado.
+
+Vista en vivo: ejecutar `npm run roadmap` y abrir http://127.0.0.1:8767/docs/seguimiento/roadmap.html. Consulta plan.json cada 3 segundos y conserva filtros/selección. El HTML también contiene un snapshot para abrirlo sin servidor; ese modo requiere reabrir tras regenerar.
 
 Editar la fuente única `docs/seguimiento/plan.json`. Registrar pruebas, archivos, decisiones y la tarea siguiente. Ejecutar `node scripts/seguimiento.mjs` y después `node scripts/seguimiento.mjs --check`. No editar las vistas generadas. Revisar el diff y hacer commits pequeños sin publicar.
 
@@ -45,9 +47,9 @@ Aceptación: 0/15 puntos.
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
 2.1 | App complementaria y permisos explícitos | pendiente | 4 pt | 1.2 | Proyecto Android separado, listener real, filtro por paquete verificado y autorización transparente. | Pendiente
-2.2 | Analizador de notificaciones auténticas | bloqueada | 4 pt | 1.3, 2.1 | Extraer solo compras verificadas; desconocidos no generan transacciones. | Pendiente
-2.3 | Cola persistente y deduplicación | bloqueada | 4 pt | 2.2 | Persistencia mínima, reintentos y deduplicación sin fusionar compras legítimas iguales. | Pendiente
-2.4 | Vinculación Firebase y sincronización | bloqueada | 3 pt | 2.3, 6.1 | Sesión del mismo UID; envío seguro e idempotente validado con reglas. | Pendiente
+2.2 | Analizador de notificaciones auténticas | en_espera | 4 pt | 1.3, 2.1 | Extraer solo compras verificadas; desconocidos no generan transacciones. | Pendiente
+2.3 | Cola persistente y deduplicación | en_espera | 4 pt | 2.2 | Persistencia mínima, reintentos y deduplicación sin fusionar compras legítimas iguales. | Pendiente
+2.4 | Vinculación Firebase y sincronización | en_espera | 3 pt | 2.3, 6.1 | Sesión del mismo UID; envío seguro e idempotente validado con reglas. | Pendiente
 
 ## Fase 3 — Compras sin asignar · 20%
 
@@ -56,10 +58,10 @@ Aceptación: 3/15 puntos.
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
 3.1 | Contrato y validación de pendientes | completada | 3 pt | 1.2 | Estados, campos, importes y transiciones validados sin tocar saldos. | compras-pendientes.mjs: contrato mínimo, estados, validaciones e identidad estable; pruebas aprobadas.
-3.2 | Bandeja web y contador en vivo | bloqueada | 4 pt | 3.1, 6.1 | Suscripción aislada por UID, lista editable, errores visibles y cancelación al salir. | Pendiente
-3.3 | Confirmación atómica y descarte | bloqueada | 3 pt | 3.2, 4.3, 5.1 | Una transacción consume un pendiente exactamente una vez y conserva descartes. | Pendiente
-3.4 | Personas, tarjetas y revisión | bloqueada | 2 pt | 3.2, 4.1 | Seleccionar entidades existentes y corregir datos sin afectar deuda hasta confirmar. | Pendiente
-3.5 | Repartir una compra entre varias personas | bloqueada | 3 pt | 3.4, 4.5, 5.2 | Importes libres por persona o reparto igual; suma exacta, edición, confirmación atómica y saldos sin duplicar la compra. | Pendiente
+3.2 | Bandeja web y contador en vivo | en_espera | 4 pt | 3.1, 6.1 | Suscripción aislada por UID, lista editable, errores visibles y cancelación al salir. | Pendiente
+3.3 | Confirmación atómica y descarte | en_espera | 3 pt | 3.2, 4.3, 5.1 | Una transacción consume un pendiente exactamente una vez y conserva descartes. | Pendiente
+3.4 | Personas, tarjetas y revisión | en_espera | 2 pt | 3.2, 4.1 | Seleccionar entidades existentes y corregir datos sin afectar deuda hasta confirmar. | Pendiente
+3.5 | Repartir una compra entre varias personas | en_espera | 3 pt | 3.4, 4.5, 5.2 | Importes libres por persona o reparto igual; suma exacta, edición, confirmación atómica y saldos sin duplicar la compra. | Pendiente
 
 ## Fase 4 — Modalidades y pesos exactos · 58.3%
 
@@ -70,7 +72,7 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 4.1 | Motor de planes de cuotas | completada | 3 pt | 1.2 | Una cuota, división exacta en CLP, interés manual y cuotas individuales válidas. | planes-cuotas.mjs: modalidades, planes variables y adaptador legado sin mutación; pruebas aprobadas.
 4.2 | Pruebas de redondeo y límites | completada | 2 pt | 4.1 | Suma exacta, enteros seguros, validación de importes y compatibilidad documentada. | tests/compras.test.mjs: residuos exhaustivos, abonos, límites y overflow; 28/28 pruebas globales aprobadas.
 4.3 | Unificar cálculo manual y automático | en_curso | 3 pt | 4.2, 5.1 | Abonos, vencimientos, pagos, deshacer, PDF y resumen usan una lógica común. | Pendiente
-4.4 | Formulario de modalidades | bloqueada | 2 pt | 4.3 | Previsualización explícita y sin tasas inferidas, incluso con cuotas diferentes. | Pendiente
+4.4 | Formulario de modalidades | en_espera | 2 pt | 4.3 | Previsualización explícita y sin tasas inferidas, incluso con cuotas diferentes. | Pendiente
 4.5 | Motor de reparto exacto entre personas | completada | 2 pt | 4.2 | Distribución igual o por importes libres; cuotas por persona conservan totales por fila y columna incluso con redondeo e interés. | reparto-compras.mjs: importes libres/iguales y matriz exacta por persona/mes; barrido exhaustivo y enteros grandes aprobados.
 
 ## Fase 5 — Compatibilidad de la PWA · 33.3%
@@ -81,8 +83,8 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 --- | --- | --- | --- | --- | --- | ---
 5.1 | Resolver concurrencia del documento legado | completada | 4 pt | 1.4 | Guardados no pierden compras confirmadas, pagos ni cambios de otro dispositivo. | save/load conectados a CAS real, cola y recuperación de borrador; 32 pruebas Node + 9 Firestore/emulador y flujo UI ficticio aprobados. docs/GUARDADO_SEGURO.md; reglas no desplegadas.
 5.2 | Origen, identificadores y backups | pendiente | 3 pt | 5.1 | Persistir origen/ID/planes sin romper importación de backups v6 ni datos antiguos. | Pendiente
-5.3 | Integrar registro manual, resúmenes y PDF | bloqueada | 3 pt | 4.3, 5.2 | Mismos cálculos y resultados para registro manual y automático. | Pendiente
-5.4 | Caché, cierre de sesión y regresión | bloqueada | 2 pt | 5.3, 3.3 | Bump del SW y limpieza de suscripciones; funciones previas comprobadas. | Pendiente
+5.3 | Integrar registro manual, resúmenes y PDF | en_espera | 3 pt | 4.3, 5.2 | Mismos cálculos y resultados para registro manual y automático. | Pendiente
+5.4 | Caché, cierre de sesión y regresión | en_espera | 2 pt | 5.3, 3.3 | Bump del SW y limpieza de suscripciones; funciones previas comprobadas. | Pendiente
 
 ## Fase 6 — Seguridad y confiabilidad · 0%
 
@@ -91,9 +93,9 @@ Aceptación: 0/12 puntos.
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
 6.1 | Reglas y pruebas de aislamiento | pendiente | 4 pt | 1.2 | Emulador deniega acceso cruzado/anónimo y mutaciones inválidas; reglas vigentes auditadas. | Pendiente
-6.2 | Recuperación offline y entre dispositivos | bloqueada | 3 pt | 2.4, 3.3 | Reintentos, sesión revocada y concurrencia sin duplicados ni pérdida. | Pendiente
-6.3 | Minimización y ciclo de vida | bloqueada | 2 pt | 2.3, 3.1 | No guardar texto bancario bruto, secretos ni números completos; desconexión y borrado seguros. | Pendiente
-6.4 | Verificación de permisos en Android real | bloqueada | 3 pt | 2.4 | Revocar acceso, reiniciar, reconectar y verificar restricciones del fabricante. | Pendiente
+6.2 | Recuperación offline y entre dispositivos | en_espera | 3 pt | 2.4, 3.3 | Reintentos, sesión revocada y concurrencia sin duplicados ni pérdida. | Pendiente
+6.3 | Minimización y ciclo de vida | en_espera | 2 pt | 2.3, 3.1 | No guardar texto bancario bruto, secretos ni números completos; desconexión y borrado seguros. | Pendiente
+6.4 | Verificación de permisos en Android real | en_espera | 3 pt | 2.4 | Revocar acceso, reiniciar, reconectar y verificar restricciones del fabricante. | Pendiente
 
 ## Fase 7 — Validación de extremo a extremo · 0%
 
@@ -101,10 +103,10 @@ Aceptación: 0/10 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
-7.1 | Suite automática de dominio e integración | bloqueada | 3 pt | 5.4, 6.2 | Los 14 casos solicitados están trazados; pasar pruebas de reglas y concurrencia. | Pendiente
-7.2 | Pruebas UI escritorio y móvil | bloqueada | 2 pt | 5.4 | Revisar bandeja, asignación, errores, confirmación y cálculos sin datos reales. | Pendiente
-7.3 | Compra auténtica y segundo plano | bloqueada | 3 pt | 1.3, 6.4, 7.1 | Dispositivo real detecta, sincroniza con web cerrada y confirma una vez. | Pendiente
-7.4 | Auditar integridad y regresiones | bloqueada | 2 pt | 7.2, 7.3 | Datos existentes y deudas no cambian salvo confirmación explícita; informe de pruebas. | Pendiente
+7.1 | Suite automática de dominio e integración | en_espera | 3 pt | 5.4, 6.2 | Los 14 casos solicitados están trazados; pasar pruebas de reglas y concurrencia. | Pendiente
+7.2 | Pruebas UI escritorio y móvil | en_espera | 2 pt | 5.4 | Revisar bandeja, asignación, errores, confirmación y cálculos sin datos reales. | Pendiente
+7.3 | Compra auténtica y segundo plano | en_espera | 3 pt | 1.3, 6.4, 7.1 | Dispositivo real detecta, sincroniza con web cerrada y confirma una vez. | Pendiente
+7.4 | Auditar integridad y regresiones | en_espera | 2 pt | 7.2, 7.3 | Datos existentes y deudas no cambian salvo confirmación explícita; informe de pruebas. | Pendiente
 
 ## Fase 8 — Entrega y continuidad · 0%
 
@@ -112,8 +114,8 @@ Aceptación: 0/4 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
-8.1 | Guías de instalación y recuperación | bloqueada | 2 pt | 7.1 | Configuración Android/Firebase, permisos, respaldo, reversión y límites reproducibles. | Pendiente
-8.2 | Entrega verificada y roadmap final | bloqueada | 2 pt | 8.1, 7.4 | Abrir/ejecutar artefactos, registrar pendientes reales y conservar seguimiento. | Pendiente
+8.1 | Guías de instalación y recuperación | en_espera | 2 pt | 7.1 | Configuración Android/Firebase, permisos, respaldo, reversión y límites reproducibles. | Pendiente
+8.2 | Entrega verificada y roadmap final | en_espera | 2 pt | 8.1, 7.4 | Abrir/ejecutar artefactos, registrar pendientes reales y conservar seguimiento. | Pendiente
 
 ## Problemas y dependencias externas
 
@@ -121,6 +123,7 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - Reglas de Firestore desplegadas sin verificar; no publicar reglas ni escribir datos reales desde esta sesión.
 - Guardado protegido localmente con CAS y revisión; falta auditar/desplegar reglas para bloquear clientes antiguos en producción. No publicar solo la PWA.
 - Cuotas variables exigen cambios coordinados en pagos, abonos, PDF, importación y resumen.
+- La revisión automática rechazó iniciar el servidor localhost sin motivo adicional; no se pudo restaurar la URL en esta sesión. Servidor probado en puerto efímero; el usuario puede iniciarlo con npm run roadmap.
 
 ## Funcionalidades completadas
 
@@ -142,28 +145,28 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 
 - 1.3 Verificar paquete emisor y ejemplos negativos reales (bloqueada)
 - 2.1 App complementaria y permisos explícitos (pendiente)
-- 2.2 Analizador de notificaciones auténticas (bloqueada)
-- 2.3 Cola persistente y deduplicación (bloqueada)
-- 2.4 Vinculación Firebase y sincronización (bloqueada)
-- 3.2 Bandeja web y contador en vivo (bloqueada)
-- 3.3 Confirmación atómica y descarte (bloqueada)
-- 3.4 Personas, tarjetas y revisión (bloqueada)
-- 3.5 Repartir una compra entre varias personas (bloqueada)
+- 2.2 Analizador de notificaciones auténticas (en_espera)
+- 2.3 Cola persistente y deduplicación (en_espera)
+- 2.4 Vinculación Firebase y sincronización (en_espera)
+- 3.2 Bandeja web y contador en vivo (en_espera)
+- 3.3 Confirmación atómica y descarte (en_espera)
+- 3.4 Personas, tarjetas y revisión (en_espera)
+- 3.5 Repartir una compra entre varias personas (en_espera)
 - 4.3 Unificar cálculo manual y automático (en_curso)
-- 4.4 Formulario de modalidades (bloqueada)
+- 4.4 Formulario de modalidades (en_espera)
 - 5.2 Origen, identificadores y backups (pendiente)
-- 5.3 Integrar registro manual, resúmenes y PDF (bloqueada)
-- 5.4 Caché, cierre de sesión y regresión (bloqueada)
+- 5.3 Integrar registro manual, resúmenes y PDF (en_espera)
+- 5.4 Caché, cierre de sesión y regresión (en_espera)
 - 6.1 Reglas y pruebas de aislamiento (pendiente)
-- 6.2 Recuperación offline y entre dispositivos (bloqueada)
-- 6.3 Minimización y ciclo de vida (bloqueada)
-- 6.4 Verificación de permisos en Android real (bloqueada)
-- 7.1 Suite automática de dominio e integración (bloqueada)
-- 7.2 Pruebas UI escritorio y móvil (bloqueada)
-- 7.3 Compra auténtica y segundo plano (bloqueada)
-- 7.4 Auditar integridad y regresiones (bloqueada)
-- 8.1 Guías de instalación y recuperación (bloqueada)
-- 8.2 Entrega verificada y roadmap final (bloqueada)
+- 6.2 Recuperación offline y entre dispositivos (en_espera)
+- 6.3 Minimización y ciclo de vida (en_espera)
+- 6.4 Verificación de permisos en Android real (en_espera)
+- 7.1 Suite automática de dominio e integración (en_espera)
+- 7.2 Pruebas UI escritorio y móvil (en_espera)
+- 7.3 Compra auténtica y segundo plano (en_espera)
+- 7.4 Auditar integridad y regresiones (en_espera)
+- 8.1 Guías de instalación y recuperación (en_espera)
+- 8.2 Entrega verificada y roadmap final (en_espera)
 
 ## Esfuerzo restante
 

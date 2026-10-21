@@ -82,8 +82,8 @@ function blockers(tarea) {
 }
 
 function state(tarea) {
-  if (tarea.estado === "completada") return tarea.estado;
-  return blockers(tarea).length ? "bloqueada" : tarea.estado;
+  if (["completada", "bloqueada"].includes(tarea.estado)) return tarea.estado;
+  return blockers(tarea).length ? "en_espera" : tarea.estado;
 }
 
 function cell(value) {
@@ -119,7 +119,8 @@ function roadmap() {
     `**Tarea actual: ${plan.actual} — ${byId.get(plan.actual).titulo}.**`, "",
     "[Abrir roadmap visual](docs/seguimiento/roadmap.html) · [Estado para continuar](ESTADO_PROYECTO.md)", "",
     "## Cómo se mide y actualiza", "",
-    "Solo las tareas completadas con criterio verificado y evidencia suman su peso. En curso suma cero hasta verificarse. El porcentaje mide aceptación, no tiempo transcurrido ni restante. El Gantt muestra orden lógico, no fechas estimadas. Bloqueada por dependencia se deriva automáticamente, sin modificar el estado persistido.", "",
+    "Solo las tareas completadas con criterio verificado y evidencia suman su peso. En curso suma cero hasta verificarse. El porcentaje mide aceptación, no tiempo transcurrido ni restante. El Gantt muestra orden lógico, no fechas estimadas. En espera indica dependencias pendientes; bloqueada indica un impedimento registrado.", "",
+    "Vista en vivo: ejecutar `npm run roadmap` y abrir http://127.0.0.1:8767/docs/seguimiento/roadmap.html. Consulta plan.json cada 3 segundos y conserva filtros/selección. El HTML también contiene un snapshot para abrirlo sin servidor; ese modo requiere reabrir tras regenerar.", "",
     "Editar la fuente única `docs/seguimiento/plan.json`. Registrar pruebas, archivos, decisiones y la tarea siguiente. Ejecutar `node scripts/seguimiento.mjs` y después `node scripts/seguimiento.mjs --check`. No editar las vistas generadas. Revisar el diff y hacer commits pequeños sin publicar.", "",
     ...plan.fases.map(taskSection),
     "## Problemas y dependencias externas", "", list(plan.problemas), "",
@@ -161,7 +162,7 @@ function recovery() {
 function nextTasks() {
   const pending = tasks.filter((t) => t.estado !== "completada");
   const current = pending.find((t) => t.id === plan.actual);
-  const available = pending.filter((t) => t.id !== plan.actual && state(t) !== "bloqueada");
+  const available = pending.filter((t) => t.id !== plan.actual && state(t) !== "bloqueada" && !blockers(t).length);
   return [...(current ? [current] : []), ...available].slice(0, 6);
 }
 
