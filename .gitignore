@@ -2,6 +2,7 @@ node_modules/
 *-debug.log
 .firebase/
 android/local.properties
+android/sincronizacion.properties
 android/.gradle/
 android/.kotlin/
 android/.idea/

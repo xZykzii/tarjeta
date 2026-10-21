@@ -1,8 +1,10 @@
 # Cuotas · app Android complementaria
 
-Primera etapa **de diagnóstico local**. Contiene un `NotificationListenerService`
-real y una pantalla de consentimiento; no tiene permiso de Internet, sesión
-Firebase, cola persistente ni sincronización. No modifica la PWA ni genera deuda.
+Dos variantes del proyecto: **diagnóstico local**, sin Internet ni persistencia
+de compras, y **conectada**, con Google Auth, cola Room por cuenta y WorkManager.
+La conectada tiene otro applicationId y consentimiento independiente; su envío
+real en S24 está pendiente. Ninguna registra deuda automáticamente.
+Configuración y alcance de la conectada: [CONEXION_FIREBASE.md](CONEXION_FIREBASE.md).
 
 La instalación y concesión de acceso en el teléfono corresponden al titular.
 Compilar o pasar tests no demuestra que el banco entregue sus extras al listener.
@@ -20,10 +22,10 @@ No requiere Android Studio completo, servicios de Google ni credenciales.
 3. Desde esta carpeta:
 
 ```powershell
-.\gradlew.bat :core:test :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
+.\gradlew.bat :core:test :app:testDiagnosticoDebugUnitTest :app:lintDiagnosticoDebug :app:assembleDiagnosticoDebug
 ```
 
-El APK queda en `app/build/outputs/apk/debug/app-debug.apk`. Es de diagnóstico,
+El APK queda en `app/build/outputs/apk/diagnostico/debug/app-diagnostico-debug.apk`. Es de diagnóstico,
 firmado con clave debug local; no es un lanzamiento ni está publicado.
 La distribución de Gradle se verifica con SHA-256 desde el wrapper.
 
@@ -37,7 +39,7 @@ En este workspace las herramientas están fuera del repo, en
 `work/herramientas/`; `local.properties` enlaza el SDK. No se cambió el PATH
 global. No versionar SDK, cachés, APK, firmas, configuración Firebase ni logs.
 
-## Qué hace esta versión
+## Qué hace el diagnóstico
 
 - Inicia con diagnóstico desactivado. Exige consentimiento dentro de la app y,
   por separado, autorización del sistema en Ajustes.
@@ -83,11 +85,11 @@ de lint, sin detallar el motivo; no se reintentó por otra vía. No afecta al AP
 
 ## Continuidad
 
-La cola Room, identidad persistente, WorkManager y sesión Firebase se integrarán
-en sus tareas posteriores. No asignar capturas locales sin UID a una futura
-cuenta ni afirmar que la cola actual es persistente: esta versión no la tiene.
-El núcleo se reutilizará conservando el corpus; el formato seguirá siendo
-provisional hasta validar extras y negativos auténticos.
+La variante conectada ya implementa cola Room, identidad persistente, WorkManager
+y sesión Firebase, conservando el corpus común. El diagnóstico continúa sin cola.
+Falta comprobar el flujo conectado en S24, activar reglas/PWA coordinadamente y
+validar negativos auténticos y actualizaciones. No se asignan capturas sin UID a
+una futura cuenta ni se declara validación integral por la primera positiva.
 
 La guía de comprobación física está en [PRUEBA_S24.md](PRUEBA_S24.md).
 Estado completo en [ESTADO_PROYECTO.md](../ESTADO_PROYECTO.md).

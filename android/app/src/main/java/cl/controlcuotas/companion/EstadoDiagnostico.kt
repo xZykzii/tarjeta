@@ -16,7 +16,10 @@ object ConsentimientoLocal {
     fun cambiar(context: Context, hasConsentimiento: Boolean) {
         context.getSharedPreferences(PREFERENCIAS, Context.MODE_PRIVATE)
             .edit().putBoolean(CONSENTIMIENTO, hasConsentimiento).apply()
-        if (!hasConsentimiento) EstadoDiagnostico.limpiar()
+        if (!hasConsentimiento) {
+            EstadoDiagnostico.limpiar()
+            DestinoCompras.destino?.pausar()
+        }
     }
 }
 

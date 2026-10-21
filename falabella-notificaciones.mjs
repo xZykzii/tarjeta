@@ -1,17 +1,18 @@
 import { crearPendiente } from "./compras-pendientes.mjs";
 
-// Prototipo conservador basado en una captura auténtica del 2026-10-21.
-// No está conectado a Android. No representa un analizador definitivo.
+// Analizador conservador de dos formatos auténticos del 2026-10-21.
+// El puerto Kotlin corre en Android; este módulo JS no es un detector del teléfono.
 export const PARSER_VERSION = "captura-20261021-v2";
 export const MAX_TEXTO_NOTIFICACION = 2000;
 const PACKAGE_PATTERN = /^[a-zA-Z][\w]*(\.[a-zA-Z][\w]*)+$/;
 const MAX_PACKAGE_LENGTH = 200;
 const MAX_COMERCIO = 200;
+const MAX_NOMBRE_ADICIONAL = 200;
 const MAX_CANDIDATOS = 4;
 const LABEL_BANCO = "Banco Falabella";
 const PURCHASE_PATTERN = /^Compraste \$((?:[1-9]\d{0,2}(?:\.\d{3})+)|(?:[1-9]\d*)) en (.+?) Con tu CMR Mastercard Elite terminada en (\d{4})\. Si no la realizaste tú, revisa los movimientos de tus adicionales en tu app\.$/u;
 // El nombre del adicional se valida como parte de la gramática, pero no se captura ni asigna.
-const ADDITIONAL_PATTERN = /^Tu Adicional compró \$((?:[1-9]\d{0,2}(?:\.\d{3})+)|(?:[1-9]\d*)) en (.+?) Realizada por [\p{L}\p{M}][\p{L}\p{M} .'-]{0,199} con su CMR Adicional terminada en (\d{4})\. Si tienes algún problema, comunícate con nosotros\.$/u;
+const ADDITIONAL_PATTERN = new RegExp(String.raw`^Tu Adicional compró \$((?:[1-9]\d{0,2}(?:\.\d{3})+)|(?:[1-9]\d*)) en (.+?) Realizada por [\p{L}\p{M}][\p{L}\p{M} .'-]{0,${MAX_NOMBRE_ADICIONAL - 1}} con su CMR Adicional terminada en (\d{4})\. Si tienes algún problema, comunícate con nosotros\.$`, "u");
 
 function rechazo(motivo) {
   // No incluir texto, importe ni terminación en diagnósticos o logs.
@@ -137,8 +138,11 @@ export function soporteAnalizador() {
   return {
     version: PARSER_VERSION,
     hasCapturaAndroidValidada: false,
+    hasPrimeraCompraAndroidVerificada: true,
     hasFormatoPositivoDocumentado: true,
-    hasPaqueteBancoConfirmado: false,
+    hasPaqueteBancoConfirmado: true,
+    hasFormatoAdicionalDocumentado: true,
+    hasFormatoAdicionalAndroidValidado: false,
     hasNegativosAutenticosValidados: false,
     hasFechaBancaria: false,
     hasReferenciaBancaria: false,

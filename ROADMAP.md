@@ -5,7 +5,7 @@ Actualizado: 2026-10-21. Base: `58ebee85df3acf3b942f3ade944b40b63aa82af9`.
 
 **Avance global: 65% (65/100 puntos verificados).**
 
-**Tarea actual: 2.3 — Cola persistente y deduplicación.**
+**Tarea actual: 2.4 — Vinculación Firebase y sincronización.**
 
 [Abrir roadmap visual](docs/seguimiento/roadmap.html) · [Estado para continuar](ESTADO_PROYECTO.md)
 
@@ -48,8 +48,8 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 --- | --- | --- | --- | --- | --- | ---
 2.1 | App complementaria y permisos explícitos | completada | 4 pt | 1.2 | Proyecto Android separado, listener real, filtro por paquete verificado y autorización transparente. | android/: listener nativo protegido, filtro cl.android instalado y consentimiento separado de Ajustes. APK debug compilado y firma verificada; 19 pruebas JVM + 3 Robolectric aprobadas. Sin Internet/Firebase/deuda; prueba física S24 pendiente. android/README.md y PRUEBA_S24.md.
 2.2 | Analizador de notificaciones auténticas | en_espera | 4 pt | 1.3, 2.1 | Extraer solo compras verificadas; desconocidos no generan transacciones. | Puerto conservador Kotlin con corpus compartido y primera compra real reconocida en S24. No completa: depende de 1.3 y sus negativos auténticos pendientes.
-2.3 | Cola persistente y deduplicación | en_espera | 4 pt | 2.2 | Persistencia mínima, reintentos y deduplicación sin fusionar compras legítimas iguales. | Pendiente
-2.4 | Vinculación Firebase y sincronización | en_espera | 3 pt | 2.3, 6.1 | Sesión del mismo UID; envío seguro e idempotente validado con reglas. | Pendiente
+2.3 | Cola persistente y deduplicación | en_espera | 4 pt | 2.2 | Persistencia mínima, reintentos y deduplicación sin fusionar compras legítimas iguales. | Room por UID, identidad local persistente, tombstones sin datos financieros tras envío y WorkManager implementados y probados. No completa: faltan negativos/actualizaciones auténticas y referencia para certificar deduplicación bancaria entre dispositivos.
+2.4 | Vinculación Firebase y sincronización | en_espera | 3 pt | 2.3, 6.1 | Sesión del mismo UID; envío seguro e idempotente validado con reglas. | Variante cl.controlcuotas.companion.sync compilada, con Google Auth, consentimiento de envío y SDK configurado. App y huellas registradas en Firebase; sin reglas/PWA desplegadas ni sesión/envío físico del S24 verificados.
 
 ## Fase 3 — Compras sin asignar · 100%
 
@@ -125,7 +125,8 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - La revisión automática rechazó iniciar el servidor localhost sin motivo adicional; no se pudo restaurar la URL en esta sesión. Servidor probado en puerto efímero; el usuario puede iniciarlo con npm run roadmap.
 - Captura del S24 aportada por el usuario: app instalada, cl.android detectado, consentimiento y acceso Android concedidos, servicio conectado. Primera compra nueva recibida y reconocida con campos coincidentes en dos capturas; falta cobertura de otros avisos y comportamiento prolongado. Lint: cero errores, una advertencia ObsoleteSdkInt por carpeta vacía; limpieza/repetición rechazadas por revisión automática sin motivo adicional.
 - Bandeja/confirmación/reparto implementados y probados solo localmente. La PWA pública, sus reglas y el APK de diagnóstico siguen sin sincronización nueva. No desplegar sin autorización.
-- No hay app Android registrada en Firebase. Preparar variante conectada, cola por UID y reintentos; configuración OAuth/registro y activación remota requieren revisión concreta.
+- Cliente Android y huellas ya registrados; SDK/OAuth guardados solo en configuración local ignorada por Git. Falta completar Google personalmente en S24, validar UID y envío, y autorizar publicación coordinada de web/reglas. El APK de diagnóstico sigue separado.
+- Lint Android sin errores, con advertencias de dependencias/estilo y un detector heurístico de Google ID cuyo parseo se realiza en vincular(). No se declara revisión visual ni entrega real del APK conectado.
 
 ## Funcionalidades completadas
 

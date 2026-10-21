@@ -6,6 +6,7 @@ const val PAQUETE_BANCO = "cl.android"
 const val VERSION_ANALIZADOR = "captura-20261021-v2"
 const val MAX_TEXTO_NOTIFICACION = 2000
 private const val MAX_COMERCIO = 200
+private const val MAX_NOMBRE_ADICIONAL = 200
 private const val MAX_ENTERO_JS = 9_007_199_254_740_991L
 private const val ETIQUETA_BANCO = "Banco Falabella"
 
@@ -74,7 +75,7 @@ object AnalizadorFalabella {
     // No capturar ni conservar el nombre del titular adicional.
     private val adicional = Regex(
         "^Tu Adicional compró \\$((?:[1-9]\\d{0,2}(?:\\.\\d{3})+)|(?:[1-9]\\d*)) en (.+?) " +
-            "Realizada por [\\p{L}\\p{M}][\\p{L}\\p{M} .'-]{0,199} con su CMR Adicional terminada en (\\d{4})\\. " +
+            "Realizada por [\\p{L}\\p{M}][\\p{L}\\p{M} .'-]{0,${MAX_NOMBRE_ADICIONAL - 1}} con su CMR Adicional terminada en (\\d{4})\\. " +
             "Si tienes algún problema, comunícate con nosotros\\.$"
     )
 

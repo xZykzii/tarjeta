@@ -63,5 +63,8 @@
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
             android:text="@string/limits" android:textColor="@color/warning" android:textSize="12sp"
             android:lineSpacingExtra="4dp" android:layout_marginTop="20dp" android:layout_marginBottom="20dp" />
+        <Button android:id="@+id/connection" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/connection" android:textAllCaps="false" android:visibility="gone"
+            android:textColor="@color/background" android:backgroundTint="@color/accent" android:minHeight="52dp" />
     </LinearLayout>
 </ScrollView>

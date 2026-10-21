@@ -14,5 +14,6 @@
     <string name="capture_title">Último resultado local</string>
     <string name="limits">Los importes reconocidos solo permanecen en memoria y se pierden al cerrar el proceso. Los contadores son callbacks, no compras únicas: Android puede actualizar un mismo aviso. Cola, deduplicación y sincronización todavía no están disponibles.</string>
     <string name="clear">Limpiar diagnóstico de memoria</string>
+    <string name="connection">Cuenta y sincronización</string>
     <string name="unknown_date">La notificación no informa fecha bancaria, cuotas ni intereses. No se deducen de la hora del teléfono.</string>
 </resources>

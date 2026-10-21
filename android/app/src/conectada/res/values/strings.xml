@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="intro">Analiza avisos nuevos del banco. En Cuenta y sincronización puedes vincular tu Google y autorizar el envío a tu bandeja privada. Ningún aviso crea deuda automáticamente.</string>
+    <string name="limits">La última detección se muestra en memoria. Solo con cuenta vinculada y envío autorizado se conserva una cola privada por usuario. Consulta el estado de envío y sus errores en Cuenta y sincronización.</string>
+</resources>

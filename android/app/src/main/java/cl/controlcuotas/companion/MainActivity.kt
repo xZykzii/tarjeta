@@ -45,6 +45,10 @@ class MainActivity : Activity() {
             }
         }
         findViewById<Button>(R.id.clear).setOnClickListener { EstadoDiagnostico.limpiar() }
+        findViewById<Button>(R.id.connection).apply {
+            visibility = if (BuildConfig.IS_CONECTADA) android.view.View.VISIBLE else android.view.View.GONE
+            setOnClickListener { startActivity(Intent().setClassName(context, "cl.controlcuotas.companion.ConexionActivity")) }
+        }
     }
 
     override fun onStart() {
@@ -109,7 +113,9 @@ class MainActivity : Activity() {
         val compra = vista.ultimaCompra
         if (compra != null) {
             val monto = NumberFormat.getIntegerInstance(Locale.forLanguageTag("es-CL")).format(compra.montoOriginal)
-            return "Formato reconocido para revisión local.\n\n$$monto · ${compra.comercio}\nTarjeta terminada en ${compra.tarjetaUltimos4}.\n\nNo se registró deuda ni se envió información."
+            val estadoEnvio = if (BuildConfig.IS_CONECTADA) "Revisa el estado en Cuenta y sincronización. No se creó deuda."
+                else "No se registró deuda ni se envió información."
+            return "Formato reconocido para revisión local.\n\n$$monto · ${compra.comercio}\nTarjeta terminada en ${compra.tarjetaUltimos4}.\n\n$estadoEnvio"
         }
         return when (vista.ultimoMotivo) {
             MotivoIgnorado.TEXTO_INVALIDO -> "Texto no utilizable. Aviso ignorado."

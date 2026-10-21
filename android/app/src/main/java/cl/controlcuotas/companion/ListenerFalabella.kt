@@ -8,6 +8,7 @@ import cl.controlcuotas.core.MAX_TEXTO_NOTIFICACION
 import cl.controlcuotas.core.PAQUETE_BANCO
 import cl.controlcuotas.core.TextoNotificacion
 import cl.controlcuotas.core.procesarNotificacion
+import cl.controlcuotas.core.ResultadoNotificacion
 
 /** Servicio real, enlazado únicamente por Android tras autorización en Ajustes. */
 class ListenerFalabella : NotificationListenerService() {
@@ -38,6 +39,9 @@ class ListenerFalabella : NotificationListenerService() {
                 )
             }
             EstadoDiagnostico.registrar(resultado)
+            if (resultado is ResultadoNotificacion.Compra) {
+                DestinoCompras.destino?.recibir(resultado.datos, sbn.key, sbn.postTime, System.currentTimeMillis())
+            }
         } catch (error: RuntimeException) {
             // El mensaje de una excepción de extras podría contener información bancaria.
             Log.w(TAG, "No se pudo leer un aviso del paquete permitido; contenido omitido.")

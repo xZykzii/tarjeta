@@ -89,6 +89,21 @@ class InteraccionAndroidTest {
         shadowOf(RuntimeEnvironment.getApplication().packageManager).installPackage(info)
     }
 
+    @Test
+    fun conexionUsaElPaqueteDeSuVarianteYElDiagnosticoNoLaOfrece() {
+        Robolectric.buildActivity(MainActivity::class.java).setup().use { controller ->
+            val activity = controller.get()
+            val button = activity.findViewById<Button>(R.id.connection)
+            if (BuildConfig.IS_CONECTADA) {
+                assertEquals(android.view.View.VISIBLE, button.visibility)
+                button.performClick()
+                val intent = shadowOf(activity).nextStartedActivity
+                assertEquals("cl.controlcuotas.companion.ConexionActivity", intent.component?.className)
+                assertEquals(activity.packageName, intent.component?.packageName)
+            } else assertEquals(android.view.View.GONE, button.visibility)
+        }
+    }
+
     @Suppress("DEPRECATION")
     private fun aviso(paquete: String, isResumen: Boolean = false): StatusBarNotification {
         val notification = Notification.Builder(RuntimeEnvironment.getApplication(), "prueba-local")
