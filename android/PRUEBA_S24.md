@@ -1,7 +1,18 @@
 # Prueba física pendiente · Galaxy S24
 
-Esta guía corresponde al APK de diagnóstico 0.1.0. La pantalla y la captura
-real todavía deben probarse en el teléfono. No hay sincronización con la web.
+Esta guía corresponde al APK de diagnóstico 0.1.0. No hay sincronización con la web.
+
+## Evidencia parcial del teléfono · 2026-10-21
+
+La captura aportada por el usuario muestra `cl.android` instalado, consentimiento
+local activado, acceso Android concedido y servicio conectado. Ambos contadores
+están en cero. Esto verifica instalación y estado de autorización mostrado en el
+teléfono; todavía no demuestra recepción ni reconocimiento de una compra.
+
+No hace falta solicitar reconexión mientras el estado siga conectado. El servicio
+solo procesa avisos nuevos: los anteriores a la autorización no se recuperan.
+Si una nueva notificación de compra ya llegó y el contador sigue en cero, registrar
+ese caso como posible fallo de recepción y verificarlo antes de modificar el parser.
 
 ## Instalación y autorización
 
