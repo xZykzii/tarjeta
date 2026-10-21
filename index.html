@@ -573,6 +573,7 @@
     .due-date.soon { color: var(--warning); }
     .due-date.none { color: var(--text-3); font-weight: 600; }
     .due-meta { font-size: 10px; color: var(--text-3); white-space: nowrap; }
+    .purchase-origin { display: block; margin-top: 4px; white-space: normal; }
     /* El atraso se marca solo con el punto rojo del inicio de la fila. Teñir la
        fila entera de rojo ahogaba el resto de la tabla cuando hay muchas. */
     .dot-late { background: var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); }
@@ -1425,6 +1426,12 @@
   import { generarPdfGeneral, generarPdfPersona } from "./pdf-export.mjs";
   import { guardarConRevision, validarDocumento } from "./persistencia-segura.mjs";
   import { crearControlGuardado } from "./ui-guardado.mjs";
+  import {
+    abonoDeCompra, restanteCuotaDe, pagadoDeCompra, recalcularCompra, totalContratoDe,
+    proximaCuotaNumero, ultimaCuotaPagadaNumero, importeCuota, contarCuotasPendientesHasta, montoExigibleHasta,
+    registrarPagoCompra, deshacerPagoCompra, resumenImportesCompra, hasPlanExplicito
+  } from "./cuotas-item.mjs";
+  import { normalizarCompras, serializarCompra, crearBackup, leerBackup, MAX_BACKUP_BYTES } from "./datos-compras.mjs";
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
     getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
@@ -1647,6 +1654,15 @@
       document.body.appendChild(ov);
 
       let editPagoUnico = !!it.pagoUnico;
+      if (hasPlanExplicito(it)) {
+        ["#e-monto", "#e-pagadas", "#e-totales", "#e-btn-cuotas", "#e-btn-unico"].forEach(selector => {
+          ov.querySelector(selector).disabled = true;
+        });
+        const aviso = document.createElement("p");
+        aviso.className = "due-meta span-2";
+        aviso.textContent = "Este registro conserva un plan de cuotas exactas. Aquí puedes corregir persona, tarjeta, descripción y fecha; sus importes se mantienen.";
+        ov.querySelector(".edit-grid").appendChild(aviso);
+      }
       const btnCuotas  = ov.querySelector("#e-btn-cuotas");
       const btnUnico   = ov.querySelector("#e-btn-unico");
       const campoP     = ov.querySelector("#e-campo-pagadas");
@@ -1693,7 +1709,10 @@
           persona: ov.querySelector("#e-persona").value,
           tarjeta: ov.querySelector("#e-tarjeta").value,
           item:    ov.querySelector("#e-item").value.trim() || "-",
-          monto, pagadas, totales, pagoUnico: editPagoUnico,
+          monto: hasPlanExplicito(it) ? it.monto : monto,
+          pagadas: hasPlanExplicito(it) ? it.pagadas : pagadas,
+          totales: hasPlanExplicito(it) ? it.totales : totales,
+          pagoUnico: hasPlanExplicito(it) ? it.pagoUnico : editPagoUnico,
           fechaCompra: parseFecha(fechaEl.value) ? fechaEl.value : null
         });
       });
@@ -1718,22 +1737,14 @@
   // it.abonado = plata ya puesta sobre la cuota EN CURSO. Siempre menor que la cuota
   // completa: apenas la cubre, la cuota se marca pagada y el abono vuelve a cero.
   function abonoDe(it) {
-    const m = Number(it.monto) || 0, a = Number(it.abonado) || 0;
-    return (a > 0 && a < m) ? a : 0;
+    return abonoDeCompra(it);
   }
-  function restanteCuota(it) { return (Number(it.monto) || 0) - abonoDe(it); }
-  function pagadoDe(it)      { return (Number(it.monto) || 0) * (Number(it.pagadas) || 0) + abonoDe(it); }
+  function restanteCuota(it) { return restanteCuotaDe(it); }
+  function pagadoDe(it)      { return pagadoDeCompra(it); }
 
   // Recalcula factor/total/abono de un ítem tras cualquier cambio
   function recalcItem(it) {
-    it.pagadas = Number(it.pagadas) || 0;
-    it.totales = Number(it.totales) || 1;
-    it.monto   = Number(it.monto)   || 0;
-    it.abonado = abonoDe(it);
-    if (it.pagadas >= it.totales) it.abonado = 0;
-    it.factor  = calcFactor(it.pagadas, it.totales);
-    it.total   = it.monto * it.factor - it.abonado;
-    return it;
+    return recalcularCompra(it);
   }
   function updateSaldoUI() {
     const s = personaSeleccionada ? (saldos[personaSeleccionada] || 0) : 0;
@@ -1811,7 +1822,8 @@
     if (pagadas >= totales)          { st.estado = "completo"; return st; }
     if (!parseFecha(it.fechaCompra)) { st.estado = "sinfecha"; return st; }
 
-    st.proxima = pagadas + 1;
+    st.proxima = proximaCuotaNumero(it);
+    if (!st.proxima) { st.estado = "completo"; return st; }
     st.venc    = vencimientoCuota(it.fechaCompra, st.proxima);
     st.dias    = diasEntre(hoy, st.venc);   // negativo = ya venció
 
@@ -1821,8 +1833,8 @@
       if (vencimientoCuota(it.fechaCompra, n) < hoy) vencidas = n;
       else break;
     }
-    st.atrasadas     = Math.max(0, vencidas - pagadas);
-    st.montoAtrasado = Math.max(0, st.atrasadas * (Number(it.monto) || 0) - abonoDe(it));
+    st.atrasadas     = contarCuotasPendientesHasta(it, vencidas);
+    st.montoAtrasado = montoExigibleHasta(it, vencidas);
     st.estado = st.atrasadas > 0 ? "atrasado"
               : st.dias <= PRONTO_DIAS ? "proximo"
               : "aldia";
@@ -1960,14 +1972,7 @@
   // ── Firebase ──
   async function save() {
     if (!currentUser) throw new Error("Inicia sesión antes de guardar.");
-    const clean = items.map(it => ({
-      persona: it.persona, tarjeta: it.tarjeta, item: it.item,
-      monto: it.monto, pagadas: it.pagadas, totales: it.totales,
-      abonado: abonoDe(it),
-      pagoUnico: it.pagoUnico || false,
-      fechaCompra: it.fechaCompra || null,
-      completedAt: it.completedAt || null
-    }));
+    const clean = items.map(serializarCompra);
     await controlGuardado.guardar({ items: clean, tarjetas, personas, tarjetaActiva, saldos, historial });
   }
 
@@ -1998,15 +2003,7 @@
         tarjetaActiva = tarjetas[0]; saldos = {}; historial = [];
         await save();
       }
-      items.forEach(it => {
-        if (!it.pagadas && it.pagadas !== 0) it.pagadas = 0;
-        if (!it.totales || it.totales <= 0)  it.totales = 1;
-        if (!it.monto)   it.monto = 0;
-        if (typeof it.completedAt !== "number") it.completedAt = null;
-        if (!parseFecha(it.fechaCompra)) it.fechaCompra = null;
-        it.pagoUnico = !!it.pagoUnico;
-        recalcItem(it);
-      });
+      items = normalizarCompras(items, tarjetas[0] || "Tarjeta 1");
       cleanupCompleted();
       if (!tarjetas.length) tarjetas = ["Tarjeta 1"];
       if (!tarjetas.includes(tarjetaActiva)) tarjetaActiva = tarjetas[0];
@@ -2075,7 +2072,7 @@
 
   // ── Sort ──
   function sortVal(it) {
-    const totalContrato = it.monto * it.totales;
+    const totalContrato = totalContratoDe(it);
     const pagado        = pagadoDe(it);
     const pct = (it.totales > 0 && totalContrato > 0) ? pagado / totalContrato : 0;
     switch (sortCol) {
@@ -2243,9 +2240,10 @@
 
     // De más estricto a más laxo; cada evento se usa una sola vez
     const criterios = [
-      (it, h) => h.persona === it.persona && h.item === it.item && h.tarjeta === it.tarjeta && h.monto === it.monto,
-      (it, h) => h.persona === it.persona && h.item === it.item && h.tarjeta === it.tarjeta,
-      (it, h) => h.persona === it.persona && h.item === it.item
+      (it, h) => h.compraId && h.compraId === it.id,
+      (it, h) => !h.compraId && h.persona === it.persona && h.item === it.item && h.tarjeta === it.tarjeta && h.monto === it.monto,
+      (it, h) => !h.compraId && h.persona === it.persona && h.item === it.item && h.tarjeta === it.tarjeta,
+      (it, h) => !h.compraId && h.persona === it.persona && h.item === it.item
     ];
 
     const usados = new Set();
@@ -2281,7 +2279,7 @@
     }
 
     const filas = props.map(p => {
-      const v = vencimientoCuota(p.fecha, (Number(p.it.pagadas) || 0) + 1);
+      const v = vencimientoCuota(p.fecha, proximaCuotaNumero(p.it) || p.it.totales);
       const d = parseFecha(p.fecha);
       return `<div class="bf-row">
           <span class="bf-item">${escapeHtml(p.it.item)}<small>${escapeHtml(p.it.persona)} · ${escapeHtml(p.it.tarjeta)}</small></span>
@@ -2379,7 +2377,7 @@
 
     list.forEach(it => {
       const idx           = items.indexOf(it);
-      const totalContrato = it.monto * it.totales;
+      const totalContrato = totalContratoDe(it);
       const abonado       = abonoDe(it);
       const restante      = restanteCuota(it);
       const pagado        = pagadoDe(it);
@@ -2409,13 +2407,20 @@
       tdI.className = "cell-item";
       tdI.dataset.label = "Ítem";
       tdI.textContent = it.item;
+      const origen = document.createElement("small");
+      origen.className = "due-meta purchase-origin";
+      origen.textContent = it.origen === "automatico" ? "Detectada automáticamente" : "Manual";
+      tdI.appendChild(origen);
       tr.appendChild(tdI);
 
       // Monto
       const tdM = document.createElement("td");
       tdM.className = "td-right amount-neutral cell-monto";
       tdM.dataset.label = it.pagoUnico ? "Monto" : "Cuota";
-      tdM.textContent = "$" + fmt(it.monto);
+      const importes = resumenImportesCompra(it);
+      tdM.textContent = importes.hasImportesDiferentes
+        ? `$${fmt(importes.minimo)}–$${fmt(importes.maximo)}` : "$" + fmt(it.monto);
+      if (hasPlanExplicito(it)) tdM.title = importes.cuotas.map((cuota, i) => `${i + 1}: $${fmt(cuota)}`).join(" · ");
       tr.appendChild(tdM);
 
       // Progreso
@@ -2651,6 +2656,7 @@
     if (!tarjetaActiva)                        { toast("Crea o selecciona una tarjeta primero.", "error"); return; }
 
     const n = {
+      id: crypto.randomUUID(), origen: "manual",
       persona, tarjeta: tarjetaActiva, item, monto, pagadas, totales, abonado: 0,
       pagoUnico: !esConCuotas, fechaCompra, completedAt: null
     };
@@ -2659,7 +2665,7 @@
 
     const primerVenc = vencimientoCuota(fechaCompra, pagadas + 1);
     logEvento(esConCuotas ? "compra_cuotas" : "compra_unica", {
-      persona, item, monto, totales, tarjeta: tarjetaActiva,
+      compraId: n.id, persona, item, monto, totales, tarjeta: tarjetaActiva,
       fechaCompra, venc: primerVenc ? toISO(primerVenc) : null
     });
 
@@ -2756,12 +2762,12 @@
       if (monto > disp)                { toast("No hay saldo suficiente para ese abono.", "error"); return; }
 
       saldos[it.persona] = disp - monto;
-      it.abonado = abonado + monto;
-      recalcItem(it);
+      const pagoParcial = registrarPagoCompra(it, monto);
+      Object.assign(it, pagoParcial.compra);
       logEvento("abono", {
-        persona: it.persona, item: it.item, monto,
+        compraId: it.id, persona: it.persona, item: it.item, monto,
         abonado: it.abonado, restante: restanteCuota(it),
-        cuota: it.pagadas + 1, totales: it.totales, tarjeta: it.tarjeta
+        cuota: pagoParcial.cuota, totales: it.totales, tarjeta: it.tarjeta
       });
       showLoading(); try { await save(); } finally { hideLoading(); }
       updateSaldoUI(); renderTabla();
@@ -2771,14 +2777,13 @@
 
     // Saldo suficiente: se completa la cuota (descontando lo ya abonado)
     saldos[it.persona] = disp - restante;
-    it.pagadas++;
-    it.abonado = 0;
-    recalcItem(it);
+    const pago = registrarPagoCompra(it, restante);
+    Object.assign(it, pago.compra);
     it.completedAt = it.pagadas >= it.totales ? Date.now() : null;
     logEvento(it.pagoUnico ? "pago_unico" : "pago_cuota", {
-      persona: it.persona, item: it.item, monto: it.monto,
+      compraId: it.id, persona: it.persona, item: it.item, monto: importeCuota(it, pago.cuota),
       pagadoAhora: restante, abonoPrevio: abonado,
-      cuota: it.pagadas, totales: it.totales, tarjeta: it.tarjeta
+      cuota: pago.cuota, totales: it.totales, tarjeta: it.tarjeta
     });
     showLoading(); try { await save(); } finally { hideLoading(); }
     updateSaldoUI(); renderTabla();
@@ -2797,8 +2802,8 @@
       it.abonado = 0;
       recalcItem(it);
       logEvento("deshacer_abono", {
-        persona: it.persona, item: it.item, monto: abonado,
-        cuota: it.pagadas + 1, totales: it.totales, tarjeta: it.tarjeta
+        compraId: it.id, persona: it.persona, item: it.item, monto: abonado,
+        cuota: proximaCuotaNumero(it), totales: it.totales, tarjeta: it.tarjeta
       });
       showLoading(); try { await save(); } finally { hideLoading(); }
       updateSaldoUI(); renderTabla();
@@ -2807,13 +2812,14 @@
     }
 
     if (it.pagadas <= 0) return;
-    saldos[it.persona] = (saldos[it.persona] || 0) + it.monto;
-    it.pagadas--;
-    recalcItem(it);
+    const cuotaDeshecha = ultimaCuotaPagadaNumero(it);
+    const deshecho = deshacerPagoCompra(it);
+    saldos[it.persona] = (saldos[it.persona] || 0) + deshecho.devuelto;
+    Object.assign(it, deshecho.compra);
     if (it.pagadas < it.totales) it.completedAt = null;
     logEvento("deshacer_cuota", {
-      persona: it.persona, item: it.item, monto: it.monto,
-      cuota: it.pagadas + 1, totales: it.totales, tarjeta: it.tarjeta
+      compraId: it.id, persona: it.persona, item: it.item, monto: deshecho.devuelto,
+      cuota: cuotaDeshecha, totales: it.totales, tarjeta: it.tarjeta
     });
     showLoading(); try { await save(); } finally { hideLoading(); }
     updateSaldoUI(); renderTabla(); toast("Cuota deshecha. Saldo devuelto.", "info");
@@ -2913,7 +2919,7 @@
 
   function exportarBackup() {
     if (!requireLogin()) return;
-    const blob = new Blob([JSON.stringify({ version: 6, items, tarjetas, personas, tarjetaActiva, saldos, historial }, null, 2)],
+    const blob = new Blob([JSON.stringify(crearBackup({ items, tarjetas, personas, tarjetaActiva, saldos, historial }), null, 2)],
       { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -3008,63 +3014,28 @@
     ov.addEventListener("keydown", e => { if (e.key === "Escape") cerrar(); });
   }
 
-  function importar(file) {
+  async function importar(file) {
     if (!requireLogin()) return;
-    const reader = new FileReader();
-    reader.onload = async e => {
-      try {
-        let data;
-        try { data = JSON.parse(e.target.result); } catch { toast("JSON inválido.", "error"); return; }
-        let imp = { items:[], tarjetas:["Tarjeta 1"], personas:["Persona 1"], tarjetaActiva:"", saldos:{}, historial:[] };
-        if (Array.isArray(data)) { imp.items = data; }
-        else if (data?.items) {
-          imp.items        = data.items;
-          imp.tarjetas     = Array.isArray(data.tarjetas)  ? data.tarjetas  : imp.tarjetas;
-          imp.personas     = Array.isArray(data.personas)  ? data.personas  : imp.personas;
-          imp.tarjetaActiva = data.tarjetaActiva || "";
-          if (data.saldos    && typeof data.saldos === "object")    imp.saldos    = data.saldos;
-          if (Array.isArray(data.historial))                        imp.historial = data.historial;
-        } else { toast("Estructura de backup desconocida.", "error"); return; }
-
-        const ok = await showModal({
-          title: "Importar backup",
-          body: "Esto reemplazará <strong>todos</strong> los datos actuales. ¿Continuar?",
-          icon: "📥", iconType: "info",
-          confirm: "Importar", cancel: "Cancelar", danger: true
-        });
-        if (!ok) return;
-
-        items = imp.items.map(it => {
-          const o = {
-            persona: it.persona || "Persona 1",
-            tarjeta: it.tarjeta || imp.tarjetas[0],
-            item:    it.item    || "-",
-            monto:   Number(it.monto)   || 0,
-            pagadas: Number(it.pagadas) || 0,
-            totales: Number(it.totales) || 1,
-            abonado: Number(it.abonado) || 0,
-            pagoUnico: !!it.pagoUnico,
-            fechaCompra: parseFecha(it.fechaCompra) ? it.fechaCompra.trim() : null,
-            completedAt: typeof it.completedAt === "number" ? it.completedAt : null
-          };
-          if (o.totales <= 0) o.totales = 1;
-          if (o.pagadas < 0)  o.pagadas = 0;
-          if (o.pagadas > o.totales) o.pagadas = o.totales;
-          recalcItem(o);
-          return o;
-        });
-        tarjetas      = imp.tarjetas.length  ? imp.tarjetas  : ["Tarjeta 1"];
-        personas      = imp.personas.length  ? imp.personas  : ["Persona 1"];
-        tarjetaActiva = (imp.tarjetaActiva && tarjetas.includes(imp.tarjetaActiva)) ? imp.tarjetaActiva : tarjetas[0];
-        saldos        = (imp.saldos && typeof imp.saldos === "object") ? imp.saldos : {};
-        historial     = Array.isArray(imp.historial) ? imp.historial : [];
-
-        showLoading(); try { await save(); } finally { hideLoading(); }
-        renderCardTabs(); renderPersonaSelect(); renderTabla();
-        toast("Backup importado correctamente.");
-      } catch { toast("Error leyendo el backup.", "error"); }
-    };
-    reader.readAsText(file);
+    if (!file || file.size > MAX_BACKUP_BYTES) {
+      toast("Selecciona un backup JSON de hasta 5 MB.", "error"); return;
+    }
+    try {
+      const imp = leerBackup(JSON.parse(await file.text()));
+      const ok = await showModal({
+        title: "Importar backup",
+        body: "Esto reemplazará <strong>todos</strong> los datos actuales. ¿Continuar?",
+        icon: "📥", iconType: "info", confirm: "Importar", cancel: "Cancelar", danger: true
+      });
+      if (!ok) return;
+      items = imp.items; tarjetas = imp.tarjetas; personas = imp.personas;
+      tarjetaActiva = imp.tarjetaActiva; saldos = imp.saldos; historial = imp.historial;
+      showLoading(); try { await save(); } finally { hideLoading(); }
+      renderCardTabs(); renderPersonaSelect(); renderTabla(); updateSaldoUI();
+      toast("Backup importado correctamente.");
+    } catch (error) {
+      console.warn("No se completó la importación.", error.code || error.name);
+      toast("No se completó la importación. Revisa el archivo o el aviso de guardado.", "error");
+    }
   }
 
   // ── Fecha de compra (form) ──

@@ -168,10 +168,17 @@ function agregarPaginacion(doc) {
   }
 }
 
+function cuotaTexto(fila) {
+  return fila.hasCuotasDiferentes
+    ? `${moneda(fila.montoCuotaMinima)} a ${moneda(fila.montoCuotaMaxima)}`
+    : moneda(fila.montoCuota);
+}
+
 function filasPersona(reporte) {
   return reporte.filas.map((fila) => ({
     item: fila.item,
-    tipo: fila.tipo === "Pago único" ? "Pago único" : `${moneda(fila.montoCuota)} x ${fila.cuotasTotales}`,
+    tipo: fila.tipo === "Pago único" ? "Pago único" : fila.hasCuotasDiferentes
+      ? `${fila.cuotasTotales} cuotas: ${cuotaTexto(fila)}` : `${cuotaTexto(fila)} x ${fila.cuotasTotales}`,
     progreso: progresoTexto(fila),
     vencimiento: fechaPdf(fila.vencimiento),
     estado: estadoTexto(fila),
@@ -186,7 +193,7 @@ function filasGenerales(reporte) {
     persona: fila.persona,
     tarjeta: fila.tarjeta,
     item: fila.item,
-    cuota: moneda(fila.montoCuota),
+    cuota: cuotaTexto(fila),
     progreso: progresoTexto(fila),
     vencimiento: `${fechaPdf(fila.vencimiento)} · ${estadoTexto(fila)}`,
     total: moneda(fila.totalContrato),

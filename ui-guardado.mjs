@@ -1,4 +1,5 @@
 import { crearColaGuardado, validarDocumento } from "./persistencia-segura.mjs";
+import { crearBackup } from "./datos-compras.mjs";
 
 class ControlGuardado {
   constructor({ guardar, recargar, confirmarDescartar, alReintentarGuardado }) {
@@ -112,7 +113,7 @@ class ControlGuardado {
   descargarBorrador() {
     const borrador = this.borradorActual();
     if (!borrador) return;
-    const contenido = JSON.stringify({ version: 6, esBorrador: true, ...borrador.datos }, null, 2);
+    const contenido = JSON.stringify({ ...crearBackup(borrador.datos), esBorrador: true }, null, 2);
     const url = URL.createObjectURL(new Blob([contenido], { type: "application/json" }));
     const enlace = document.createElement("a");
     enlace.href = url;

@@ -1,3 +1,8 @@
+import {
+  totalContratoDe, proximaCuotaNumero, importeCuota, restanteCuotaDe,
+  montoExigibleHasta, resumenImportesCompra
+} from "./cuotas-item.mjs";
+
 export function proximaFechaDia(hoy, dia) {
   const fecha = new Date(hoy.getFullYear(), hoy.getMonth(), dia);
   fecha.setHours(0, 0, 0, 0);
@@ -35,14 +40,8 @@ export function filtrarItems(items, texto, estado, estadoDe) {
 }
 
 export function calcularMontoExigibleMes(item, hoy, vencimientoDe) {
-  const monto = Math.max(0, Number(item.monto) || 0);
   const totales = Math.max(1, Number(item.totales) || 1);
-  const pagadas = Math.max(0, Math.min(totales, Number(item.pagadas) || 0));
-  const abonadoRegistrado = Number(item.abonado) || 0;
-  const abonado = abonadoRegistrado > 0 && abonadoRegistrado < monto
-    ? abonadoRegistrado
-    : 0;
-  if (pagadas >= totales || monto === 0) return 0;
+  if (!proximaCuotaNumero(item)) return 0;
 
   const fechaReferencia = hoy instanceof Date && !Number.isNaN(hoy.getTime())
     ? hoy
@@ -57,19 +56,18 @@ export function calcularMontoExigibleMes(item, hoy, vencimientoDe) {
   for (let numero = 1; numero <= totales; numero++) {
     const vencimiento = vencimientoDe(item.fechaCompra, numero);
     if (!(vencimiento instanceof Date) || Number.isNaN(vencimiento.getTime())) {
-      return Math.max(0, monto - abonado);
+      return restanteCuotaDe(item);
     }
     if (vencimiento > finDeMes) break;
     cuotasExigibles = numero;
   }
 
-  const cuotasPendientes = Math.max(0, cuotasExigibles - pagadas);
-  return Math.max(0, cuotasPendientes * monto - abonado);
+  return montoExigibleHasta(item, cuotasExigibles);
 }
 
 export function resumirTarjeta(items, estadoDe, pagadoDe) {
   return items.reduce((resumen, item) => {
-    const totalContrato = Number(item.monto || 0) * Number(item.totales || 0);
+    const totalContrato = totalContratoDe(item);
     const pagado = pagadoDe(item);
     const pendiente = Math.max(0, Number(item.total) || 0);
     const estado = estadoDe(item);
@@ -101,11 +99,17 @@ export function resumirTarjeta(items, estadoDe, pagadoDe) {
 
 function crearFilaReporte(item, estadoDe, pagadoDe, incluyeIdentidad) {
   const estado = estadoDe(item);
-  const totalContrato = Number(item.monto || 0) * Number(item.totales || 0);
+  const totalContrato = totalContratoDe(item);
+  const importes = resumenImportesCompra(item);
   const fila = {
     item: String(item.item || "-"),
     tipo: item.pagoUnico ? "Pago único" : "Cuotas",
-    montoCuota: Number(item.monto) || 0,
+    montoCuota: importeCuota(item, proximaCuotaNumero(item) || 1),
+    montoCuotaMinima: importes.minimo,
+    montoCuotaMaxima: importes.maximo,
+    hasCuotasDiferentes: importes.hasImportesDiferentes,
+    cuotasImportes: importes.cuotas,
+    origen: item.origen || "manual",
     cuotasPagadas: Number(item.pagadas) || 0,
     cuotasTotales: Number(item.totales) || 1,
     totalContrato,

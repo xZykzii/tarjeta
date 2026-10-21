@@ -3,9 +3,9 @@
 
 Actualizado: 2026-10-21. Base: `58ebee85df3acf3b942f3ade944b40b63aa82af9`.
 
-**Avance global: 32% (32/100 puntos verificados).**
+**Avance global: 41% (41/100 puntos verificados).**
 
-**Tarea actual: 4.3 — Unificar cálculo manual y automático.**
+**Tarea actual: 4.4 — Formulario de modalidades.**
 
 [Abrir roadmap visual](docs/seguimiento/roadmap.html) · [Estado para continuar](ESTADO_PROYECTO.md)
 
@@ -63,27 +63,27 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 3.4 | Personas, tarjetas y revisión | en_espera | 2 pt | 3.2, 4.1 | Seleccionar entidades existentes y corregir datos sin afectar deuda hasta confirmar. | Pendiente
 3.5 | Repartir una compra entre varias personas | en_espera | 3 pt | 3.4, 4.5, 5.2 | Importes libres por persona o reparto igual; suma exacta, edición, confirmación atómica y saldos sin duplicar la compra. | Pendiente
 
-## Fase 4 — Modalidades y pesos exactos · 58.3%
+## Fase 4 — Modalidades y pesos exactos · 83.3%
 
-Aceptación: 7/12 puntos.
+Aceptación: 10/12 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
 4.1 | Motor de planes de cuotas | completada | 3 pt | 1.2 | Una cuota, división exacta en CLP, interés manual y cuotas individuales válidas. | planes-cuotas.mjs: modalidades, planes variables y adaptador legado sin mutación; pruebas aprobadas.
 4.2 | Pruebas de redondeo y límites | completada | 2 pt | 4.1 | Suma exacta, enteros seguros, validación de importes y compatibilidad documentada. | tests/compras.test.mjs: residuos exhaustivos, abonos, límites y overflow; 28/28 pruebas globales aprobadas.
-4.3 | Unificar cálculo manual y automático | en_curso | 3 pt | 4.2, 5.1 | Abonos, vencimientos, pagos, deshacer, PDF y resumen usan una lógica común. | Pendiente
-4.4 | Formulario de modalidades | en_espera | 2 pt | 4.3 | Previsualización explícita y sin tasas inferidas, incluso con cuotas diferentes. | Pendiente
+4.3 | Unificar cálculo manual y automático | completada | 3 pt | 4.2, 5.1 | Abonos, vencimientos, pagos, deshacer, PDF y resumen usan una lógica común. | cuotas-item.mjs conectado a pagos/abonos/deshacer, calendario, resúmenes y reportes. 49 pruebas Node; UI ficticia 34/33/33, reparto 700/300, pago/deshacer exacto. docs/CUOTAS_EXACTAS.md.
+4.4 | Formulario de modalidades | en_curso | 2 pt | 4.3 | Previsualización explícita y sin tasas inferidas, incluso con cuotas diferentes. | Pendiente
 4.5 | Motor de reparto exacto entre personas | completada | 2 pt | 4.2 | Distribución igual o por importes libres; cuotas por persona conservan totales por fila y columna incluso con redondeo e interés. | reparto-compras.mjs: importes libres/iguales y matriz exacta por persona/mes; barrido exhaustivo y enteros grandes aprobados.
 
-## Fase 5 — Compatibilidad de la PWA · 33.3%
+## Fase 5 — Compatibilidad de la PWA · 83.3%
 
-Aceptación: 4/12 puntos.
+Aceptación: 10/12 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
 5.1 | Resolver concurrencia del documento legado | completada | 4 pt | 1.4 | Guardados no pierden compras confirmadas, pagos ni cambios de otro dispositivo. | save/load conectados a CAS real, cola y recuperación de borrador; 32 pruebas Node + 9 Firestore/emulador y flujo UI ficticio aprobados. docs/GUARDADO_SEGURO.md; reglas no desplegadas.
-5.2 | Origen, identificadores y backups | pendiente | 3 pt | 5.1 | Persistir origen/ID/planes sin romper importación de backups v6 ni datos antiguos. | Pendiente
-5.3 | Integrar registro manual, resúmenes y PDF | en_espera | 3 pt | 4.3, 5.2 | Mismos cálculos y resultados para registro manual y automático. | Pendiente
+5.2 | Origen, identificadores y backups | completada | 3 pt | 5.1 | Persistir origen/ID/planes sin romper importación de backups v6 ni datos antiguos. | datos-compras.mjs conserva ID/origen/plan/grupo en save y backup v7; v6/legado probado. Backup descargado por UI y restaurado con IDs, pagos, cuotas y saldo verificados.
+5.3 | Integrar registro manual, resúmenes y PDF | completada | 3 pt | 4.3, 5.2 | Mismos cálculos y resultados para registro manual y automático. | PWA y logic usan adaptador común; PDF personal/general generados en UI, texto comprobado y páginas renderizadas sin cortes. Personal solo muestra participación propia; registro histórico mantiene fórmulas.
 5.4 | Caché, cierre de sesión y regresión | en_espera | 2 pt | 5.3, 3.3 | Bump del SW y limpieza de suscripciones; funciones previas comprobadas. | Pendiente
 
 ## Fase 6 — Seguridad y confiabilidad · 0%
@@ -122,7 +122,7 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - Captura positiva revisada. Usuario confirma Samsung Galaxy S24 y ficha oficial Banco Falabella Chile (paquete cl.android). Faltan versión Android, extras reales y muestras negativas auténticas.
 - Reglas de Firestore desplegadas sin verificar; no publicar reglas ni escribir datos reales desde esta sesión.
 - Guardado protegido localmente con CAS y revisión; falta auditar/desplegar reglas para bloquear clientes antiguos en producción. No publicar solo la PWA.
-- Cuotas variables exigen cambios coordinados en pagos, abonos, PDF, importación y resumen.
+- Captura automática y reparto todavía no tienen interfaz de revisión/confirmación. La edición de planes existentes conserva importes y pagos para evitar cambios financieros accidentales.
 - La revisión automática rechazó iniciar el servidor localhost sin motivo adicional; no se pudo restaurar la URL en esta sesión. Servidor probado en puerto efímero; el usuario puede iniciarlo con npm run roadmap.
 
 ## Funcionalidades completadas
@@ -138,8 +138,11 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - 3.1 Contrato y validación de pendientes: compras-pendientes.mjs: contrato mínimo, estados, validaciones e identidad estable; pruebas aprobadas.
 - 4.1 Motor de planes de cuotas: planes-cuotas.mjs: modalidades, planes variables y adaptador legado sin mutación; pruebas aprobadas.
 - 4.2 Pruebas de redondeo y límites: tests/compras.test.mjs: residuos exhaustivos, abonos, límites y overflow; 28/28 pruebas globales aprobadas.
+- 4.3 Unificar cálculo manual y automático: cuotas-item.mjs conectado a pagos/abonos/deshacer, calendario, resúmenes y reportes. 49 pruebas Node; UI ficticia 34/33/33, reparto 700/300, pago/deshacer exacto. docs/CUOTAS_EXACTAS.md.
 - 4.5 Motor de reparto exacto entre personas: reparto-compras.mjs: importes libres/iguales y matriz exacta por persona/mes; barrido exhaustivo y enteros grandes aprobados.
 - 5.1 Resolver concurrencia del documento legado: save/load conectados a CAS real, cola y recuperación de borrador; 32 pruebas Node + 9 Firestore/emulador y flujo UI ficticio aprobados. docs/GUARDADO_SEGURO.md; reglas no desplegadas.
+- 5.2 Origen, identificadores y backups: datos-compras.mjs conserva ID/origen/plan/grupo en save y backup v7; v6/legado probado. Backup descargado por UI y restaurado con IDs, pagos, cuotas y saldo verificados.
+- 5.3 Integrar registro manual, resúmenes y PDF: PWA y logic usan adaptador común; PDF personal/general generados en UI, texto comprobado y páginas renderizadas sin cortes. Personal solo muestra participación propia; registro histórico mantiene fórmulas.
 
 ## Funcionalidades pendientes
 
@@ -152,10 +155,7 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - 3.3 Confirmación atómica y descarte (en_espera)
 - 3.4 Personas, tarjetas y revisión (en_espera)
 - 3.5 Repartir una compra entre varias personas (en_espera)
-- 4.3 Unificar cálculo manual y automático (en_curso)
-- 4.4 Formulario de modalidades (en_espera)
-- 5.2 Origen, identificadores y backups (pendiente)
-- 5.3 Integrar registro manual, resúmenes y PDF (en_espera)
+- 4.4 Formulario de modalidades (en_curso)
 - 5.4 Caché, cierre de sesión y regresión (en_espera)
 - 6.1 Reglas y pruebas de aislamiento (pendiente)
 - 6.2 Recuperación offline y entre dispositivos (en_espera)

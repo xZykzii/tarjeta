@@ -28,7 +28,7 @@ test("todos los recursos locales precargados existen", () => {
 test("la publicación social y el formato de backup se conservan", () => {
   assert.match(html, /property="og:image" content="https:\/\/xzykzii\.github\.io\/tarjeta\/og\.png"/);
   assert.ok(existsSync(new URL("../og.png", import.meta.url)));
-  assert.match(html, /JSON\.stringify\(\{ version: 6, items, tarjetas, personas, tarjetaActiva, saldos, historial \}/);
+  assert.match(html, /crearBackup\(\{ items, tarjetas, personas, tarjetaActiva, saldos, historial \}\)/);
 });
 
 test("la exportación ofrece PDF personal, PDF general y conserva el backup", () => {
@@ -37,5 +37,5 @@ test("la exportación ofrece PDF personal, PDF general y conserva el backup", ()
   assert.match(html, /id="export-backup-btn"/);
   assert.match(html, /crearReportePersona\(items, persona, estadoPago, pagadoDe\)/);
   assert.match(html, /crearReporteGeneral\(items, estadoPago, pagadoDe\)/);
-  assert.match(sw, /const CACHE_NAME = "cuotas-v16"/);
+  assert.match(sw, /const CACHE_NAME = "cuotas-v17"/);
 });

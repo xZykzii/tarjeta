@@ -1,4 +1,4 @@
-const CACHE_NAME = "cuotas-v16";
+const CACHE_NAME = "cuotas-v17";
 
 const urlsToCache = [
   "./",
@@ -7,6 +7,9 @@ const urlsToCache = [
   "./pdf-export.mjs",
   "./persistencia-segura.mjs",
   "./ui-guardado.mjs",
+  "./cuotas-item.mjs",
+  "./datos-compras.mjs",
+  "./planes-cuotas.mjs",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png"

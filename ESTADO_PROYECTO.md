@@ -11,8 +11,8 @@ Detectar compras reales desde Android, revisarlas sin asignación e incorporarla
 
 - PWA HTML/CSS/JS sin framework; index.html contiene UI, pagos y Firebase JS 10.12.0.
 - Google Auth; users/{uid} conserva arrays y añade revisión de guardado. save usa transacción CAS y cola; getDoc valida base. Sin escucha en vivo todavía.
-- logic.mjs contiene cálculos derivados; pdf-export.mjs produce PDF; SW cuotas-v16 con persistencia/recuperación; backup v6.
-- monto es valor por cuota; total es saldo derivado. No se admiten aún cuotas desiguales.
+- cuotas-item.mjs es el adaptador común PWA/resúmenes/PDF; datos-compras preserva IDs y planes; SW cuotas-v17 y backup v7 compatible con v6.
+- Legados conservan monto por cuota; planes explícitos y participaciones usan sus importes exactos sin duplicar contrato. Formulario de modalidades aún pendiente.
 
 ## Decisiones técnicas
 
@@ -27,13 +27,13 @@ Detectar compras reales desde Android, revisarlas sin asignación e incorporarla
 
 ## Punto exacto de continuidad
 
-Tarea actual: **4.3 — Unificar cálculo manual y automático**. Estado efectivo: **en_curso**.
+Tarea actual: **4.4 — Formulario de modalidades**. Estado efectivo: **en_curso**.
 
-Criterio de cierre: Abonos, vencimientos, pagos, deshacer, PDF y resumen usan una lógica común.
+Criterio de cierre: Previsualización explícita y sin tasas inferidas, incluso con cuotas diferentes.
 
-Última tarea terminada: **5.1 — Resolver concurrencia del documento legado**.
+Última tarea terminada: **5.3 — Integrar registro manual, resúmenes y PDF**.
 
-Avance verificado: **32%**.
+Avance verificado: **41%**.
 
 ## Archivos creados o modificados en esta iniciativa
 
@@ -66,10 +66,11 @@ Avance verificado: **32%**.
 - `tests/cuotas-integradas.test.mjs`
 - `scripts/roadmap-servidor.mjs`
 - `tests/roadmap.test.mjs`
+- `docs/CUOTAS_EXACTAS.md`
 
 ## Implementaciones incompletas
 
-- Bloque 4.3/5.2 en curso: cuotas-item y datos-compras creados; index/logic/PDF/backup se están conectando. No cerrar hasta pruebas de planes variables, participaciones con ceros e importación v6/v7.
+- Siguiente 4.4: formulario de modalidades con previsualización explícita. Los planes exactos ya se leen/pagan/exportan; el formulario habitual aún registra el formato histórico. Reparto UI y confirmación automática pendientes.
 - Reglas locales probadas para guardado y captura mínima; pendientes update/delete denegados hasta confirmación atómica. 6.1 no completa: auditoría real y reglas finales pendientes.
 - Prototipo de analizador no se ejecuta en Android; faltan extras y negativos auténticos. Galaxy S24 y ficha cl.android confirmados.
 - Sin APK, permisos del teléfono, sincronización móvil ni cambios de producción.
@@ -84,29 +85,29 @@ Avance verificado: **32%**.
 - Reanudación: 32/32 Node y 9/9 Firestore emulador aprobadas; UI ficticia verificó alta, conflicto, recarga, reconexión, pago y deshacer.
 - Hallazgo corregido: denegación de reglas en carrera se reclasifica mediante lectura sin escritura; nunca se reenvía borrador contra una base nueva.
 - Roadmap: 4/4 pruebas aprobadas de actualización, filtros/selección, marcador actual, dependencias y servidor limitado al seguimiento. Inspección visual de la pestaña rechazada por política de acceso del navegador; no se intentó eludir.
+- Bloque 4.3/5.2/5.3: 49/49 Node, sintaxis app/SW, UI ficticia pago 34, pago 33, deshacer 33, edición sin alterar pagos; backup v7 realmente exportado y restaurado. PDF personal/general generados y renderizados; aislamiento personal verificado.
 
 ## Errores conocidos, riesgos y requisitos externos
 
 - Captura positiva revisada. Usuario confirma Samsung Galaxy S24 y ficha oficial Banco Falabella Chile (paquete cl.android). Faltan versión Android, extras reales y muestras negativas auténticas.
 - Reglas de Firestore desplegadas sin verificar; no publicar reglas ni escribir datos reales desde esta sesión.
 - Guardado protegido localmente con CAS y revisión; falta auditar/desplegar reglas para bloquear clientes antiguos en producción. No publicar solo la PWA.
-- Cuotas variables exigen cambios coordinados en pagos, abonos, PDF, importación y resumen.
+- Captura automática y reparto todavía no tienen interfaz de revisión/confirmación. La edición de planes existentes conserva importes y pagos para evitar cambios financieros accidentales.
 - La revisión automática rechazó iniciar el servidor localhost sin motivo adicional; no se pudo restaurar la URL en esta sesión. Servidor probado en puerto efímero; el usuario puede iniciarlo con npm run roadmap.
 
 ## Próximos pasos en orden de prioridad
 
-1. 4.3 — Unificar cálculo manual y automático (en_curso).
+1. 4.4 — Formulario de modalidades (en_curso).
 2. 2.1 — App complementaria y permisos explícitos (pendiente).
-3. 5.2 — Origen, identificadores y backups (pendiente).
-4. 6.1 — Reglas y pruebas de aislamiento (pendiente).
+3. 6.1 — Reglas y pruebas de aislamiento (pendiente).
 
 ## Instrucciones concretas para retomar
 
 - REANUDADO el 2026-10-21 por solicitud explícita del usuario. Continuar tareas verificables y conservar estado tras cada bloque.
 - Worktree: outputs/tarjeta en la carpeta de esta conversación; rama codex/compras-falabella. Leer ROADMAP.md y ESTADO_PROYECTO.md; comprobar git status, diff y log antes de editar.
-- Base vigente: 32/100 puntos, 32 pruebas Node y 9 pruebas Firestore/emulador. Ejecutar npm test, npm run test:reglas y node scripts/seguimiento.mjs --check cuando corresponda.
-- Continuar en 4.3 y 5.2: unificar cálculos para cuotas variables y participaciones, preservar IDs/origen en save y backups. Guardado seguro ya conectado y probado localmente; las reglas no se desplegaron.
-- Antes de integrar cuotas variables y reparto, coordinar pagos, abonos, deshacer, PDF, backups y validación de participaciones de valor cero; las funciones puras ya están implementadas.
+- Base vigente: 41/100 puntos, 49 pruebas Node y 9 pruebas Firestore/emulador. Ejecutar npm test y seguimiento --check; repetir emulador cuando cambie persistencia o reglas.
+- Continuar 4.4: formulario de modalidades y previsualización. 4.3/5.2/5.3 cerradas; docs/CUOTAS_EXACTAS.md documenta evidencia, compatibilidad y límites.
+- La UI de reparto debe editar/confirmar el grupo completo y conservar importes por persona y por mes. Todavía no está implementada; no confundir fixtures importados con captura operativa.
 - Datos confirmados: Samsung Galaxy S24; Banco Falabella Chile de ficha Google Play cl.android. Captura positiva transcrita de forma anonimizada en docs/FORMATO_NOTIFICACION.md. Faltan Android/One UI exactos, extras de notificación y muestras negativas auténticas.
 - No hay Android SDK/Gradle/ADB encontrados en el entorno ni APK construido. No se creó todavía android/. No asumir detector móvil ni sincronización operativos.
 - El prototipo falabella-notificaciones.mjs no corre en el teléfono; requiere puerto nativo y validación física. El flag de soporte físico sigue en falso a propósito.

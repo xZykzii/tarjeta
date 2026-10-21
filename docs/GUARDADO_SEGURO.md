@@ -9,17 +9,17 @@ La comparación de contenido detecta también cambios de un escritor anterior qu
 ## Recuperación visible
 
 - Un fallo conserva una copia validada en memoria y bloquea nuevas modificaciones para no acumular operaciones sobre una base incierta.
-- «Descargar borrador» genera JSON v6 con `esBorrador: true` y los datos pendientes. No se guarda automáticamente información financiera en disco ni localStorage.
+- «Descargar borrador» genera JSON v7 con `esBorrador: true` y los datos pendientes, conservando IDs, origen y planes. No se guarda automáticamente información financiera en disco ni localStorage.
 - Un fallo temporal permite reintentar contra la **misma base**. Si cambió el servidor, el reintento se convierte en conflicto y no sobrescribe.
 - Un conflicto exige revisar/exportar y recargar lo guardado. La recarga solicita confirmación antes de descartar; el borrador se conserva si la lectura falla.
 - Al reintentar con éxito se actualizan la lista, los saldos y el formulario. Las acciones que fallaron no siguen mostrando mensajes de éxito.
 - Cambiar de cuenta invalida la cola y no muestra el borrador a otro UID. La copia permanece en memoria hasta resolverla o cerrar la pestaña; no sobrevive a apagar el equipo sin descargarla.
 
-`loadData()` valida el contenedor antes de usarlo. La caché PWA pasa a `cuotas-v16` e incluye los módulos de persistencia y recuperación.
+`loadData()` valida el contenedor antes de usarlo. La caché PWA pasa a `cuotas-v17` e incluye persistencia, recuperación y el cálculo de planes exactos.
 
 ## Evidencia de pruebas
 
-- Suite Node existente y de dominio: 32 pruebas aprobadas.
+- Suite Node existente y de dominio: 49 pruebas aprobadas, incluidas cuatro de seguimiento.
 - Emulador Firestore con SDK 10.12.0 real: 9 pruebas aprobadas. Incluyen migración no destructiva de revisión, dos clientes concurrentes, escritor antiguo, creación inválida, acceso cruzado/anónimo, campos legados y contrato mínimo de pendientes.
 - Hallazgo comprobado: las reglas pueden devolver `permission-denied` antes del reintento automático de una transacción concurrente. Una segunda lectura transaccional sin escrituras distingue base cambiada de denegación real. No se repite la escritura.
 - Navegador con datos ficticios y puerto de almacenamiento explícitamente identificado como prueba: alta manual, conflicto, bloqueo del reintento conflictivo, cancelación/confirmación de recarga, recuperación del cambio remoto, fallo de red y reintento único, pago y deshacer con restitución de saldo.
