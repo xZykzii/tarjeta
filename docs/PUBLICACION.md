@@ -1,10 +1,12 @@
 # Publicación y recuperación · 2026-10-21
 
-**Corrección posterior a la auditoría:** la versión local preparada usa
+**Corrección posterior a la auditoría:** la versión publicada usa
 `cuotas-v21`, Firebase JS 13.1.0 y jsPDF 4.2.1. Incluye historial protegido,
 validación de saldos y APK conectado 0.2.1 con programación corregida. Esta
-corrección aún no se ha publicado; los resultados siguientes describen las
-entregas públicas anteriores. Estado actual: `CORRECCIONES_AUDITORIA.md`.
+corrección fue publicada en `5312795`: Pages `39700219186` aprobada y 27
+archivos públicos coincidentes, HTTP 200/MIME válido. El APK 0.2.1 aún requiere
+actualizar el S24. Los resultados siguientes describen las entregas públicas
+anteriores. Estado actual: `CORRECCIONES_AUDITORIA.md`.
 
 El titular autorizó expresamente subir los commits, publicar GitHub Pages y
 desplegar reglas de Firestore. El alcance excluye migrar, consultar o editar sus
@@ -15,7 +17,7 @@ documentos financieros para verificar la entrega.
 - Aplicación: <https://xzykzii.github.io/tarjeta/>.
 - GitHub Pages publica `main` desde la raíz del repositorio.
 - Publicación funcional inicial: commit `8596ee9`, sobre la base `58ebee8`.
-- Caché de aplicación vigente: `cuotas-v20`, con el ajuste de confirmación.
+- Caché de aquella entrega: `cuotas-v20`, con el ajuste de confirmación.
 - GitHub Pages completó correctamente la entrega funcional:
   <https://github.com/xZykzii/tarjeta/actions/runs/39667206844>.
 - Se descargaron 20 archivos de la aplicación, incluidos todos los recursos del

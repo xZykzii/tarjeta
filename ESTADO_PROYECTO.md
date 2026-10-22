@@ -114,7 +114,6 @@ Avance verificado: **63%**.
 - Instalar el APK corregido como actualización y validar reintento sin red/reconexión y revocación/restauración. No repetir sin motivo las tres positivas del S24.
 - Revisión visual actual del roadmap restringida; generación y VM no sustituyen esa inspección.
 - Avisos transitivos de Firebase CLI aún sin solución compatible completa; seguir las versiones oficiales.
-- Publicar la corrección web únicamente con la autorización de publicación correspondiente; sin cambios de reglas ni migración.
 
 ## Pruebas y resultados
 
@@ -123,6 +122,7 @@ Avance verificado: **63%**.
 - Android: 50 ejecuciones actuales, 49 aprobadas y una omitida por configuración presente. Seis nuevas usan Room/WorkManager reales y envío sustituido; no son pruebas físicas S24.
 - Lint Android sin errores y ambas variantes debug compiladas. Compilación conectada 0.2.1; evidencia y límites en docs/CORRECCIONES_AUDITORIA.md.
 - UI real aislada: XSS neutralizado, confirmación móvil y cancelación sin deuda; tres positivas S24 anteriores se conservan como reportadas por el usuario.
+- GitHub Pages 39700219186 aprobada para 5312795; 27 recursos públicos descargados y comparados. La entrega documental posterior no cambia la aplicación.
 
 ## Errores conocidos, riesgos y requisitos externos
 
@@ -130,7 +130,7 @@ Avance verificado: **63%**.
 - APK conectado 0.2.1 corregido compilado localmente; actualización física pendiente. Conservar app/datos y firma al instalar encima.
 - Cinco entradas npm pendientes en Firebase CLI: tres altas por braces/chokidar y dos moderadas por PubSub/OpenTelemetry. No son dependencias servidas por la PWA; braces no tiene versión publicada corregida. No forzar cambios incompatibles.
 - URL del roadmap restringida previamente. Generación/VM comprobadas; falta revisión visual. No usar rutas o puertos alternativos para eludir la restricción.
-- PWA cuotas-v21 y SDK/PDF actualizados preparados localmente. No se publicaron correcciones ni se modificaron datos financieros reales.
+- PWA cuotas-v21, Firebase JS 13.1.0 y jsPDF 4.2.1 publicados. Pages 39700219186 aprobada; 27 archivos HTTP 200 y contenido coincidente con 5312795. Sin cambios de reglas ni datos financieros reales.
 
 ## Próximos pasos en orden de prioridad
 

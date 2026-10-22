@@ -1,7 +1,7 @@
 # Cuotas exactas, pagos y backups
 
 Las cuotas exactas y la confirmación explícita están integradas y publicadas.
-La corrección posterior de seguridad/validación está preparada localmente;
+La corrección posterior de seguridad/validación también está publicada;
 estado vigente en `CORRECCIONES_AUDITORIA.md`. No se usan datos reales para probar.
 
 ## Representación y compatibilidad

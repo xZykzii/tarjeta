@@ -1,7 +1,9 @@
 # Correcciones posteriores a la auditoría · 2026-10-21
 
 El usuario autorizó corregir los hallazgos y conservar los flujos existentes.
-La corrección está preparada y verificada localmente; todavía no se publicó.
+La corrección web está publicada y verificada; el APK 0.2.1 está preparado,
+pero todavía no se instaló en el S24. Se utilizó la autorización de publicación
+que el titular ya había otorgado para esta aplicación.
 El informe original `CODEX_FINAL_AUDIT.md` se conserva como evidencia histórica,
 sin reescribir su veredicto para aparentar una nueva aprobación independiente.
 
@@ -95,9 +97,11 @@ Fuentes contrastadas:
 - Tras actualizar, queda comprobar recuperación sin red y revocación/restauración
   de acceso en el S24. No se requieren gastos de prueba ni repetir las tres
   positivas ya reportadas sin un motivo nuevo.
-- La web usa `cuotas-v21`. Preparada para publicar sin migración ni cambios de
-  reglas, con autorización de publicación. Antes de activar: revisar commits,
-  comprobar Pages y comparar recursos públicos con la versión aprobada.
+- La web usa `cuotas-v21` y está publicada sin migración ni cambios de reglas.
+  Pages [39700219186](https://github.com/xZykzii/tarjeta/actions/runs/39700219186)
+  aprobó el commit funcional/documental `5312795`. Se descargaron y compararon
+  27 archivos: HTTP 200, MIME JavaScript correcto y contenido coincidente.
+  La actualización posterior de documentación no cambia el código de la app.
 
 El roadmap no equivale al porcentaje de código existente: mide criterios de
 aceptación con dependencias. Se reabrieron las tareas con evidencia pendiente;

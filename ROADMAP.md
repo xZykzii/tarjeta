@@ -106,7 +106,7 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 7.1 | Suite automática de dominio e integración | en_espera | 3 pt | 5.4, 6.2 | Los 14 casos solicitados están trazados; pasar pruebas de reglas y concurrencia. | Suite Node y emulador SDK aprobados. Matriz de 14 casos distingue dominio, SDK, navegador y dispositivo; el conteo no sustituye negativos auténticos ni 6.2.
 7.2 | Pruebas UI escritorio y móvil | completada | 2 pt | 5.4 | Revisar bandeja, asignación, errores, confirmación y cálculos sin datos reales. | UI real con backend ficticio: historial con HTML inerte, revisión móvil 375 px, fecha/tarjeta/importe sugeridos, edición preservada, interés manual y reparto verificado; cancelar conserva items/recibos vacíos. Pruebas de bandeja previas conservadas.
 7.3 | Compra auténtica y segundo plano | en_espera | 3 pt | 1.3, 6.4, 7.1 | Dispositivo real detecta, sincroniza con web cerrada y confirma una vez. | Se conservan las tres positivas reportadas por el usuario: reinicio, envío con pantalla apagada y confirmación limpia. Sin volver a pedirlas; aceptación completa espera dependencias pendientes.
-7.4 | Auditar integridad y regresiones | en_espera | 2 pt | 7.2, 7.3 | Datos existentes y deudas no cambian salvo confirmación explícita; informe de pruebas. | Auditoría original preservada. XSS/saldos y señal Android corregidos y probados con datos ficticios. Faltan validaciones físicas y publicación autorizada de la nueva entrega.
+7.4 | Auditar integridad y regresiones | en_espera | 2 pt | 7.2, 7.3 | Datos existentes y deudas no cambian salvo confirmación explícita; informe de pruebas. | Auditoría original preservada; XSS/saldos y señal Android corregidos y probados con datos ficticios. Web publicada y 27 archivos coincidentes con 5312795; faltan validaciones físicas de actualización y negativos auténticos.
 
 ## Fase 8 — Entrega y continuidad · 0%
 
@@ -115,7 +115,7 @@ Aceptación: 0/4 puntos.
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
 8.1 | Guías de instalación y recuperación | en_espera | 2 pt | 7.1 | Configuración Android/Firebase, permisos, respaldo, reversión y límites reproducibles. | Manual corregido y claves contrastadas con build; recuperación con proyecto/fuente explícitos y CAS. No se ejecuta rollback real; cierre depende de 7.1.
-8.2 | Entrega verificada y roadmap final | en_espera | 2 pt | 8.1, 7.4 | Abrir/ejecutar artefactos, registrar pendientes reales y conservar seguimiento. | Correcciones locales verificadas y artefactos preparados. No se declara 100%: pendientes auténticos, físicos, revisión visual del roadmap y publicación.
+8.2 | Entrega verificada y roadmap final | en_espera | 2 pt | 8.1, 7.4 | Abrir/ejecutar artefactos, registrar pendientes reales y conservar seguimiento. | Web corregida publicada y verificada, APK 0.2.1 preparado. No se declara 100%: faltan negativos auténticos, validaciones físicas y revisión visual del roadmap.
 
 ## Problemas y dependencias externas
 
@@ -123,7 +123,7 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - APK conectado 0.2.1 corregido compilado localmente; actualización física pendiente. Conservar app/datos y firma al instalar encima.
 - Cinco entradas npm pendientes en Firebase CLI: tres altas por braces/chokidar y dos moderadas por PubSub/OpenTelemetry. No son dependencias servidas por la PWA; braces no tiene versión publicada corregida. No forzar cambios incompatibles.
 - URL del roadmap restringida previamente. Generación/VM comprobadas; falta revisión visual. No usar rutas o puertos alternativos para eludir la restricción.
-- PWA cuotas-v21 y SDK/PDF actualizados preparados localmente. No se publicaron correcciones ni se modificaron datos financieros reales.
+- PWA cuotas-v21, Firebase JS 13.1.0 y jsPDF 4.2.1 publicados. Pages 39700219186 aprobada; 27 archivos HTTP 200 y contenido coincidente con 5312795. Sin cambios de reglas ni datos financieros reales.
 
 ## Funcionalidades completadas
 
