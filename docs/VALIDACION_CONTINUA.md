@@ -1,4 +1,4 @@
-# Validación continua y pendientes del S24 · 2026-10-21
+# Validación continua y pendientes del S24 · 2026-10-22
 
 La corrección 0.2.1 ya está instalada en el S24, según confirmó el titular.
 También confirmó que, tras desactivar y volver a activar el acceso a
@@ -18,7 +18,7 @@ o ramas codex, cada pull request y mediante ejecución manual.
 
 | Trabajo | Qué comprueba | Qué no acredita |
 | --- | --- | --- |
-| Web y reglas | Node, cálculos, HTML inerte, backups/PDF, seguimiento, dependencias y 16 casos SDK/emulador | No inicia sesión en producción ni prueba el teléfono |
+| Web y reglas | Node, cálculos, HTML inerte, backups/PDF, seguimiento, dependencias y 21 casos SDK/emulador | No inicia sesión en producción ni prueba el teléfono |
 | Android | Core, componentes, Room/WorkManager, lint y compilación debug de ambas variantes | No instala APK ni demuestra continuidad física Samsung |
 
 El workflow usa Node 24 y Java 21. Las acciones están fijadas por SHA; los
@@ -74,6 +74,19 @@ Ocho pruebas de programación usan Room y WorkManager reales con envío sustitui
 Estas pruebas no sustituyen la recuperación real en el S24. No se presentan los
 controles de una sonda como prueba de red de Firestore; el SDK y las reglas se
 comprueban en el emulador separado.
+
+La continuación del 2026-10-22 añade cinco casos con SDK real de la PWA contra
+el emulador: bandeja caché/servidor, confirmación sin red y reintento, resolución
+desde otro dispositivo, borrador obsoleto y aislamiento al cambiar cuenta.
+Los dos casos de transacciones cierran además el transporte TCP del cliente
+afectado. Las suites se ejecutan en serie para evitar que sus limpiezas se
+interfieran. Resultado: 21 SDK/emulador aprobadas y 127 Node aprobadas.
+Ver [método, resultados y límites](RECUPERACION_SIN_RED.md).
+
+El titular reportó una nueva compra detectada normalmente y pidió continuar.
+El aviso anterior ausente de la web conserva causa desconocida; cero pendientes
+en el teléfono no acredita envío de una captura concreta. No se cierra esa
+incidencia ni se cambian datos reales para intentar reproducirla.
 
 ## Qué falta del teléfono y del banco
 

@@ -1,7 +1,7 @@
 <!-- GENERADO: editar docs/seguimiento/plan.json y ejecutar node scripts/seguimiento.mjs -->
 # Estado del proyecto
 
-Snapshot: 2026-10-21 · Base: `58ebee85df3acf3b942f3ade944b40b63aa82af9` · Rama: `codex/compras-falabella`.
+Snapshot: 2026-10-22 · Base: `58ebee85df3acf3b942f3ade944b40b63aa82af9` · Rama: `codex/compras-falabella`.
 
 ## Objetivo
 
@@ -36,6 +36,7 @@ Detectar compras reales desde Android, revisarlas sin asignación e incorporarla
 - Prioridad explícita del usuario: simplificar la confirmación antes de nuevas etapas. Fecha sugerida desde fecha bancaria válida o detección America/Santiago, tarjeta Papá si existe, flujo individual con importe detectado, reparto múltiple desplegable. Las correcciones manuales prevalecen y la validación usa el total final con intereses. No se modifica el aviso ni se crea deuda antes de confirmar.
 - Corrección autorizada tras auditoría: no convertir saldos de texto; conservar decimales históricos numéricos y exigir enteros a nuevos aportes. Señales de envío usan APPEND_OR_REPLACE para evitar perder una captura al terminar un worker.
 - Investigación 1.1 depende del plan 0.2, no de la revisión visual del Gantt 0.4; son trabajos independientes. Se reabren 0.3/0.4 sin bloquear artificialmente evidencia técnica ya ejecutada.
+- 2026-10-22: el titular reporta una nueva detección normal y pide continuar el roadmap. La incidencia nocturna anterior conserva causa desconocida y cero pendientes no acredita su envío; no frenar los trabajos independientes ni declararla resuelta.
 
 ## Punto exacto de continuidad
 
@@ -110,6 +111,8 @@ Avance verificado: **63%**.
 - `docs/VALIDACION_CONTINUA.md`
 - `scripts/verificar-dependencias.mjs`
 - `.github/workflows/verificacion.yml`
+- `tests/recuperacion-emulador.integration.mjs`
+- `docs/RECUPERACION_SIN_RED.md`
 
 ## Implementaciones incompletas
 
@@ -122,12 +125,12 @@ Avance verificado: **63%**.
 
 - npm test: 127 aprobadas, cero fallos/omitidas; incluye diez casos del control de dependencias y coherencia CDN.
 - npm run test:dependencias: versiones web/pruebas/lockfile coincidentes; cinco entradas conocidas visibles y cero desviaciones nuevas. No es auditoría sin vulnerabilidades.
-- npm run test:reglas: 16 SDK/emulador demo-cuotas-local aprobadas; ninguna cuenta o dato financiero real.
+- npm run test:reglas: 21 SDK/emulador aprobadas. Cinco casos nuevos de recuperación y cuentas; dos cortan transporte TCP, sin producción ni datos reales.
 - Android local: 52 ejecuciones actuales, 51 aprobadas y una omitida por SDK configurado. Ocho regresiones de WorkManager/Room; red de envío sustituida, no prueba física.
 - Titular: APK 0.2.1 instalada y permiso revocado/restaurado con servicio reconectado; evidencia reportada durante esta continuación.
-- Workflow .github/workflows/verificacion.yml: web/reglas y Android sin credenciales ni APK de entrega; verificar su ejecución en Actions.
+- Workflow .github/workflows/verificacion.yml: ambas suites de emulador se ejecutan en serie en web/reglas; Android conserva la verificación sin credenciales ni APK de entrega.
 - UI y PDF de corrección previa conservan su evidencia. PWA/Android funcionales no cambian; SW sigue cuotas-v21.
-- Publicación corregida previa verificada: 27 archivos públicos coincidentes con 56360cf y Pages aprobada.
+- CI anterior e5ee215 aprobada. Verificar CI y Pages de esta continuación antes de declarar su publicación.
 
 ## Errores conocidos, riesgos y requisitos externos
 
@@ -135,7 +138,8 @@ Avance verificado: **63%**.
 - Titular confirma APK conectado 0.2.1 instalado encima de la versión anterior y reconexión tras revocar/restaurar permiso. Faltan red caída y actualizaciones de avisos en el teléfono.
 - Cinco entradas npm pendientes en Firebase CLI: tres altas por braces/chokidar y dos moderadas por PubSub/OpenTelemetry. No son dependencias servidas por la PWA; braces no tiene versión publicada corregida. No forzar cambios incompatibles.
 - URL del roadmap restringida previamente. Generación/VM comprobadas; falta revisión visual. No usar rutas o puertos alternativos para eludir la restricción.
-- PWA cuotas-v21, Firebase JS 13.1.0 y jsPDF 4.2.1 publicados. Pages 39700219186 aprobada; 27 archivos HTTP 200 y contenido coincidente con 5312795. Sin cambios de reglas ni datos financieros reales.
+- PWA cuotas-v21, Firebase JS 13.1.0 y jsPDF 4.2.1 conservados. CI previa e5ee215 aprobada; esta entrega añade pruebas y documentación sin cambios funcionales, APK, reglas ni datos reales.
+- Un aviso reconocido no apareció en la web según el titular; ahora informa otra detección normal y pide continuar. Causa no confirmada, sin recuperación ni corrección atribuida.
 
 ## Próximos pasos en orden de prioridad
 
@@ -145,7 +149,7 @@ Avance verificado: **63%**.
 
 ## Instrucciones concretas para retomar
 
-- Leer docs/VALIDACION_CONTINUA.md y comprobar la última ejecución de Verificación de cuotas en GitHub Actions.
+- Leer docs/RECUPERACION_SIN_RED.md y VALIDACION_CONTINUA.md; comprobar CI y Pages vigentes. La recuperación probada usa SDK Node, no acredita red física S24.
 - Esperar evidencia natural de recuperación sin red y ejemplos negativos anonimizados; no gastar dinero ni fabricar notificaciones para cerrar criterios físicos.
 - No volver a pedir instalación 0.2.1 ni revocación/restauración: el titular ya las confirmó.
 - Cerrar solo criterios con evidencia nueva y dependencias aceptadas. Cinco avisos transitivos siguen abiertos.

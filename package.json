@@ -7,7 +7,7 @@
     "test:dependencias": "node scripts/verificar-dependencias.mjs",
     "seguimiento": "node scripts/seguimiento.mjs",
     "roadmap": "node scripts/seguimiento.mjs && node scripts/roadmap-servidor.mjs",
-    "test:reglas": "firebase emulators:exec --only firestore --project demo-cuotas-local \"node --test tests/persistencia-emulador.integration.mjs\""
+    "test:reglas": "firebase emulators:exec --only firestore --project demo-cuotas-local \"node --test --test-concurrency=1 tests/*-emulador.integration.mjs\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "6.0.0",

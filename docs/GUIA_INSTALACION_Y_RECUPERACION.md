@@ -108,7 +108,29 @@ Si dos dispositivos intentan guardar simultáneamente o una sesión queda obsole
 3. El sistema valida la integridad de cada compra, plan y catálogo antes de reemplazar.
 4. La restauración se ejecuta como una nueva transacción incrementando la revisión de la cuenta.
 
-### 4.4. Reversión de Reglas de Seguridad (Rollback)
+### 4.4. Compra reconocida que no aparece en la web
+
+El diagnóstico local solo muestra la última detección en memoria; puede
+desaparecer al terminar el proceso. La cola autorizada se conserva aparte.
+No borrar datos ni desinstalar para diagnosticar un aviso pendiente.
+
+1. Abrir **Cuenta y sincronización** y pulsar **Actualizar estado**. Comprobar
+   cuenta vinculada, autorización de guardar/enviar y mensajes de error.
+2. Comparar la cuenta Google con la de la web. La cola es privada por usuario;
+   cambiar de cuenta no reasigna las capturas anteriores.
+3. Si hay pendientes y envío autorizado, con conexión pulsar **Reintentar
+   envío de mi cola** y después **Actualizar estado**. No promete recuperar
+   notificaciones que nunca ingresaron a la cola.
+4. En la web, actualizar **Compras sin asignar** y revisar si muestra error,
+   espera del servidor o ausencia de avisos. Las compras no pasan directamente
+   a deuda: requieren revisión y confirmación explícita.
+
+**Cero pendientes no prueba el envío de una compra concreta.** También puede
+indicar que no se guardó o que se está consultando otra cuenta. Conservar la
+evidencia disponible sin compartir texto bancario, nombres ni tarjetas completas.
+No duplicar manualmente una compra sin comprobar primero su estado.
+
+### 4.5. Reversión de Reglas de Seguridad (Rollback)
 El comando de despliegue publica el archivo local actual; no selecciona una
 versión anterior. Antes de recuperar reglas:
 

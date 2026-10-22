@@ -1,7 +1,7 @@
 <!-- GENERADO: editar docs/seguimiento/plan.json y ejecutar node scripts/seguimiento.mjs -->
 # Roadmap — Compras automáticas de Banco Falabella
 
-Actualizado: 2026-10-21. Base: `58ebee85df3acf3b942f3ade944b40b63aa82af9`.
+Actualizado: 2026-10-22. Base: `58ebee85df3acf3b942f3ade944b40b63aa82af9`.
 
 **Avance global: 63% (63/100 puntos verificados).**
 
@@ -49,7 +49,7 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 2.1 | App complementaria y permisos explícitos | completada | 4 pt | 1.2 | Proyecto Android separado, listener real, filtro por paquete verificado y autorización transparente. | android/: listener nativo protegido, filtro cl.android instalado y consentimiento separado de Ajustes. APK debug compilado y firma verificada; 19 pruebas JVM + 3 Robolectric aprobadas. Sin Internet/Firebase/deuda; prueba física S24 pendiente. android/README.md y PRUEBA_S24.md.
 2.2 | Analizador de notificaciones auténticas | en_espera | 4 pt | 1.3, 2.1 | Extraer solo compras verificadas; desconocidos no generan transacciones. | Parser y privacidad probados en JVM; detección positiva física reportada. Falta contrastar negativos auténticos y distribución real de extras.
 2.3 | Cola persistente y deduplicación | en_espera | 4 pt | 2.2 | Persistencia mínima, reintentos y deduplicación sin fusionar compras legítimas iguales. | Room conserva identidad/UID y señales APPEND_OR_REPLACE. Ocho pruebas de WorkManager/Room: señal final, red restringida, fallo transitorio y recuperación sin duplicar. Titular confirma 0.2.1 instalada; faltan actualizaciones reales de avisos y evidencia de red caída en S24.
-2.4 | Vinculación Firebase y sincronización | en_espera | 3 pt | 2.3, 6.1 | Sesión del mismo UID; envío seguro e idempotente validado con reglas. | Google y sincronización positiva física previos conservados. Titular confirma actualización 0.2.1 sin desinstalar ni borrar datos y reconexión de permiso. Emulador mantiene 16 casos SDK; recuperación sin red en S24 todavía pendiente.
+2.4 | Vinculación Firebase y sincronización | en_espera | 3 pt | 2.3, 6.1 | Sesión del mismo UID; envío seguro e idempotente validado con reglas. | Google y sincronización positiva física previos conservados. Titular confirma actualización 0.2.1 sin desinstalar ni borrar datos y reconexión de permiso. Emulador cubre 21 casos SDK; recuperación sin red en S24 todavía pendiente.
 
 ## Fase 3 — Compras sin asignar · 100%
 
@@ -93,7 +93,7 @@ Aceptación: 4/12 puntos.
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
 6.1 | Reglas y pruebas de aislamiento | completada | 4 pt | 1.2 | Emulador deniega acceso cruzado/anónimo y mutaciones inválidas; reglas vigentes auditadas. | 16 pruebas SDK/emulador con aislamiento, reglas, CAS y atomicidad; reglas vigentes iguales a la fuente auditada. Esta corrección no cambia ni despliega reglas.
-6.2 | Recuperación offline y entre dispositivos | en_espera | 3 pt | 2.4, 3.3 | Reintentos, sesión revocada y concurrencia sin duplicados ni pérdida. | CAS/carreras en emulador y ocho pruebas Room/WorkManager aprobadas, incluyendo red restringida y reintento transitorio con identidad conservada. CI añade verificación de web/reglas/Android sin cuentas. Falta red caída/restaurada en S24; no confundir una sonda de envío con red real.
+6.2 | Recuperación offline y entre dispositivos | en_espera | 3 pt | 2.4, 3.3 | Reintentos, sesión revocada y concurrencia sin duplicados ni pérdida. | 21 SDK/emulador aprobadas: cinco nuevas de recuperación, dos con corte TCP real del cliente. Conserva ocho Room/WorkManager con envío sustituido. Falta recuperación de red física S24. Incidencia nocturna sin causa confirmada; el titular reporta nueva detección y autoriza continuar.
 6.3 | Minimización y ciclo de vida | en_espera | 2 pt | 2.3, 3.1 | No guardar texto bancario bruto, secretos ni números completos; desconexión y borrado seguros. | Metadatos retenidos y límites corregidos en la guía. Envío vacía campos financieros; logout conserva pendientes por UID. No se promete borrado forense; aceptación espera completar 2.3.
 6.4 | Verificación de permisos en Android real | en_espera | 3 pt | 2.4 | Revocar acceso, reiniciar, reconectar y verificar restricciones del fabricante. | Titular confirma 0.2.1 instalada y prueba física: revoca/restaura acceso, solicita reconexión y vuelve a ver acceso concedido/servicio conectado. Positivas previas de reinicio y pantalla apagada conservadas. Evidencia reportada; cierre formal espera 2.4.
 
@@ -103,7 +103,7 @@ Aceptación: 2/10 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
-7.1 | Suite automática de dominio e integración | en_espera | 3 pt | 5.4, 6.2 | Los 14 casos solicitados están trazados; pasar pruebas de reglas y concurrencia. | 127 Node y 16 SDK/emulador locales aprobados; Android local 52 ejecuciones, 51 aprobadas/una omitida por configuración presente. Workflow de verificación con web/reglas y Android; avisos nuevos de dependencias bloquean. Negativos auténticos/6.2 aún pendientes.
+7.1 | Suite automática de dominio e integración | en_espera | 3 pt | 5.4, 6.2 | Los 14 casos solicitados están trazados; pasar pruebas de reglas y concurrencia. | 127 Node y 21 SDK/emulador locales aprobadas; cinco nuevas de recuperación/cuentas con funciones reales de PWA. Android previo 52 ejecuciones: 51 aprobadas/una omitida. CI cubre ambas suites en serie y Android. Negativos auténticos/6.2 pendientes.
 7.2 | Pruebas UI escritorio y móvil | completada | 2 pt | 5.4 | Revisar bandeja, asignación, errores, confirmación y cálculos sin datos reales. | UI real con backend ficticio: historial con HTML inerte, revisión móvil 375 px, fecha/tarjeta/importe sugeridos, edición preservada, interés manual y reparto verificado; cancelar conserva items/recibos vacíos. Pruebas de bandeja previas conservadas.
 7.3 | Compra auténtica y segundo plano | en_espera | 3 pt | 1.3, 6.4, 7.1 | Dispositivo real detecta, sincroniza con web cerrada y confirma una vez. | Se conservan las tres positivas reportadas por el usuario: reinicio, envío con pantalla apagada y confirmación limpia. Sin volver a pedirlas; aceptación completa espera dependencias pendientes.
 7.4 | Auditar integridad y regresiones | en_espera | 2 pt | 7.2, 7.3 | Datos existentes y deudas no cambian salvo confirmación explícita; informe de pruebas. | Auditoría original preservada; XSS/saldos y señal Android corregidos y probados con datos ficticios. Web publicada y 27 archivos coincidentes con 5312795; faltan validaciones físicas de actualización y negativos auténticos.
@@ -114,8 +114,8 @@ Aceptación: 0/4 puntos.
 
 ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización | Evidencia
 --- | --- | --- | --- | --- | --- | ---
-8.1 | Guías de instalación y recuperación | en_espera | 2 pt | 7.1 | Configuración Android/Firebase, permisos, respaldo, reversión y límites reproducibles. | Manual corregido y claves contrastadas con build; recuperación con proyecto/fuente explícitos y CAS. No se ejecuta rollback real; cierre depende de 7.1.
-8.2 | Entrega verificada y roadmap final | en_espera | 2 pt | 8.1, 7.4 | Abrir/ejecutar artefactos, registrar pendientes reales y conservar seguimiento. | Web corregida publicada y APK 0.2.1 instalada según titular. Reconexión física de permiso reportada. CI reproducible preparado; quedan negativos auténticos, offline/actualizaciones reales y revisión visual del roadmap. Sin cierre 100%.
+8.1 | Guías de instalación y recuperación | en_espera | 2 pt | 7.1 | Configuración Android/Firebase, permisos, respaldo, reversión y límites reproducibles. | Guía añade distinción diagnóstico/cola/envío, cero pendientes, cuenta y bandeja. Recuperación sin red documentada con alcance Node/emulador y límites físicos. Manual/rollback previos conservados; cierre depende de 7.1.
+8.2 | Entrega verificada y roadmap final | en_espera | 2 pt | 8.1, 7.4 | Abrir/ejecutar artefactos, registrar pendientes reales y conservar seguimiento. | Web corregida publicada y APK 0.2.1 instalada según titular. Reconexión física reportada, CI activa y cinco pruebas adicionales de recuperación documentadas. Quedan negativos auténticos, offline/actualizaciones reales y revisión visual del roadmap. Incidencia anterior sin causa confirmada; no se declara cierre 100%.
 
 ## Problemas y dependencias externas
 
@@ -123,7 +123,8 @@ ID | Tarea | Estado efectivo | Peso | Dependencias | Criterio de finalización |
 - Titular confirma APK conectado 0.2.1 instalado encima de la versión anterior y reconexión tras revocar/restaurar permiso. Faltan red caída y actualizaciones de avisos en el teléfono.
 - Cinco entradas npm pendientes en Firebase CLI: tres altas por braces/chokidar y dos moderadas por PubSub/OpenTelemetry. No son dependencias servidas por la PWA; braces no tiene versión publicada corregida. No forzar cambios incompatibles.
 - URL del roadmap restringida previamente. Generación/VM comprobadas; falta revisión visual. No usar rutas o puertos alternativos para eludir la restricción.
-- PWA cuotas-v21, Firebase JS 13.1.0 y jsPDF 4.2.1 publicados. Pages 39700219186 aprobada; 27 archivos HTTP 200 y contenido coincidente con 5312795. Sin cambios de reglas ni datos financieros reales.
+- PWA cuotas-v21, Firebase JS 13.1.0 y jsPDF 4.2.1 conservados. CI previa e5ee215 aprobada; esta entrega añade pruebas y documentación sin cambios funcionales, APK, reglas ni datos reales.
+- Un aviso reconocido no apareció en la web según el titular; ahora informa otra detección normal y pide continuar. Causa no confirmada, sin recuperación ni corrección atribuida.
 
 ## Funcionalidades completadas
 
