@@ -21,6 +21,29 @@ El roadmap es la fuente del estado. Esta matriz define evidencia que se exigirá
 
 ## Antes de habilitar integración
 
+### Evidencia ejecutada después de la auditoría
+
+- Casos 1–4: corpus compartido JS/JVM y pruebas del listener. Titular/adicional
+  positivos basados en capturas; negativos y distribución de extras sintéticos.
+  No sustituyen muestras negativas auténticas ni el ciclo físico completo.
+- Caso 5: el SDK/emulador crea un pendiente sobre datos financieros sembrados
+  y compara íntegros items/saldos/revisión, sin recibo. La UI cancela revisión
+  con cero compras y recibos; KPI/PDF solo consumen registros confirmados.
+- Casos 6–10: dominio y emulador validan catálogos, precisión, intereses y reparto.
+- Casos 11–13: `persistencia-emulador.integration.mjs` verifica UID, anónimo,
+  escritores obsoletos y carreras reales. El caso 13 unitario también llama al
+  guardado; los casos puros 11/12 no se presentan como pruebas de servidor.
+- Caso 14: v6/v7, historial hostil inerte, saldos inválidos y decimales legados;
+  PDF real multipágina con terceros ausentes del personal y presentes en general.
+  Revisión visual de las seis páginas y de confirmación móvil con datos ficticios.
+- Android: seis pruebas Room/WorkManager ejecutan el interleaving final, cadenas
+  fallidas, pausa/consentimiento y UID con un envío sustituido. Son pruebas de
+  componentes; la actualización 0.2.1 no se ha ejecutado físicamente en S24.
+
+Detalle y pendientes vigentes en `CORRECCIONES_AUDITORIA.md`.
+
+### Procedimiento
+
 1. Usar una copia sintética; nunca desarrollar contra los datos financieros reales.
 2. Ejecutar las pruebas preexistentes (`node --test tests/*.test.mjs`) y las nuevas de dominio.
 3. Ejecutar reglas y transacciones con emuladores Auth/Firestore, incluyendo intentos maliciosos de campos extra, estados y UID.

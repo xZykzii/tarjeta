@@ -9,9 +9,9 @@ Detectar compras reales desde Android, revisarlas sin asignación e incorporarla
 
 ## Arquitectura comprobada
 
-- PWA HTML/CSS/JS sin framework; index.html contiene UI, pagos y Firebase JS 10.12.0.
+- PWA HTML/CSS/JS sin framework; index.html contiene UI, pagos y Firebase JS 13.1.0.
 - Google Auth; users/{uid} conserva arrays y añade revisión de guardado. save usa transacción CAS y cola; getDoc valida base. Bandeja con onSnapshot por UID; el documento financiero principal conserva lectura protegida al cargar.
-- cuotas-item.mjs es el adaptador común PWA/resúmenes/PDF; datos-compras preserva IDs y planes; ui-plan-cuotas ofrece configurador; SW cuotas-v20 y backup v7 compatible con v6.
+- cuotas-item.mjs es el adaptador común PWA/resúmenes/PDF; datos-compras preserva IDs y planes; ui-plan-cuotas ofrece configurador; SW cuotas-v21 y backup v7 compatible con v6.
 - Legados conservan monto por cuota; planes explícitos y participaciones usan sus importes exactos sin duplicar contrato. El alta manual permite modalidades explícitas con previsualización.
 - Android separado: Kotlin con core JVM, NotificationListenerService y Activity nativa. Primera versión diagnóstico RAM sin Internet/Firebase; Gradle 8.11.1, AGP 8.9.2, Kotlin 2.2.21, API 35/mínimo 28.
 - Bandeja y confirmación publicadas: onSnapshot por UID; recibo inmutable, participaciones y resolución atómicos con CAS. Usuario confirma detección funcionando y aporta revisión real; aún faltan pruebas físicas prolongadas de reintentos y actualizaciones.
@@ -34,16 +34,18 @@ Detectar compras reales desde Android, revisarlas sin asignación e incorporarla
 - La identidad local combina UID, clave Android anonimizada, postTime y huella de datos; conserva cada ID en reintentos. No fusiona por monto/comercio y no promete deduplicación bancaria global sin referencia auténtica.
 - 2026-10-21: el titular autorizó publicar web y reglas. Reglas compiladas y desplegadas antes de avanzar main sin forzar. No se consultaron ni editaron documentos financieros; no hay migración. No volver a pedir esta autorización para completar la entrega aprobada.
 - Prioridad explícita del usuario: simplificar la confirmación antes de nuevas etapas. Fecha sugerida desde fecha bancaria válida o detección America/Santiago, tarjeta Papá si existe, flujo individual con importe detectado, reparto múltiple desplegable. Las correcciones manuales prevalecen y la validación usa el total final con intereses. No se modifica el aviso ni se crea deuda antes de confirmar.
+- Corrección autorizada tras auditoría: no convertir saldos de texto; conservar decimales históricos numéricos y exigir enteros a nuevos aportes. Señales de envío usan APPEND_OR_REPLACE para evitar perder una captura al terminar un worker.
+- Investigación 1.1 depende del plan 0.2, no de la revisión visual del Gantt 0.4; son trabajos independientes. Se reabren 0.3/0.4 sin bloquear artificialmente evidencia técnica ya ejecutada.
 
 ## Punto exacto de continuidad
 
-Tarea actual: **8.2 — Entrega verificada y roadmap final**. Estado efectivo: **completada**.
+Tarea actual: **2.3 — Cola persistente y deduplicación**. Estado efectivo: **en_espera**.
 
-Criterio de cierre: Abrir/ejecutar artefactos, registrar pendientes reales y conservar seguimiento.
+Criterio de cierre: Persistencia mínima, reintentos y deduplicación sin fusionar compras legítimas iguales.
 
-Última tarea terminada: **8.2 — Entrega verificada y roadmap final**.
+Última tarea terminada: **7.2 — Pruebas UI escritorio y móvil**.
 
-Avance verificado: **100%**.
+Avance verificado: **63%**.
 
 ## Archivos creados o modificados en esta iniciativa
 
@@ -104,71 +106,42 @@ Avance verificado: **100%**.
 - `docs/GUIA_INSTALACION_Y_RECUPERACION.md`
 - `tests/ui-bandeja.test.mjs`
 - `tests/validacion-14-casos.test.mjs`
+- `docs/CORRECCIONES_AUDITORIA.md`
 
 ## Implementaciones incompletas
 
-- 1.3/2.2: puerto Kotlin provisional con corpus compartido; primera recepción y normalización positiva verificadas en S24 mediante capturas. Faltan distribución exacta de extras, negativos auténticos, actualizaciones y validación física más amplia.
-- 6.1 auditada y reglas publicadas con autorización. Usuario confirma detección con aviso visible en la PWA; faltan pruebas físicas de fallos, actualización, reinicio y reintentos.
-- 2.3/2.4 implementadas, publicadas y con positiva declarada por el titular y pantalla de revisión. Faltan deduplicación de actualizaciones, pruebas de reintento/reinicio y cobertura negativa auténtica; no cerrar por una positiva.
-- Permanece bloqueada 1.3 por negativos auténticos del banco. V2 añade compra adicional; solo el formato titular tiene positiva física verificada. Los avisos similares o de dos teléfonos pueden necesitar descarte manual hasta validar identidad bancaria.
-- Publicación inicial completada en 86d0061; ajuste UI verificado con 88 Node y escenarios ficticios. No se avanzan otras funcionalidades del roadmap en esta entrega ni se alteran puntos de aceptación.
+- Muestras negativas auténticas de pago, devolución y publicidad; no están disponibles en el corpus.
+- Instalar el APK corregido como actualización y validar reintento sin red/reconexión y revocación/restauración. No repetir sin motivo las tres positivas del S24.
+- Revisión visual actual del roadmap restringida; generación y VM no sustituyen esa inspección.
+- Avisos transitivos de Firebase CLI aún sin solución compatible completa; seguir las versiones oficiales.
+- Publicar la corrección web únicamente con la autorización de publicación correspondiente; sin cambios de reglas ni migración.
 
 ## Pruebas y resultados
 
-- 12/12 pruebas preexistentes aprobadas (node --test tests/*.test.mjs).
-- Seguimiento generado y --check aprobado; controles de fases, búsqueda y recarga probados en navegador.
-- 28/28 pruebas Node aprobadas: 12 preexistentes y 16 nuevas; fixtures bancarios positivos anonimizados, negativos sintéticos identificados como tales.
-- 32/32 pruebas Node aprobadas tras añadir comparación de revisiones, cambio de escritor legado, cola serial y bloqueo tras fallo; puerto de prueba en memoria, no emulador Firestore.
-- Cierre por pausa: 32/32 pruebas Node aprobadas tras las últimas modificaciones; seguimiento --check correcto. Nuevos helpers y puente de notificación aún no tienen pruebas específicas; no declarar cobertura total.
-- Reanudación: 32/32 Node y 9/9 Firestore emulador aprobadas; UI ficticia verificó alta, conflicto, recarga, reconexión, pago y deshacer.
-- Hallazgo corregido: denegación de reglas en carrera se reclasifica mediante lectura sin escritura; nunca se reenvía borrador contra una base nueva.
-- Roadmap: 4/4 pruebas aprobadas de actualización, filtros/selección, marcador actual, dependencias y servidor limitado al seguimiento. Inspección visual de la pestaña rechazada por política de acceso del navegador; no se intentó eludir.
-- Bloque 4.3/5.2/5.3: 49/49 Node, sintaxis app/SW, UI ficticia pago 34, pago 33, deshacer 33, edición sin alterar pagos; backup v7 realmente exportado y restaurado. PDF personal/general generados y renderizados; aislamiento personal verificado.
-- Cierre formulario: 53/53 Node y sintaxis app/SW aprobadas. UI escritorio comprobó cuatro modalidades, aplicación sin escritura, alta manual, cancelación sin deuda y cuota única pagada/editada sin perder pago; cero errores de consola. No probada físicamente en móvil.
-- Android: 19 JVM y 3 Robolectric aprobadas. APK debug compilado, firma válida, applicationId cl.controlcuotas.companion y ningún uses-permission. Lint sin errores y una advertencia de carpeta vacía. No validación física ni sincronización.
-- Node: 68/68 aprobadas, incluidos 15 casos compartidos con Kotlin. Positivos anonimizados; negativos y distribución de extras sintéticos.
-- Auditoría remota de reglas completada por lectura autenticada del release/ruleset; fuente y procedencia privadas, SHA-256 documentado. No se leyeron documentos financieros ni se cambió producción.
-- S24, evidencia parcial del usuario: captura de la pantalla real con paquete instalado, consentimiento, acceso concedido y servicio conectado. Cero avisos/reconocimientos; no acredita recepción, parser ni sincronización. No suma puntos de aceptación.
-- Primera compra real en S24: usuario confirmó detección y aportó notificación bancaria y resultado de Cuotas. Un aviso recibido y uno reconocido; monto, comercio y terminación coinciden. Sin datos financieros publicados. No prueba negativos, deduplicación, persistencia ni sincronización.
-- Bloque bandeja: 84/84 Node y 14/14 Firestore emulador aprobadas. UI ficticia verificó reparto 700/300 con total 1000, partes iguales 500/500, descarte, offline, error visible/recuperación y logout. Ver docs/BANDEJA_COMPRAS.md.
-- Corrección adicional: gramática auténtica «Tu Adicional compró» soportada por JS/Kotlin v2, corpus 24 casos, 31 Android aprobadas y APK 0.1.1 firmado. No se conserva nombre ni se asigna persona. Prueba física nueva pendiente.
-- Firebase CLI consultó apps Android por lectura: ninguna registrada para este proyecto. No se creó app ni configuración remota.
-- Cierre de bandeja: 16/16 SDK/emulador, incluyendo conservación byte a byte de objetos legados sin ID y carrera confirmar/descartar con una sola resolución coherente. 84 Node. UI final revisada tras evitar caché del servidor de pruebas.
-- Android final: 44 ejecuciones, 43 aprobadas y un caso sin configuración omitido porque el SDK ya está configurado (probado previamente sin configuración). Room real/Robolectric verifica persistencia, UID, callbacks repetidos, compras iguales distintas, limpieza, límites, colisión y estados terminales. Ambos APK compilan; lint sin errores.
-- APK conectado 0.2.0-preparacion firmado e inspeccionado: paquete .sync, listener protegido e Internet. Diagnóstico continúa sin Internet. OAuth Android/web y certificado del SDK coinciden con paquete y firma; sin prueba de Google/envío real en teléfono.
-- Última revisión UI: aviso sin modalidad ni cantidad predeterminadas; el titular elige y aplica el plan. 84 Node y 16 SDK/emulador mantienen aprobación.
-- Publicación autorizada: Firebase CLI compiló y desplegó reglas; lectura del release coincide con fuente local normalizada. main avanzó sin forzar a 8596ee9. GitHub Pages run 39667206844 exitoso; 20 recursos estáticos HTTP 200 coinciden con el commit y módulos con MIME JavaScript. Sin lectura ni escritura de documentos financieros.
-- Ajuste de confirmación: 88/88 Node y UI ficticia aprobados. Fecha de detección Chile/prioridad bancaria, Papá o selector vacío, importe editable sin sobrescritura, individual automático, reparto cerrado/abierto, partes libres/iguales, cuatro modalidades, suma final con intereses, borrador al alternar y cancelación sin deuda. Confirmación individual/múltiple ejecutadas solo en datos ficticios. Ver docs/BANDEJA_COMPRAS.md.
-- UI bandeja automatizada: 5/5 pruebas Node en tests/ui-bandeja.test.mjs aprobadas (total suite 93/93 Node). Panel, contador, renderizado de tarjetas, acciones de revisión y descarte con diálogo de confirmación, y aislamiento sin conexión probados.
-- Suite de validación de 14 casos: 14/14 pruebas aprobadas en tests/validacion-14-casos.test.mjs (total suite 107/107 Node). Trazabilidad completa de la matriz de docs/VALIDACION_COMPRAS.md cubriendo parsing bancario, rechazo de no compras, deduplicación, cuotas exactas, redondeo CLP, aislamiento Firebase, transacciones CAS y compatibilidad de backups.
+- npm test: 117 pruebas Node aprobadas; saldos, HTML inerte, CAS, cuotas/repartos y PDF real incluidos.
+- npm run test:reglas: 16 pruebas SDK con emulador demo-cuotas-local aprobadas; ninguna escritura en producción.
+- Android: 50 ejecuciones actuales, 49 aprobadas y una omitida por configuración presente. Seis nuevas usan Room/WorkManager reales y envío sustituido; no son pruebas físicas S24.
+- Lint Android sin errores y ambas variantes debug compiladas. Compilación conectada 0.2.1; evidencia y límites en docs/CORRECCIONES_AUDITORIA.md.
+- UI real aislada: XSS neutralizado, confirmación móvil y cancelación sin deuda; tres positivas S24 anteriores se conservan como reportadas por el usuario.
 
 ## Errores conocidos, riesgos y requisitos externos
 
-- Captura positiva revisada. Usuario confirma Samsung Galaxy S24 y ficha oficial Banco Falabella Chile (paquete cl.android). Faltan versión Android, extras reales y muestras negativas auténticas.
-- Reglas nuevas desplegadas y verificadas por lectura del release activo. La auditoría anterior queda como evidencia histórica; la entrega no leyó ni escribió documentos financieros.
-- CAS y revisión activos en producción con SW cuotas-v20. Un cliente antiguo debe recargar antes de guardar; no restaurar reglas permisivas para admitir escrituras sin revisión.
-- La revisión automática rechazó iniciar el servidor localhost sin motivo adicional; no se pudo restaurar la URL en esta sesión. Servidor probado en puerto efímero; el usuario puede iniciarlo con npm run roadmap.
-- Captura del S24 aportada por el usuario: app instalada, cl.android detectado, consentimiento y acceso Android concedidos, servicio conectado. Primera compra nueva recibida y reconocida con campos coincidentes en dos capturas; falta cobertura de otros avisos y comportamiento prolongado. Lint: cero errores, una advertencia ObsoleteSdkInt por carpeta vacía; limpieza/repetición rechazadas por revisión automática sin motivo adicional.
-- Usuario confirma captura automática funcionando y aporta pantalla real de confirmación. Ajustes solicitados verificados en UI ficticia; falta probar esta nueva UI en su navegador móvil. Se conservan pendientes de negativos auténticos, reinicio y comportamiento prolongado.
-- Google vinculado y envío autorizado mostrados físicamente en S24; posteriormente el usuario confirma detección funcionando y muestra aviso en revisión web. No volver a pedir login ni instalación. Diagnóstico separado; no se certifica identidad bancaria global por esta positiva.
-- Lint Android sin errores, con advertencias de dependencias/estilo y un detector heurístico de Google ID cuyo parseo se realiza en vincular(). No se declara revisión visual ni entrega real del APK conectado.
+- Faltan negativos auténticos anonimizados del banco y Android/One UI exactos. No fabricar evidencia ni gastar dinero para probar.
+- APK conectado 0.2.1 corregido compilado localmente; actualización física pendiente. Conservar app/datos y firma al instalar encima.
+- Cinco entradas npm pendientes en Firebase CLI: tres altas por braces/chokidar y dos moderadas por PubSub/OpenTelemetry. No son dependencias servidas por la PWA; braces no tiene versión publicada corregida. No forzar cambios incompatibles.
+- URL del roadmap restringida previamente. Generación/VM comprobadas; falta revisión visual. No usar rutas o puertos alternativos para eludir la restricción.
+- PWA cuotas-v21 y SDK/PDF actualizados preparados localmente. No se publicaron correcciones ni se modificaron datos financieros reales.
 
 ## Próximos pasos en orden de prioridad
 
+1. 2.3 — Cola persistente y deduplicación (en_espera).
+2. 0.3 — Roadmap visual local (en_curso).
+3. 1.3 — Verificar paquete emisor y ejemplos negativos reales (en_curso).
 
 ## Instrucciones concretas para retomar
 
-- PRIORIDAD 2026-10-21: completar y verificar ajustes de confirmación solicitados antes de continuar otras funcionalidades. Bloque ejecutado y verificado; conservar el resto del roadmap y sus límites, sin adelantar etapas.
-- REANUDADO el 2026-10-21 por solicitud explícita del usuario. Continuar tareas verificables y conservar estado tras cada bloque.
-- Worktree: outputs/tarjeta en la carpeta de esta conversación; rama codex/compras-falabella. Leer ROADMAP.md y ESTADO_PROYECTO.md; comprobar git status, diff y log antes de editar.
-- Base vigente: 65/100 puntos, 88 Node; 16 SDK/emulador y 43 Android aprobadas en la entrega anterior. El ajuste UI no cambia reglas ni APK. Leer evidencia y límites antes de declarar soporte integral.
-- Google y consentimiento físico ya confirmados; el usuario declara detección funcionando y aporta revisión web. No pedir otra vez el mismo login o compra. Esta entrega se limita a simplificar confirmación; esperar su revisión de la interfaz antes de retomar otras funcionalidades.
-- Recargar PWA para cuotas-v20: fecha e importe precargados editables, tarjeta Papá si existe, una persona por defecto y reparto múltiple desplegable. Cuotas/modalidad siguen explícitas; total con intereses y reparto exacto obligatorios. No reinstalar APK por este cambio.
-- Datos confirmados: Samsung Galaxy S24; Banco Falabella Chile de ficha Google Play cl.android. Captura positiva transcrita de forma anonimizada en docs/FORMATO_NOTIFICACION.md. Faltan Android/One UI exactos, extras de notificación y muestras negativas auténticas.
-- SDK API 35, Build Tools 35.0.0, Platform Tools y Gradle instalados fuera del repo en work/herramientas con aceptación explícita del titular; sin PATH global. APK debug en outputs/apk; guía android/PRUEBA_S24.md. No hay teléfono conectado por ADB. La captura del usuario verifica instalación, autorización y conexión mostradas en S24; dos capturas posteriores verifican recepción y reconocimiento de una compra nueva con campos coincidentes.
-- JS y Kotlin comparten corpus v2 de 24 casos. Diagnóstico conserva resultados en RAM; conectada solo persiste/envía con cuenta y consentimiento separado. Validación integral y formato adicional físicos pendientes; no confundir la primera positiva diagnóstica con envío conectado.
-- Registrar tarea y archivos previstos antes de un bloque extenso; actualizar JSON y regenerar vistas al cerrarlo. No subir commits, desplegar reglas ni tocar datos reales sin autorización.
-- Ejecutar npm run roadmap y abrir http://127.0.0.1:8767/docs/seguimiento/roadmap.html para seguimiento en vivo; Ctrl+C cierra el servidor. También abre como archivo local con snapshot, que requiere reabrir tras regenerar.
-- Firebase CLI quedó autenticada mediante acceso completado por el titular. La sesión no autoriza despliegues ni cambios financieros. La auditoría de reglas terminó; no volver a pedir login salvo que caduque o falten permisos.
+- Leer docs/CORRECCIONES_AUDITORIA.md y CODEX_FINAL_AUDIT.md antes de seguir.
+- Actualizar el S24 con el APK 0.2.1 sin desinstalar ni borrar sus datos; misma firma y cuenta.
+- Cerrar solo criterios con evidencia nueva. No restaurar el cierre 100% por aumentar la cantidad de tests.
 
 La persistencia es el repositorio, no el chat, el almacenamiento del navegador ni una promesa de detectar créditos. Si la sesión se corta durante una edición, revisar el diff y regenerar antes de confiar en las vistas. Las operaciones Git remotas y el despliegue requieren autorización explícita.

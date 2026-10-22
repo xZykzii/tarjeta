@@ -11,10 +11,10 @@ El sistema está compuesto por tres componentes desacoplados:
 1. **PWA Web (`tarjeta`)**:
    - Aplicación HTML/CSS/JavaScript vanilla (ES Modules, sin framework).
    - Servida mediante GitHub Pages en `https://xzykzii.github.io/tarjeta/`.
-   - Autenticación mediante Google Auth (Firebase JS SDK 10.12.0).
+   - Autenticación mediante Google Auth (Firebase JS SDK 13.1.0).
    - Persistencia optimista con control de revisión transaccional (CAS) en Firestore (`users/{uid}`).
    - Bandeja de compras sin asignar (`users/{uid}/comprasPendientes`) y recibos inmutables (`users/{uid}/comprasConfirmadas`).
-   - Service Worker con estrategia de red con respaldo en caché (`cuotas-v20`).
+   - Service Worker con estrategia de red con respaldo en caché (`cuotas-v21`).
 
 2. **Android Diagnóstico (`cl.controlcuotas.companion`)**:
    - App Kotlin/Java nativa sin conexión a Internet ni Firebase.
@@ -25,7 +25,8 @@ El sistema está compuesto por tres componentes desacoplados:
    - App Kotlin/Java nativa con `applicationId` independiente.
    - Room SQLite local por UID para cola de envíos pendientes con persistencia mínima.
    - WorkManager con restricción de red y backoff exponencial para envío idempotente a Firestore.
-   - Tras confirmación del servidor, los datos financieros locales (monto, comercio, tarjeta) se purgan del SQLite local, conservando únicamente un tombstone mínimo de identidad (`eventId`, `estado=enviada`) para impedir reenvíos accidentales.
+   - Tras confirmación del servidor se vacían importe, comercio, terminación, versión del parser y recepción de la fila. Se conservan UID, eventId, hashes de clave/datos, postTime y estado para impedir reenvíos accidentales. Esto no acredita borrado físico de páginas SQLite/WAL ni protección frente a un dispositivo comprometido.
+   - Cerrar sesión pausa envíos y conserva pendientes por UID; otra cuenta no los hereda. Desinstalar o borrar datos sí elimina la cola. No hacerlo como solución a un fallo de envío.
 
 ---
 
@@ -41,11 +42,14 @@ Las reglas activas en producción exigen:
 ### 2.2. Configuración del Cliente Android (`android/sincronizacion.properties`)
 Para compilar la variante conectada se requiere el archivo `android/sincronizacion.properties` (ignorado por Git):
 ```properties
-firebase.projectId=control-cuotas
-firebase.apiKey=AIzaSy...
-firebase.applicationId=1:...:android:...
-firebase.webClientId=....apps.googleusercontent.com
+PROJECT_ID=tu-proyecto
+API_KEY=valor-del-cliente-android
+APPLICATION_ID=identificador-firebase-del-cliente-android
+WEB_CLIENT_ID=cliente-oauth-web.apps.googleusercontent.com
 ```
+
+Son las claves exactas que consume `android/app/build.gradle.kts`; los valores
+son marcadores, no una configuración utilizable. No publiques el archivo.
 
 ---
 
@@ -105,11 +109,23 @@ Si dos dispositivos intentan guardar simultáneamente o una sesión queda obsole
 4. La restauración se ejecuta como una nueva transacción incrementando la revisión de la cuenta.
 
 ### 4.4. Reversión de Reglas de Seguridad (Rollback)
-Si fuera necesario restaurar un ruleset anterior de Firestore:
+El comando de despliegue publica el archivo local actual; no selecciona una
+versión anterior. Antes de recuperar reglas:
+
+1. Conservar la fuente y el identificador del release activo fuera del repositorio.
+2. Seleccionar una fuente conocida y revisada, compatible con CAS, recibos y
+   confirmación atómica. No restaurar reglas permisivas ni clientes sin revisión.
+3. Colocar esa fuente en `firestore.rules`, revisar el diff y ejecutar
+   `npm run test:reglas` contra `demo-cuotas-local`.
+4. Solo con autorización de publicación, desde la raíz del repositorio:
+
 ```powershell
-firebase deploy --only firestore:rules
+.\node_modules\.bin\firebase.cmd deploy --only firestore:rules --project tarjeta-cuotas
 ```
-El hash SHA-256 de las reglas auditadas el 2026-10-21 es:
+
+Después, leer el release activo y comparar su fuente con la aprobada; el éxito
+del CLI solo no demuestra que la versión prevista quedó activa. Este procedimiento
+se revisó sin ejecutar un rollback en producción. El hash de las reglas auditadas es:
 `57f32d40cfc72ec7921a836145430732627e8e3528c606fe18775a2aeed4c3a5`.
 
 ---
@@ -119,8 +135,8 @@ El hash SHA-256 de las reglas auditadas el 2026-10-21 es:
 | Parámetro | Límite / Criterio | Justificación |
 |---|---|---|
 | Moneda | Únicamente `CLP` | Sin soporte multimoneda ni conversión cambiaria |
-| Formato de dinero | Enteros seguros (`Number.isSafeInteger`) | Evita errores de redondeo de coma flotante (`0.1 + 0.2`) |
+| Formato de dinero | Planes y aportes nuevos: enteros seguros; históricos: decimales numéricos conservados | No convertir texto ni redondear saldos legados; rechazar negativos, no finitos y desbordamientos |
 | Cuotas máximas | 120 cuotas | Límite financiero seguro |
 | Bandeja pendientes | 100 avisos simultáneos | Control de cuota de lectura y memoria UI |
 | Identificador de evento | `[a-zA-Z0-9_-]{16,128}` | Idempotencia y deduplicación |
-| Almacenamiento local | Limpieza inmediata tras subida | Cumplimiento de minimización y privacidad bancaria |
+| Almacenamiento local | Vaciar campos financieros tras respuesta confirmada | Conserva metadatos por UID; no es borrado forense |

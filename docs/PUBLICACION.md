@@ -1,5 +1,11 @@
 # Publicación y recuperación · 2026-10-21
 
+**Corrección posterior a la auditoría:** la versión local preparada usa
+`cuotas-v21`, Firebase JS 13.1.0 y jsPDF 4.2.1. Incluye historial protegido,
+validación de saldos y APK conectado 0.2.1 con programación corregida. Esta
+corrección aún no se ha publicado; los resultados siguientes describen las
+entregas públicas anteriores. Estado actual: `CORRECCIONES_AUDITORIA.md`.
+
 El titular autorizó expresamente subir los commits, publicar GitHub Pages y
 desplegar reglas de Firestore. El alcance excluye migrar, consultar o editar sus
 documentos financieros para verificar la entrega.

@@ -15,9 +15,10 @@ funcionamiento local sin Internet.
 - El titular autorizó publicar la PWA y desplegar reglas el 2026-10-21. Las reglas
   ya están activas y verificadas; entrega web documentada en `docs/PUBLICACION.md`.
   No se modificaron documentos financieros. Firebase CLI no inicia sesión en el teléfono.
-- La variante conectada está preparada para Google Auth y una cola por UID. Falta
-  validar el acceso del titular en el S24 y el envío real tras activar las reglas.
-  No se declara sincronización física comprobada.
+- El titular confirmó Google, detección y envío, persistencia tras reinicio y
+  funcionamiento con pantalla apagada en su S24. Son comprobaciones reportadas,
+  no ejecuciones físicas del agente. La corrección 0.2.1 aún requiere actualizar
+  el teléfono; se mantienen pendientes negativos auténticos y recuperación sin red.
 
 ## Autorizar en el teléfono cuando se active la entrega
 
@@ -71,6 +72,8 @@ consulta antes de crear: una captura existente, incluso resuelta, no se reabre.
 Tras confirmarse la recepción se limpian importe, comercio, terminación y versión
 del registro local; queda una marca mínima de identidad para impedir reenviarlo.
 No se purgan automáticamente identidades ni pendientes sin una política validada.
+Cerrar sesión conserva esos pendientes por UID; no garantiza borrado físico de
+SQLite/WAL ni protección frente a un dispositivo comprometido.
 La cola tiene un límite local explícito; alcanzarlo genera un estado de error,
 nunca elimina compras para hacer espacio. Un conflicto de ID también se informa.
 
@@ -103,6 +106,14 @@ al reabrir SQLite, limpieza tras envío, límite y colisión de ID. El contrato 
 envío comprueba reintentos contra estados terminales. El caso de pantalla sin
 configuración se omite cuando ya hay configuración local; se probó previamente
 en la compilación sin configuración. Ningún test usa una cuenta real del titular.
+
+En 0.2.1, cada señal y continuación usa `APPEND_OR_REPLACE`: deja un trabajo
+sucesor aunque el anterior haya contado cero pendientes y aún no haya terminado.
+`KEEP` podía descartar esa señal. Seis pruebas con Room/WorkManager reales
+cubren esa ventana, serialización, recuperación tras fallo, pausa y separación
+de cuentas. El envío de red se sustituye en esas seis pruebas; no equivalen a
+comprobar la nueva versión en el S24. Referencia de política:
+<https://developer.android.com/reference/androidx/work/ExistingWorkPolicy>.
 
 ## Fuentes oficiales
 

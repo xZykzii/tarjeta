@@ -1,7 +1,8 @@
 # Cuotas exactas, pagos y backups
 
-Implementación local; no publicada ni aplicada a datos reales. El formulario
-de modalidades está integrado; la confirmación automática continúa pendiente.
+Las cuotas exactas y la confirmación explícita están integradas y publicadas.
+La corrección posterior de seguridad/validación está preparada localmente;
+estado vigente en `CORRECCIONES_AUDITORIA.md`. No se usan datos reales para probar.
 
 ## Representación y compatibilidad
 
