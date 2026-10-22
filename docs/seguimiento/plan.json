@@ -4,7 +4,7 @@
   "fecha": "2026-10-21",
   "base": "58ebee85df3acf3b942f3ade944b40b63aa82af9",
   "objetivo": "Detectar compras reales desde Android, revisarlas sin asignación e incorporarlas solo al confirmar, conservando toda la PWA actual. Permitir repartir una compra entre varias personas con importes elegidos y suma exacta.",
-  "actual": "2.3",
+  "actual": "6.2",
   "ultimaTerminada": "7.2",
   "arquitectura": [
     "PWA HTML/CSS/JS sin framework; index.html contiene UI, pagos y Firebase JS 13.1.0.",
@@ -36,7 +36,7 @@
   ],
   "problemas": [
     "Faltan negativos auténticos anonimizados del banco y Android/One UI exactos. No fabricar evidencia ni gastar dinero para probar.",
-    "APK conectado 0.2.1 corregido compilado localmente; actualización física pendiente. Conservar app/datos y firma al instalar encima.",
+    "Titular confirma APK conectado 0.2.1 instalado encima de la versión anterior y reconexión tras revocar/restaurar permiso. Faltan red caída y actualizaciones de avisos en el teléfono.",
     "Cinco entradas npm pendientes en Firebase CLI: tres altas por braces/chokidar y dos moderadas por PubSub/OpenTelemetry. No son dependencias servidas por la PWA; braces no tiene versión publicada corregida. No forzar cambios incompatibles.",
     "URL del roadmap restringida previamente. Generación/VM comprobadas; falta revisión visual. No usar rutas o puertos alternativos para eludir la restricción.",
     "PWA cuotas-v21, Firebase JS 13.1.0 y jsPDF 4.2.1 publicados. Pages 39700219186 aprobada; 27 archivos HTTP 200 y contenido coincidente con 5312795. Sin cambios de reglas ni datos financieros reales."
@@ -99,26 +99,32 @@
     "docs/GUIA_INSTALACION_Y_RECUPERACION.md",
     "tests/ui-bandeja.test.mjs",
     "tests/validacion-14-casos.test.mjs",
-    "docs/CORRECCIONES_AUDITORIA.md"
+    "docs/CORRECCIONES_AUDITORIA.md",
+    "docs/VALIDACION_CONTINUA.md",
+    "scripts/verificar-dependencias.mjs",
+    ".github/workflows/verificacion.yml"
   ],
   "pruebas": [
-    "npm test: 117 pruebas Node aprobadas; saldos, HTML inerte, CAS, cuotas/repartos y PDF real incluidos.",
-    "npm run test:reglas: 16 pruebas SDK con emulador demo-cuotas-local aprobadas; ninguna escritura en producción.",
-    "Android: 50 ejecuciones actuales, 49 aprobadas y una omitida por configuración presente. Seis nuevas usan Room/WorkManager reales y envío sustituido; no son pruebas físicas S24.",
-    "Lint Android sin errores y ambas variantes debug compiladas. Compilación conectada 0.2.1; evidencia y límites en docs/CORRECCIONES_AUDITORIA.md.",
-    "UI real aislada: XSS neutralizado, confirmación móvil y cancelación sin deuda; tres positivas S24 anteriores se conservan como reportadas por el usuario.",
-    "GitHub Pages 39700219186 aprobada para 5312795; 27 recursos públicos descargados y comparados. La entrega documental posterior no cambia la aplicación."
+    "npm test: 127 aprobadas, cero fallos/omitidas; incluye diez casos del control de dependencias y coherencia CDN.",
+    "npm run test:dependencias: versiones web/pruebas/lockfile coincidentes; cinco entradas conocidas visibles y cero desviaciones nuevas. No es auditoría sin vulnerabilidades.",
+    "npm run test:reglas: 16 SDK/emulador demo-cuotas-local aprobadas; ninguna cuenta o dato financiero real.",
+    "Android local: 52 ejecuciones actuales, 51 aprobadas y una omitida por SDK configurado. Ocho regresiones de WorkManager/Room; red de envío sustituida, no prueba física.",
+    "Titular: APK 0.2.1 instalada y permiso revocado/restaurado con servicio reconectado; evidencia reportada durante esta continuación.",
+    "Workflow .github/workflows/verificacion.yml: web/reglas y Android sin credenciales ni APK de entrega; verificar su ejecución en Actions.",
+    "UI y PDF de corrección previa conservan su evidencia. PWA/Android funcionales no cambian; SW sigue cuotas-v21.",
+    "Publicación corregida previa verificada: 27 archivos públicos coincidentes con 56360cf y Pages aprobada."
   ],
   "incompletas": [
     "Muestras negativas auténticas de pago, devolución y publicidad; no están disponibles en el corpus.",
-    "Instalar el APK corregido como actualización y validar reintento sin red/reconexión y revocación/restauración. No repetir sin motivo las tres positivas del S24.",
+    "Red caída/restaurada y actualizaciones reales de avisos en S24. Instalación 0.2.1 y revocación/restauración ya reportadas; no volver a solicitarlas.",
     "Revisión visual actual del roadmap restringida; generación y VM no sustituyen esa inspección.",
     "Avisos transitivos de Firebase CLI aún sin solución compatible completa; seguir las versiones oficiales."
   ],
   "continuar": [
-    "Leer docs/CORRECCIONES_AUDITORIA.md y CODEX_FINAL_AUDIT.md antes de seguir.",
-    "Actualizar el S24 con el APK 0.2.1 sin desinstalar ni borrar sus datos; misma firma y cuenta.",
-    "Cerrar solo criterios con evidencia nueva. No restaurar el cierre 100% por aumentar la cantidad de tests."
+    "Leer docs/VALIDACION_CONTINUA.md y comprobar la última ejecución de Verificación de cuotas en GitHub Actions.",
+    "Esperar evidencia natural de recuperación sin red y ejemplos negativos anonimizados; no gastar dinero ni fabricar notificaciones para cerrar criterios físicos.",
+    "No volver a pedir instalación 0.2.1 ni revocación/restauración: el titular ya las confirmó.",
+    "Cerrar solo criterios con evidencia nueva y dependencias aceptadas. Cinco avisos transitivos siguen abiertos."
   ],
   "fases": [
     {
@@ -266,7 +272,7 @@
             "2.2"
           ],
           "estado": "en_curso",
-          "evidencia": "Room conserva identidad y UID. Se corrige la ventana final con APPEND_OR_REPLACE. Seis regresiones con Room/WorkManager reales pasan, incluido insertar tras conteo cero; falta comprobar la actualización del APK en el S24."
+          "evidencia": "Room conserva identidad/UID y señales APPEND_OR_REPLACE. Ocho pruebas de WorkManager/Room: señal final, red restringida, fallo transitorio y recuperación sin duplicar. Titular confirma 0.2.1 instalada; faltan actualizaciones reales de avisos y evidencia de red caída en S24."
         },
         {
           "id": "2.4",
@@ -278,7 +284,7 @@
             "6.1"
           ],
           "estado": "en_curso",
-          "evidencia": "Google, consentimiento y sincronización positiva en S24 reportados por el usuario. APK 0.2.1 compilado; falta validar sus cambios y reintentos offline físicos."
+          "evidencia": "Google y sincronización positiva física previos conservados. Titular confirma actualización 0.2.1 sin desinstalar ni borrar datos y reconexión de permiso. Emulador mantiene 16 casos SDK; recuperación sin red en S24 todavía pendiente."
         }
       ]
     },
@@ -488,7 +494,7 @@
             "3.3"
           ],
           "estado": "en_curso",
-          "evidencia": "CAS y carreras de confirmación verificados en emulador; WorkManager real cubre señal final y recuperación de cadena fallida. Falta red caída/restaurada y revocación física en la versión actualizada."
+          "evidencia": "CAS/carreras en emulador y ocho pruebas Room/WorkManager aprobadas, incluyendo red restringida y reintento transitorio con identidad conservada. CI añade verificación de web/reglas/Android sin cuentas. Falta red caída/restaurada en S24; no confundir una sonda de envío con red real."
         },
         {
           "id": "6.3",
@@ -511,7 +517,7 @@
             "2.4"
           ],
           "estado": "en_curso",
-          "evidencia": "Acceso concedido y persistencia tras reinicio reportados por el titular. Revocación, restauración y reconexión físicas aún sin evidencia completa."
+          "evidencia": "Titular confirma 0.2.1 instalada y prueba física: revoca/restaura acceso, solicita reconexión y vuelve a ver acceso concedido/servicio conectado. Positivas previas de reinicio y pantalla apagada conservadas. Evidencia reportada; cierre formal espera 2.4."
         }
       ]
     },
@@ -529,7 +535,7 @@
             "6.2"
           ],
           "estado": "en_curso",
-          "evidencia": "Suite Node y emulador SDK aprobados. Matriz de 14 casos distingue dominio, SDK, navegador y dispositivo; el conteo no sustituye negativos auténticos ni 6.2."
+          "evidencia": "127 Node y 16 SDK/emulador locales aprobados; Android local 52 ejecuciones, 51 aprobadas/una omitida por configuración presente. Workflow de verificación con web/reglas y Android; avisos nuevos de dependencias bloquean. Negativos auténticos/6.2 aún pendientes."
         },
         {
           "id": "7.2",
@@ -594,7 +600,7 @@
             "7.4"
           ],
           "estado": "en_curso",
-          "evidencia": "Web corregida publicada y verificada, APK 0.2.1 preparado. No se declara 100%: faltan negativos auténticos, validaciones físicas y revisión visual del roadmap."
+          "evidencia": "Web corregida publicada y APK 0.2.1 instalada según titular. Reconexión física de permiso reportada. CI reproducible preparado; quedan negativos auténticos, offline/actualizaciones reales y revisión visual del roadmap. Sin cierre 100%."
         }
       ]
     }

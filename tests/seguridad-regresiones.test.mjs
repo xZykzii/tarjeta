@@ -1,4 +1,5 @@
 import test from "node:test";
+import { analizarAuditoria, validarVersionesWeb } from "../scripts/verificar-dependencias.mjs";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
@@ -200,4 +201,114 @@ test("PDF real actualizado pagina el reporte y excluye tarjetas, totales y compr
   assert.ok(!/TC_A|TC_B|PERSONA_PRIVADA_B|PRODUCTO_PRIVADO_B/.test(texto));
   assert.match(general.doc.output(), /PRODUCTO_PRIVADO_B/);
   assert.ok(general.doc.output().includes("TC_B"));
+});
+
+const BRACES = "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm";
+const TELEMETRY = "https://github.com/advisories/GHSA-8988-4f7v-96qf";
+
+function entrada(nombre, via, severity = "high") {
+  return { name: nombre, via, severity, nodes: [`node_modules/${nombre}`] };
+}
+
+function fixture(entradas = {}) {
+  const gravedades = Object.fromEntries(["info", "low", "moderate", "high", "critical"].map(gravedad => [
+    gravedad, Object.values(entradas).filter(entrada => entrada.severity === gravedad).length
+  ]));
+  const informe = { auditReportVersion: 2, vulnerabilities: entradas,
+    metadata: { vulnerabilities: { ...gravedades, total: Object.keys(entradas).length } } };
+  const packages = Object.fromEntries(Object.keys(entradas).map(nombre => [
+    `node_modules/${nombre}`, { dev: true, version: "1.0.0" }
+  ]));
+  return { informe, lock: { lockfileVersion: 3, packages } };
+}
+
+function analizar(datos) { return analizarAuditoria(datos.informe, datos.lock); }
+
+test("sin avisos npm no se inventa deuda ni se oculta un error de red", () => {
+  assert.deepEqual(analizar(fixture()), { conocidas: [], nuevas: [] });
+  const datos = fixture();
+  datos.informe.error = { code: "ENETUNREACH" };
+  assert.throws(() => analizar(datos), /válida/);
+  assert.throws(() => analizarAuditoria({}, datos.lock), /válida/);
+});
+
+test("los dos avisos conocidos se conservan visibles incluso cuando confluyen en CLI", () => {
+  const datos = fixture({
+    braces: entrada("braces", [{ url: BRACES, severity: "high" }]),
+    chokidar: entrada("chokidar", ["braces"]),
+    "@opentelemetry/core": entrada("@opentelemetry/core", [{ url: TELEMETRY, severity: "moderate" }], "moderate"),
+    "@google-cloud/pubsub": entrada("@google-cloud/pubsub", ["@opentelemetry/core"], "moderate"),
+    "firebase-tools": entrada("firebase-tools", ["chokidar", "@google-cloud/pubsub"])
+  });
+  const resultado = analizar(datos);
+  assert.equal(resultado.conocidas.length, 5);
+  assert.equal(resultado.nuevas.length, 0);
+  assert.deepEqual(resultado.conocidas.at(-1).avisos, [BRACES, TELEMETRY]);
+});
+
+test("un aviso nuevo en el mismo paquete conocido bloquea la comprobación", () => {
+  const datos = fixture({ braces: entrada("braces", [
+    { url: BRACES, severity: "high" }, { url: "https://github.com/advisories/GHSA-nuevo", severity: "low" }
+  ]) });
+  const resultado = analizar(datos);
+  assert.equal(resultado.nuevas.length, 1);
+  assert.equal(resultado.conocidas.length, 0);
+});
+
+test("una gravedad agravada no se ampara en la excepción previa", () => {
+  for (const isDirecta of [true, false]) {
+    const aviso = { url: BRACES, severity: isDirecta ? "critical" : "high" };
+    const datos = fixture({ braces: entrada("braces", [aviso], "critical") });
+    assert.equal(analizar(datos).nuevas.length, 1);
+  }
+});
+
+test("mover deuda conocida a dependencias de producción o a otro paquete no queda permitido", () => {
+  const datos = fixture({ braces: entrada("braces", [{ url: BRACES, severity: "high" }]) });
+  datos.lock.packages["node_modules/braces"].dev = false;
+  assert.equal(analizar(datos).nuevas.length, 1);
+  const otro = fixture({ "paquete-nuevo": entrada("paquete-nuevo", [{ url: BRACES, severity: "high" }]) });
+  assert.equal(analizar(otro).nuevas.length, 1);
+});
+
+test("referencias inexistentes o cíclicas fallan sin declarar auditoría limpia", () => {
+  assert.throws(() => analizar(fixture({ braces: entrada("braces", ["ausente"]) })), /referencias/);
+  assert.throws(() => analizar(fixture({
+    braces: entrada("braces", ["chokidar"]), chokidar: entrada("chokidar", ["braces"])
+  })), /referencias/);
+});
+
+test("informes incompletos y lockfile divergente se rechazan antes de clasificar", () => {
+  const datos = fixture({ braces: entrada("braces", [{ url: BRACES, severity: "high" }]) });
+  datos.informe.metadata.vulnerabilities.total = 0;
+  assert.throws(() => analizar(datos), /incompleto/);
+  datos.informe.metadata.vulnerabilities.total = 1;
+  delete datos.lock.packages["node_modules/braces"];
+  assert.throws(() => analizar(datos), /lockfile/);
+  assert.throws(() => analizarAuditoria(datos.informe, { packages: {} }), /Lockfile/);
+});
+
+test("un advisory conocido ausente no se informa como todavía pendiente", () => {
+  const datos = fixture({ "@opentelemetry/core": entrada("@opentelemetry/core", [
+    { url: TELEMETRY, severity: "moderate" }
+  ], "moderate") });
+  assert.equal(analizar(datos).conocidas.length, 1);
+  assert.equal(analizar(datos).nuevas.length, 0);
+});
+
+test("el control detecta una gravedad agregada adulterada", () => {
+  const datos = fixture({ braces: entrada("braces", [{ url: BRACES, severity: "high" }]) });
+  datos.informe.metadata.vulnerabilities.high = 0;
+  assert.throws(() => analizar(datos), /gravedades/);
+});
+
+test("las versiones CDN deben coincidir con las dependencias probadas, sin mezclar SDK", () => {
+  const pagina = ["app", "auth", "firestore"].map(modulo =>
+    `import "https://www.gstatic.com/firebasejs/13.1.0/firebase-${modulo}.js";`
+  ).join("\n") + '\nconst pdf = "https://cdn.jsdelivr.net/npm/jspdf@4.2.1/+esm";';
+  const paquete = { devDependencies: { firebase: "13.1.0", jspdf: "4.2.1" } };
+  assert.deepEqual(validarVersionesWeb(pagina, paquete), { firebase: "13.1.0", jspdf: "4.2.1" });
+  assert.throws(() => validarVersionesWeb(pagina.replace("13.1.0/firebase-auth", "10.12.0/firebase-auth"), paquete), /SDK/);
+  assert.throws(() => validarVersionesWeb(pagina.replace("jspdf@4.2.1", "jspdf@2.5.2"), paquete), /PDF/);
+  assert.throws(() => validarVersionesWeb(pagina, { devDependencies: { firebase: "^13.1.0", jspdf: "4.2.1" } }), /exactamente/);
 });

@@ -17,8 +17,9 @@ funcionamiento local sin Internet.
   No se modificaron documentos financieros. Firebase CLI no inicia sesión en el teléfono.
 - El titular confirmó Google, detección y envío, persistencia tras reinicio y
   funcionamiento con pantalla apagada en su S24. Son comprobaciones reportadas,
-  no ejecuciones físicas del agente. La corrección 0.2.1 aún requiere actualizar
-  el teléfono; se mantienen pendientes negativos auténticos y recuperación sin red.
+  no ejecuciones físicas del agente. El titular confirmó 0.2.1 instalada y reconexión
+  tras revocar/restaurar el permiso. Quedan negativos auténticos y recuperación
+  sin red; detalles de la continuación en `docs/VALIDACION_CONTINUA.md`.
 
 ## Autorizar en el teléfono cuando se active la entrega
 

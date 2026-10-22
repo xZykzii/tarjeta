@@ -1,8 +1,9 @@
 # Correcciones posteriores a la auditoría · 2026-10-21
 
 El usuario autorizó corregir los hallazgos y conservar los flujos existentes.
-La corrección web está publicada y verificada; el APK 0.2.1 está preparado,
-pero todavía no se instaló en el S24. Se utilizó la autorización de publicación
+La corrección web está publicada y verificada. El titular confirmó después
+la instalación de 0.2.1 y la reconexión al revocar/restaurar el permiso.
+Resultados de la continuación y CI: `VALIDACION_CONTINUA.md`. Se utilizó la autorización de publicación
 que el titular ya había otorgado para esta aplicación.
 El informe original `CODEX_FINAL_AUDIT.md` se conserva como evidencia histórica,
 sin reescribir su veredicto para aparentar una nueva aprobación independiente.
@@ -94,8 +95,8 @@ Fuentes contrastadas:
 - Instalar encima de Cuotas · conexión, conservando datos y cuenta. No
   desinstalar para resolver un conflicto de firma; revisar la clave primero.
 - No requiere reinstalar diagnóstico. No cambió la gramática del detector.
-- Tras actualizar, queda comprobar recuperación sin red y revocación/restauración
-  de acceso en el S24. No se requieren gastos de prueba ni repetir las tres
+- El titular ya confirmó la actualización y revocación/restauración de acceso
+  en el S24. Queda comprobar recuperación sin red y actualizaciones de avisos. No se requieren gastos de prueba ni repetir las tres
   positivas ya reportadas sin un motivo nuevo.
 - La web usa `cuotas-v21` y está publicada sin migración ni cambios de reglas.
   Pages [39700219186](https://github.com/xZykzii/tarjeta/actions/runs/39700219186)

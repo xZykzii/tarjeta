@@ -11,6 +11,8 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import androidx.work.Constraints
+import androidx.work.NetworkType
 import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
 import org.junit.After
@@ -53,6 +55,7 @@ class ProgramacionCapturasTest {
         SondaEnvio.despuesDeVacio = null
         SondaEnvio.isAutorizado = true
         SondaEnvio.isFalloPermanente = false
+        SondaEnvio.debeReintentar = false
         SondaEnvio.ejecuciones = 0
     }
 
@@ -65,9 +68,11 @@ class ProgramacionCapturasTest {
         SondaEnvio.despuesDeVacio = null
     }
 
-    private fun solicitud(uid: String = UID_PRUEBA): OneTimeWorkRequest =
+    private fun solicitud(uid: String = UID_PRUEBA, debeEsperarRed: Boolean = false): OneTimeWorkRequest =
         OneTimeWorkRequestBuilder<SondaEnvio>()
             .setInputData(Data.Builder().putString("uid", uid).build())
+            .setConstraints(Constraints.Builder().setRequiredNetworkType(
+                if (debeEsperarRed) NetworkType.CONNECTED else NetworkType.NOT_REQUIRED).build())
             .setInitialDelay(DEMORA_HORAS, TimeUnit.HOURS).build()
 
     private fun encolar(uid: String, solicitud: OneTimeWorkRequest) {
@@ -77,12 +82,7 @@ class ProgramacionCapturasTest {
     private fun ejecutar(solicitud: OneTimeWorkRequest) {
         val driver = requireNotNull(WorkManagerTestInitHelper.getTestDriver(RuntimeEnvironment.getApplication()))
         driver.setInitialDelayMet(solicitud.id)
-        val limite = System.nanoTime() + TimeUnit.SECONDS.toNanos(ESPERA_SEGUNDOS)
-        while (!estado(solicitud).isFinished && System.nanoTime() < limite) {
-            shadowOf(Looper.getMainLooper()).idle()
-            Thread.sleep(INTERVALO_MS)
-        }
-        assertTrue("El trabajo termina dentro del plazo", estado(solicitud).isFinished)
+        esperarFinal(solicitud)
     }
 
     private fun estado(solicitud: OneTimeWorkRequest): WorkInfo.State =
@@ -188,12 +188,71 @@ class ProgramacionCapturasTest {
         assertEquals(1, db.capturas().pendientes(UID_PRUEBA))
         assertEquals(1000L, db.capturas().lote(UID_PRUEBA, 10).single().montoOriginal)
     }
+
+    @Test
+    fun sinRedConservaLaCapturaHastaQueSeCumpleLaRestriccion() {
+        val pendiente = solicitud(debeEsperarRed = true)
+        db.capturas().encolar(captura("captura_sin_red"), 10)
+        encolar(UID_PRUEBA, pendiente)
+        val driver = requireNotNull(WorkManagerTestInitHelper.getTestDriver(RuntimeEnvironment.getApplication()))
+        driver.setInitialDelayMet(pendiente.id)
+        assertEquals(WorkInfo.State.ENQUEUED, estado(pendiente))
+        assertEquals(0, SondaEnvio.ejecuciones)
+        assertEquals(1, db.capturas().pendientes(UID_PRUEBA))
+        driver.setAllConstraintsMet(pendiente.id)
+        esperarFinal(pendiente)
+        assertEquals(WorkInfo.State.SUCCEEDED, estado(pendiente))
+        assertEquals(0, db.capturas().pendientes(UID_PRUEBA))
+    }
+
+    @Test
+    fun falloTransitorioConservaIdentidadYNoLiberaElSucesorAntesDelReintento() {
+        val primera = solicitud()
+        val siguiente = solicitud()
+        db.capturas().encolar(captura("captura_reintento_transitorio"), 10)
+        encolar(UID_PRUEBA, primera)
+        encolar(UID_PRUEBA, siguiente)
+        SondaEnvio.debeReintentar = true
+        val driver = requireNotNull(WorkManagerTestInitHelper.getTestDriver(RuntimeEnvironment.getApplication()))
+        driver.setInitialDelayMet(primera.id)
+        val limite = System.nanoTime() + TimeUnit.SECONDS.toNanos(ESPERA_SEGUNDOS)
+        while (!hasReintentoPendiente(primera) && System.nanoTime() < limite) {
+            shadowOf(Looper.getMainLooper()).idle()
+            Thread.sleep(INTERVALO_MS)
+        }
+        assertEquals(WorkInfo.State.ENQUEUED, estado(primera))
+        assertEquals(WorkInfo.State.BLOCKED, estado(siguiente))
+        assertEquals("captura_reintento_transitorio", db.capturas().lote(UID_PRUEBA, 10).single().eventId)
+        SondaEnvio.debeReintentar = false
+        driver.setInitialDelayMet(primera.id)
+        esperarFinal(primera)
+        ejecutar(siguiente)
+        assertEquals(WorkInfo.State.SUCCEEDED, estado(primera))
+        assertEquals(WorkInfo.State.SUCCEEDED, estado(siguiente))
+        assertEquals(1, db.capturas().cantidad(UID_PRUEBA))
+        assertEquals(0, db.capturas().pendientes(UID_PRUEBA))
+    }
+
+    private fun hasReintentoPendiente(solicitud: OneTimeWorkRequest): Boolean {
+        val info = requireNotNull(manager.getWorkInfoById(solicitud.id).get(ESPERA_SEGUNDOS, TimeUnit.SECONDS))
+        return info.state == WorkInfo.State.ENQUEUED && info.runAttemptCount > 0
+    }
+
+    private fun esperarFinal(solicitud: OneTimeWorkRequest) {
+        val limite = System.nanoTime() + TimeUnit.SECONDS.toNanos(ESPERA_SEGUNDOS)
+        while (!estado(solicitud).isFinished && System.nanoTime() < limite) {
+            shadowOf(Looper.getMainLooper()).idle()
+            Thread.sleep(INTERVALO_MS)
+        }
+        assertTrue("El trabajo termina dentro del plazo", estado(solicitud).isFinished)
+    }
 }
 
 class SondaEnvio(context: Context, params: WorkerParameters) : Worker(context, params) {
     override fun doWork(): ListenableWorker.Result {
         ejecuciones++
         if (!isAutorizado || isFalloPermanente) return Result.failure()
+        if (debeReintentar) return Result.retry()
         val uid = requireNotNull(inputData.getString("uid"))
         dao.lote(uid, 10).forEach { dao.enviada(uid, it.eventId) }
         if (dao.pendientes(uid) == 0) {
@@ -209,6 +268,7 @@ class SondaEnvio(context: Context, params: WorkerParameters) : Worker(context, p
         var despuesDeVacio: (() -> Unit)? = null
         var isAutorizado = true
         var isFalloPermanente = false
+        var debeReintentar = false
         var ejecuciones = 0
     }
 }

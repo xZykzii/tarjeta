@@ -89,8 +89,8 @@ La variante conectada ya implementa cola Room, identidad persistente, WorkManage
 y sesión Firebase, conservando el corpus común. El diagnóstico continúa sin cola.
 Reglas/PWA ya fueron publicadas y el titular reportó flujo conectado, reinicio
 y pantalla apagada en S24. La corrección conectada 0.2.1 está compilada localmente;
-requiere actualización del teléfono y validación de recuperación sin red y de
-permisos. Faltan negativos auténticos y actualizaciones de avisos. No se asignan
+el titular confirmó actualización y reconexión tras revocar/restaurar permisos.
+Queda validar recuperación sin red y actualizaciones reales de avisos. Faltan negativos auténticos y actualizaciones de avisos. No se asignan
 capturas sin UID a una futura cuenta ni se declara validación integral por positivas.
 
 La guía de comprobación física está en [PRUEBA_S24.md](PRUEBA_S24.md).

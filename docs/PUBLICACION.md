@@ -4,8 +4,8 @@
 `cuotas-v21`, Firebase JS 13.1.0 y jsPDF 4.2.1. Incluye historial protegido,
 validación de saldos y APK conectado 0.2.1 con programación corregida. Esta
 corrección fue publicada en `5312795`: Pages `39700219186` aprobada y 27
-archivos públicos coincidentes, HTTP 200/MIME válido. El APK 0.2.1 aún requiere
-actualizar el S24. Los resultados siguientes describen las entregas públicas
+archivos públicos coincidentes, HTTP 200/MIME válido. El titular ya confirmó
+0.2.1 instalada y reconexión de permiso; continúa pendiente recuperación sin red. Los resultados siguientes describen las entregas públicas
 anteriores. Estado actual: `CORRECCIONES_AUDITORIA.md`.
 
 El titular autorizó expresamente subir los commits, publicar GitHub Pages y

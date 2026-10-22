@@ -39,9 +39,9 @@ Detectar compras reales desde Android, revisarlas sin asignación e incorporarla
 
 ## Punto exacto de continuidad
 
-Tarea actual: **2.3 — Cola persistente y deduplicación**. Estado efectivo: **en_espera**.
+Tarea actual: **6.2 — Recuperación offline y entre dispositivos**. Estado efectivo: **en_espera**.
 
-Criterio de cierre: Persistencia mínima, reintentos y deduplicación sin fusionar compras legítimas iguales.
+Criterio de cierre: Reintentos, sesión revocada y concurrencia sin duplicados ni pérdida.
 
 Última tarea terminada: **7.2 — Pruebas UI escritorio y móvil**.
 
@@ -107,41 +107,47 @@ Avance verificado: **63%**.
 - `tests/ui-bandeja.test.mjs`
 - `tests/validacion-14-casos.test.mjs`
 - `docs/CORRECCIONES_AUDITORIA.md`
+- `docs/VALIDACION_CONTINUA.md`
+- `scripts/verificar-dependencias.mjs`
+- `.github/workflows/verificacion.yml`
 
 ## Implementaciones incompletas
 
 - Muestras negativas auténticas de pago, devolución y publicidad; no están disponibles en el corpus.
-- Instalar el APK corregido como actualización y validar reintento sin red/reconexión y revocación/restauración. No repetir sin motivo las tres positivas del S24.
+- Red caída/restaurada y actualizaciones reales de avisos en S24. Instalación 0.2.1 y revocación/restauración ya reportadas; no volver a solicitarlas.
 - Revisión visual actual del roadmap restringida; generación y VM no sustituyen esa inspección.
 - Avisos transitivos de Firebase CLI aún sin solución compatible completa; seguir las versiones oficiales.
 
 ## Pruebas y resultados
 
-- npm test: 117 pruebas Node aprobadas; saldos, HTML inerte, CAS, cuotas/repartos y PDF real incluidos.
-- npm run test:reglas: 16 pruebas SDK con emulador demo-cuotas-local aprobadas; ninguna escritura en producción.
-- Android: 50 ejecuciones actuales, 49 aprobadas y una omitida por configuración presente. Seis nuevas usan Room/WorkManager reales y envío sustituido; no son pruebas físicas S24.
-- Lint Android sin errores y ambas variantes debug compiladas. Compilación conectada 0.2.1; evidencia y límites en docs/CORRECCIONES_AUDITORIA.md.
-- UI real aislada: XSS neutralizado, confirmación móvil y cancelación sin deuda; tres positivas S24 anteriores se conservan como reportadas por el usuario.
-- GitHub Pages 39700219186 aprobada para 5312795; 27 recursos públicos descargados y comparados. La entrega documental posterior no cambia la aplicación.
+- npm test: 127 aprobadas, cero fallos/omitidas; incluye diez casos del control de dependencias y coherencia CDN.
+- npm run test:dependencias: versiones web/pruebas/lockfile coincidentes; cinco entradas conocidas visibles y cero desviaciones nuevas. No es auditoría sin vulnerabilidades.
+- npm run test:reglas: 16 SDK/emulador demo-cuotas-local aprobadas; ninguna cuenta o dato financiero real.
+- Android local: 52 ejecuciones actuales, 51 aprobadas y una omitida por SDK configurado. Ocho regresiones de WorkManager/Room; red de envío sustituida, no prueba física.
+- Titular: APK 0.2.1 instalada y permiso revocado/restaurado con servicio reconectado; evidencia reportada durante esta continuación.
+- Workflow .github/workflows/verificacion.yml: web/reglas y Android sin credenciales ni APK de entrega; verificar su ejecución en Actions.
+- UI y PDF de corrección previa conservan su evidencia. PWA/Android funcionales no cambian; SW sigue cuotas-v21.
+- Publicación corregida previa verificada: 27 archivos públicos coincidentes con 56360cf y Pages aprobada.
 
 ## Errores conocidos, riesgos y requisitos externos
 
 - Faltan negativos auténticos anonimizados del banco y Android/One UI exactos. No fabricar evidencia ni gastar dinero para probar.
-- APK conectado 0.2.1 corregido compilado localmente; actualización física pendiente. Conservar app/datos y firma al instalar encima.
+- Titular confirma APK conectado 0.2.1 instalado encima de la versión anterior y reconexión tras revocar/restaurar permiso. Faltan red caída y actualizaciones de avisos en el teléfono.
 - Cinco entradas npm pendientes en Firebase CLI: tres altas por braces/chokidar y dos moderadas por PubSub/OpenTelemetry. No son dependencias servidas por la PWA; braces no tiene versión publicada corregida. No forzar cambios incompatibles.
 - URL del roadmap restringida previamente. Generación/VM comprobadas; falta revisión visual. No usar rutas o puertos alternativos para eludir la restricción.
 - PWA cuotas-v21, Firebase JS 13.1.0 y jsPDF 4.2.1 publicados. Pages 39700219186 aprobada; 27 archivos HTTP 200 y contenido coincidente con 5312795. Sin cambios de reglas ni datos financieros reales.
 
 ## Próximos pasos en orden de prioridad
 
-1. 2.3 — Cola persistente y deduplicación (en_espera).
+1. 6.2 — Recuperación offline y entre dispositivos (en_espera).
 2. 0.3 — Roadmap visual local (en_curso).
 3. 1.3 — Verificar paquete emisor y ejemplos negativos reales (en_curso).
 
 ## Instrucciones concretas para retomar
 
-- Leer docs/CORRECCIONES_AUDITORIA.md y CODEX_FINAL_AUDIT.md antes de seguir.
-- Actualizar el S24 con el APK 0.2.1 sin desinstalar ni borrar sus datos; misma firma y cuenta.
-- Cerrar solo criterios con evidencia nueva. No restaurar el cierre 100% por aumentar la cantidad de tests.
+- Leer docs/VALIDACION_CONTINUA.md y comprobar la última ejecución de Verificación de cuotas en GitHub Actions.
+- Esperar evidencia natural de recuperación sin red y ejemplos negativos anonimizados; no gastar dinero ni fabricar notificaciones para cerrar criterios físicos.
+- No volver a pedir instalación 0.2.1 ni revocación/restauración: el titular ya las confirmó.
+- Cerrar solo criterios con evidencia nueva y dependencias aceptadas. Cinco avisos transitivos siguen abiertos.
 
 La persistencia es el repositorio, no el chat, el almacenamiento del navegador ni una promesa de detectar créditos. Si la sesión se corta durante una edición, revisar el diff y regenerar antes de confiar en las vistas. Las operaciones Git remotas y el despliegue requieren autorización explícita.

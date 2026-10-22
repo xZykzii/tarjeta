@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
+    "test:dependencias": "node scripts/verificar-dependencias.mjs",
     "seguimiento": "node scripts/seguimiento.mjs",
     "roadmap": "node scripts/seguimiento.mjs && node scripts/roadmap-servidor.mjs",
     "test:reglas": "firebase emulators:exec --only firestore --project demo-cuotas-local \"node --test tests/persistencia-emulador.integration.mjs\""
