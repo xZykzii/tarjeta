@@ -8,6 +8,8 @@ import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OneTimeWorkRequest
+import androidx.work.Operation
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
@@ -37,7 +39,7 @@ class TrabajoCapturas(context: Context, params: WorkerParameters) : Worker(conte
             }
             ConexionFirebase.error(applicationContext, uid, "")
             if (dao.pendientes(uid) > 0 && ConexionFirebase.puedeEnviar(applicationContext, uid)) {
-                solicitar(applicationContext, uid, isContinuacion = true)
+                solicitar(applicationContext, uid)
             }
             Result.success()
         } catch (error: Exception) {
@@ -74,14 +76,18 @@ class TrabajoCapturas(context: Context, params: WorkerParameters) : Worker(conte
     companion object {
         private fun nombre(uid: String) = "compras_${ConexionFirebase.hash(uid)}"
 
-        fun solicitar(context: Context, uid: String, isContinuacion: Boolean = false) {
+        fun solicitar(context: Context, uid: String) {
             val datos = Data.Builder().putString(INPUT_UID, uid).build()
             val solicitud = OneTimeWorkRequestBuilder<TrabajoCapturas>().setInputData(datos)
                 .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, BACKOFF_SEGUNDOS, TimeUnit.SECONDS).build()
-            val politica = if (isContinuacion) ExistingWorkPolicy.APPEND_OR_REPLACE else ExistingWorkPolicy.KEEP
-            WorkManager.getInstance(context).enqueueUniqueWork(nombre(uid), politica, solicitud)
+            encolar(WorkManager.getInstance(context), uid, solicitud)
         }
+
+        // Cada señal deja un sucesor durable, incluso después del último conteo
+        // del worker anterior. KEEP descartaría esa señal mientras sigue activo.
+        internal fun encolar(manager: WorkManager, uid: String, solicitud: OneTimeWorkRequest): Operation =
+            manager.enqueueUniqueWork(nombre(uid), ExistingWorkPolicy.APPEND_OR_REPLACE, solicitud)
 
         fun cancelar(context: Context, uid: String) { WorkManager.getInstance(context).cancelUniqueWork(nombre(uid)) }
     }

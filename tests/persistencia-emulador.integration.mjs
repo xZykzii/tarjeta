@@ -120,8 +120,13 @@ test("campos legados desconocidos se conservan pero no se pueden sobreescribir",
 
 test("captura mínima pertenece al UID y no admite texto bruto, PAN ni confirmación anticipada", async () => {
   const db = dbDe(OWNER);
+  const original = { ...datos([{ item: "Histórico", monto: 100, pagadas: 0, totales: 2 }]),
+    saldos: { A: 50 }, revision: 1 };
+  await sembrar(original);
   await assertSucceeds(setDoc(evento(db), pendiente()));
   await assertSucceeds(getDoc(evento(db)));
+  assert.deepEqual((await getDoc(usuario(db))).data(), original);
+  assert.equal((await getDoc(doc(db, "users", OWNER, "comprasConfirmadas", `auto_${EVENT}`))).exists(), false);
   await assertFails(getDoc(evento(dbDe(OTHER))));
   await assertFails(updateDoc(evento(db), { estado: "confirmada", compraId: "inventada" }));
   await assertFails(deleteDoc(evento(db)));

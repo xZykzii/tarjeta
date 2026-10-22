@@ -16,6 +16,28 @@ function isObjeto(valor) {
   return valor !== null && typeof valor === "object" && !Array.isArray(valor);
 }
 
+function validarSaldo(valor) {
+  // Los pagos históricos admiten decimales; conservarlos sin redondear.
+  // Los aportes nuevos y planes explícitos exigen enteros en su entrada.
+  if (typeof valor !== "number" || !Number.isFinite(valor) || valor < 0 || valor > Number.MAX_SAFE_INTEGER) {
+    throw new TypeError("El saldo debe ser numérico, no negativo y dentro del límite seguro.");
+  }
+  return valor;
+}
+
+export function saldoDe(saldos, persona) {
+  if (!isObjeto(saldos) || typeof persona !== "string") throw new TypeError("Saldo inválido.");
+  return Object.hasOwn(saldos, persona) ? validarSaldo(saldos[persona]) : 0;
+}
+
+/** Calcula sin mutar: un aporte inválido o desbordamiento no altera el saldo. */
+export function sumarSaldo(saldos, persona, aporte) {
+  const saldo = saldoDe(saldos, persona);
+  validarSaldo(aporte);
+  if (aporte > Number.MAX_SAFE_INTEGER - saldo) throw new RangeError("El saldo excede el límite seguro.");
+  return validarSaldo(saldo + aporte);
+}
+
 function valorCanonico(valor, profundidad = 0) {
   if (profundidad > MAX_DEPTH) throw new TypeError("Datos demasiado anidados.");
   if (valor === null || typeof valor === "string" || typeof valor === "boolean") return valor;
@@ -74,6 +96,7 @@ export function validarDocumento(datos) {
   if (typeof datos.tarjetaActiva !== "string" || !isObjeto(datos.saldos)) {
     throw new TypeError("Selección o saldos inválidos.");
   }
+  Object.values(datos.saldos).forEach(validarSaldo);
   if (datos.personas.some((p) => typeof p !== "string") ||
       datos.tarjetas.some((t) => typeof t !== "string") ||
       datos.items.some((item) => !isObjeto(item)) ||

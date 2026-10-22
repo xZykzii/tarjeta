@@ -1446,7 +1446,7 @@
     filtrarItems, proximosHitosCiclo, resumirTarjeta
   } from "./logic.mjs";
   import { generarPdfGeneral, generarPdfPersona } from "./pdf-export.mjs";
-  import { guardarConRevision, validarDocumento } from "./persistencia-segura.mjs";
+  import { guardarConRevision, validarDocumento, saldoDe, sumarSaldo } from "./persistencia-segura.mjs";
   import { crearControlGuardado } from "./ui-guardado.mjs";
   import {
     abonoDeCompra, restanteCuotaDe, pagadoDeCompra, recalcularCompra, totalContratoDe,
@@ -1458,13 +1458,13 @@
   import { crearBandejaCompras } from "./ui-pendientes.mjs";
   import { escucharPendientes } from "./repositorio-pendientes.mjs";
   import { resolverCompraRemota } from "./confirmacion-compras.mjs";
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
   import {
     getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
   import {
     getFirestore, doc, getDoc, runTransaction, collection, query, where, limit, onSnapshot, serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCG1b1R2NP12kqQ6hsvI80Ajv56biQoebc",
@@ -1489,7 +1489,7 @@
   let esConCuotas = true;
   let planCompra = null;
   let pdfModulePromise = null;
-  const PDF_MODULE_URL = "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/+esm";
+  const PDF_MODULE_URL = "https://cdn.jsdelivr.net/npm/jspdf@4.2.1/+esm";
   const controlGuardado = crearControlGuardado({
     guardar: (base, datos, uid) => {
       if (currentUser?.uid !== uid) throw new Error("La sesión cambió. Vuelve a iniciar sesión.");
@@ -1805,7 +1805,7 @@
     return recalcularCompra(it);
   }
   function updateSaldoUI() {
-    const s = personaSeleccionada ? (saldos[personaSeleccionada] || 0) : 0;
+    const s = personaSeleccionada ? saldoDe(saldos, personaSeleccionada) : 0;
     document.getElementById("saldo-actual-persona").textContent = fmt(s);
   }
 
@@ -1932,7 +1932,7 @@
         case "compra_cuotas": {
           icon = "📅"; cls = "hist-compra";
           const v = parseFecha(e.venc);
-          desc = `<strong>${escapeHtml(e.persona)}</strong> — Nueva compra: <em>${escapeHtml(e.item)}</em> · $${fmt(e.monto)} × ${e.totales} cuotas · <em>${escapeHtml(e.tarjeta)}</em>${
+          desc = `<strong>${escapeHtml(e.persona)}</strong> — Nueva compra: <em>${escapeHtml(e.item)}</em> · $${fmt(e.monto)} × ${escapeHtml(e.totales)} cuotas · <em>${escapeHtml(e.tarjeta)}</em>${
             v ? ` · 1ª cuota el <strong>${fmtFechaCorta(v)}</strong>` : ""}`;
           break;
         }
@@ -1945,16 +1945,16 @@
         }
         case "pago_cuota":
           icon = "✅"; cls = "hist-saldo";
-          desc = `<strong>${escapeHtml(e.persona)}</strong> — Cuota ${e.cuota}/${e.totales} pagada: <em>${escapeHtml(e.item)}</em> · $${fmt(e.monto)} · <em>${escapeHtml(e.tarjeta)}</em>${
+          desc = `<strong>${escapeHtml(e.persona)}</strong> — Cuota ${escapeHtml(e.cuota)}/${escapeHtml(e.totales)} pagada: <em>${escapeHtml(e.item)}</em> · $${fmt(e.monto)} · <em>${escapeHtml(e.tarjeta)}</em>${
             e.abonoPrevio ? ` <span style="opacity:.75">(se descontaron $${fmt(e.pagadoAhora)}; $${fmt(e.abonoPrevio)} ya estaban abonados)</span>` : ""}`;
           break;
         case "abono":
           icon = "💸"; cls = "hist-saldo";
-          desc = `<strong>${escapeHtml(e.persona)}</strong> — Abono parcial a la cuota ${e.cuota}/${e.totales}: <em>${escapeHtml(e.item)}</em> · <strong>$${fmt(e.monto)}</strong> · <em>${escapeHtml(e.tarjeta)}</em> · queda debiendo <strong>$${fmt(e.restante)}</strong>`;
+          desc = `<strong>${escapeHtml(e.persona)}</strong> — Abono parcial a la cuota ${escapeHtml(e.cuota)}/${escapeHtml(e.totales)}: <em>${escapeHtml(e.item)}</em> · <strong>$${fmt(e.monto)}</strong> · <em>${escapeHtml(e.tarjeta)}</em> · queda debiendo <strong>$${fmt(e.restante)}</strong>`;
           break;
         case "deshacer_abono":
           icon = "↩️"; cls = "hist-danger";
-          desc = `<strong>${escapeHtml(e.persona)}</strong> — Abono deshecho en la cuota ${e.cuota}/${e.totales}: <em>${escapeHtml(e.item)}</em> · $${fmt(e.monto)} devueltos al saldo · <em>${escapeHtml(e.tarjeta)}</em>`;
+          desc = `<strong>${escapeHtml(e.persona)}</strong> — Abono deshecho en la cuota ${escapeHtml(e.cuota)}/${escapeHtml(e.totales)}: <em>${escapeHtml(e.item)}</em> · $${fmt(e.monto)} devueltos al saldo · <em>${escapeHtml(e.tarjeta)}</em>`;
           break;
         case "pago_unico":
           icon = "✅"; cls = "hist-unico";
@@ -1962,11 +1962,11 @@
           break;
         case "deshacer_cuota":
           icon = "↩️"; cls = "hist-danger";
-          desc = `<strong>${escapeHtml(e.persona)}</strong> — Cuota ${e.cuota}/${e.totales} deshecha: <em>${escapeHtml(e.item)}</em> · $${fmt(e.monto)} · <em>${escapeHtml(e.tarjeta)}</em>`;
+          desc = `<strong>${escapeHtml(e.persona)}</strong> — Cuota ${escapeHtml(e.cuota)}/${escapeHtml(e.totales)} deshecha: <em>${escapeHtml(e.item)}</em> · $${fmt(e.monto)} · <em>${escapeHtml(e.tarjeta)}</em>`;
           break;
         case "fechas_recuperadas":
           icon = "🕘"; cls = "hist-compra";
-          desc = `Se recuperaron <strong>${e.cantidad}</strong> fecha${e.cantidad !== 1 ? "s" : ""} de compra desde el historial`;
+          desc = `Se recuperaron <strong>${escapeHtml(e.cantidad)}</strong> fecha${e.cantidad !== 1 ? "s" : ""} de compra desde el historial`;
           break;
         default:
           icon = "ℹ️"; cls = "";
@@ -1985,9 +1985,6 @@
   function showHistorial() {
     const ov = document.createElement("div");
     ov.className = "modal-overlay";
-    const pOpts = ['<option value="">Todas las personas</option>',
-      ...personas.map(p => `<option value="${p}">${p}</option>`)].join("");
-
     ov.innerHTML = `
       <div class="modal-box hist">
         <div class="modal-header" style="flex-shrink:0;margin-bottom:14px;">
@@ -1995,7 +1992,7 @@
           <div class="modal-title">Historial de actividad</div>
         </div>
         <div class="hist-filter-row">
-          <select id="hist-persona-filter">${pOpts}</select>
+          <select id="hist-persona-filter"></select>
           <span class="hist-count" id="hist-count"></span>
         </div>
         <div class="hist-list" id="hist-list"></div>
@@ -2008,6 +2005,8 @@
     const listEl   = ov.querySelector("#hist-list");
     const countEl  = ov.querySelector("#hist-count");
     const filterEl = ov.querySelector("#hist-persona-filter");
+    filterEl.add(new Option("Todas las personas", ""));
+    personas.forEach(p => filterEl.add(new Option(p, p)));
 
     function applyFilter() {
       const p = filterEl.value;
@@ -2547,7 +2546,7 @@
       divA.className = "row-actions";
 
       // Si el saldo no alcanza la cuota completa, el botón ofrece abonar una parte
-      const dispPersona = saldos[it.persona] || 0;
+      const dispPersona = saldoDe(saldos, it.persona);
       const esAbono     = !isDone && dispPersona > 0 && dispPersona < restante;
 
       const btnPagar = document.createElement("button");
@@ -2796,12 +2795,23 @@
       : "Ítem actualizado.", abonoPerdido ? "info" : "success");
   }
 
+  function saldoConAporte(persona, aporte) {
+    try { return sumarSaldo(saldos, persona, aporte); }
+    catch (error) {
+      console.error("No se pudo calcular el saldo.", error);
+      toast("El saldo o el importe no es válido. Revisa los datos antes de continuar.", "error");
+      return null;
+    }
+  }
+
   async function agregarSaldo() {
     if (!requireLogin()) return;
     const input = document.getElementById("saldoMonto");
-    const val   = parseInt(input.value, 10);
-    if (isNaN(val) || val <= 0) { toast("Ingresa un monto válido.", "error"); return; }
-    saldos[personaSeleccionada] = (saldos[personaSeleccionada] || 0) + val;
+    const val   = Number(input.value);
+    if (!Number.isSafeInteger(val) || val <= 0) { toast("Ingresa un monto entero válido en pesos.", "error"); return; }
+    const nuevoSaldo = saldoConAporte(personaSeleccionada, val);
+    if (nuevoSaldo === null) return;
+    saldos = { ...saldos, [personaSeleccionada]: nuevoSaldo };
     input.value = "";
     logEvento("saldo", { persona: personaSeleccionada, monto: val });
     showLoading(); try { await save(); } finally { hideLoading(); }
@@ -2819,14 +2829,14 @@
     });
     if (!ok) return;
     logEvento("saldo_borrado", { persona: personaSeleccionada });
-    saldos[personaSeleccionada] = 0;
+    saldos = { ...saldos, [personaSeleccionada]: 0 };
     showLoading(); try { await save(); } finally { hideLoading(); }
     updateSaldoUI(); toast(`Saldo de ${personaSeleccionada} eliminado.`, "info");
   }
 
   async function pagarCuota(idx) {
     const it = items[idx]; if (!it || it.pagadas >= it.totales) return;
-    const disp     = saldos[it.persona] || 0;
+    const disp     = saldoDe(saldos, it.persona);
     const abonado  = abonoDe(it);
     const restante = restanteCuota(it);
 
@@ -2857,11 +2867,14 @@
         promptValue: disp, promptMax: disp
       });
       if (val === false || val === null) return;
-      const monto = parseInt(val, 10);
-      if (isNaN(monto) || monto <= 0)  { toast("Monto inválido.", "error"); return; }
+      const monto = Number(val);
+      if (!Number.isFinite(monto) || monto <= 0 || monto > Number.MAX_SAFE_INTEGER ||
+          (hasPlanExplicito(it) && !Number.isSafeInteger(monto))) {
+        toast("Monto inválido para este plan.", "error"); return;
+      }
       if (monto > disp)                { toast("No hay saldo suficiente para ese abono.", "error"); return; }
 
-      saldos[it.persona] = disp - monto;
+      saldos = { ...saldos, [it.persona]: disp - monto };
       const pagoParcial = registrarPagoCompra(it, monto);
       Object.assign(it, pagoParcial.compra);
       logEvento("abono", {
@@ -2876,7 +2889,7 @@
     }
 
     // Saldo suficiente: se completa la cuota (descontando lo ya abonado)
-    saldos[it.persona] = disp - restante;
+    saldos = { ...saldos, [it.persona]: disp - restante };
     const pago = registrarPagoCompra(it, restante);
     Object.assign(it, pago.compra);
     it.completedAt = it.pagadas >= it.totales ? Date.now() : null;
@@ -2898,7 +2911,9 @@
 
     // Lo último que se hizo fue un abono parcial: se devuelve ese abono
     if (abonado > 0) {
-      saldos[it.persona] = (saldos[it.persona] || 0) + abonado;
+      const nuevoSaldo = saldoConAporte(it.persona, abonado);
+      if (nuevoSaldo === null) return;
+      saldos = { ...saldos, [it.persona]: nuevoSaldo };
       it.abonado = 0;
       recalcItem(it);
       logEvento("deshacer_abono", {
@@ -2914,7 +2929,9 @@
     if (it.pagadas <= 0) return;
     const cuotaDeshecha = ultimaCuotaPagadaNumero(it);
     const deshecho = deshacerPagoCompra(it);
-    saldos[it.persona] = (saldos[it.persona] || 0) + deshecho.devuelto;
+    const nuevoSaldo = saldoConAporte(it.persona, deshecho.devuelto);
+    if (nuevoSaldo === null) return;
+    saldos = { ...saldos, [it.persona]: nuevoSaldo };
     Object.assign(it, deshecho.compra);
     if (it.pagadas < it.totales) it.completedAt = null;
     logEvento("deshacer_cuota", {
@@ -2993,7 +3010,8 @@
     });
     if (!n) return;
     if (personas.includes(n)) { toast("Esa persona ya existe.", "error"); return; }
-    personas.push(n); if (!(n in saldos)) saldos[n] = 0;
+    personas.push(n);
+    if (!Object.hasOwn(saldos, n)) saldos = { ...saldos, [n]: 0 };
     personaSeleccionada = n;
     showLoading(); try { await save(); } finally { hideLoading(); }
     renderPersonaSelect(); toast(`Persona "${n}" agregada.`);

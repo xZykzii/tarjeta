@@ -192,7 +192,7 @@ test("crearBandejaCompras inicializa el panel y muestra estado vacío inicial", 
   const { contenedor, bandeja } = entornoBandeja();
   const panel = contenedor.querySelector(".compras-pendientes");
   assert.ok(panel, "Debe existir la sección .compras-pendientes");
-  
+
   const titulo = panel.querySelector("#pendientes-titulo");
   assert.equal(titulo.textContent, "Compras sin asignar");
 
@@ -201,7 +201,7 @@ test("crearBandejaCompras inicializa el panel y muestra estado vacío inicial", 
 
   const recargar = panel.querySelector("button");
   assert.equal(recargar.textContent, "Actualizar");
-  
+
   bandeja.detener();
 });
 

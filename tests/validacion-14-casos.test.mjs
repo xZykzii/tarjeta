@@ -212,7 +212,7 @@ test("Caso 10: Redondeo CLP distribuye el residuo a las primeras cuotas", () => 
 // -------------------------------------------------------------
 // CASO 11: Aislamiento por UID y sesión de usuario
 // -------------------------------------------------------------
-test("Caso 11: Contrato de pendientes y revisión exigen UID válido y no admiten cruces", () => {
+test("Caso 11: El esquema del pendiente rechaza un campo UID ajeno al contrato", () => {
   const aviso = crearPendiente({
     eventId: "evento_uid_valido_0001",
     montoOriginal: 1000,
@@ -226,7 +226,7 @@ test("Caso 11: Contrato de pendientes y revisión exigen UID válido y no admite
 // -------------------------------------------------------------
 // CASO 12: Confirmación y descarte atómicos e irreversibles
 // -------------------------------------------------------------
-test("Caso 12: Confirmación y descarte son mutuamente excluyentes e idempotentes", () => {
+test("Caso 12: La resolución pura impide reabrir un descarte; atomicidad se prueba en emulador", () => {
   const aviso = crearPendiente({
     eventId: "evento_resolucion_0001",
     montoOriginal: 1500,
@@ -250,15 +250,20 @@ test("Caso 12: Confirmación y descarte son mutuamente excluyentes e idempotente
 // -------------------------------------------------------------
 // CASO 13: Integridad y concurrencia optimista (CAS)
 // -------------------------------------------------------------
-test("Caso 13: Concurrencia optimista detecta conflictos de revisión en guardados", () => {
+test("Caso 13: Guardar rechaza una base obsoleta antes de escribir", async () => {
   const doc = docBase();
   const baseInicial = baseDocumento({ ...doc, revision: 1 });
 
   // Simular que otro dispositivo incrementó la revisión
   const docModificado = { ...doc, revision: 2 };
-  const baseActual = baseDocumento(docModificado);
-
-  assert.notEqual(baseInicial.revision, baseActual.revision);
+  let hasEscritura = false;
+  const sdk = { db: {}, runTransaction: async (db, callback) => callback({
+    get: async () => ({ exists: () => true, data: () => docModificado }),
+    set: () => { hasEscritura = true; }
+  }) };
+  await assert.rejects(guardarConRevision(sdk, {}, baseInicial, doc), ConflictoGuardado);
+  assert.equal(hasEscritura, false);
+  assert.equal(doc.items.length, 0);
 });
 
 // -------------------------------------------------------------

@@ -29,8 +29,8 @@ android {
         create("conectada") {
             dimension = "modo"
             applicationIdSuffix = ".sync"
-            versionCode = 3
-            versionName = "0.2.0-preparacion"
+            versionCode = 4
+            versionName = "0.2.1"
             buildConfigField("boolean", "IS_CONECTADA", "true")
             listOf("APPLICATION_ID", "API_KEY", "PROJECT_ID", "WEB_CLIENT_ID").forEach {
                 buildConfigField("String", "FIREBASE_$it", config(it))
@@ -58,6 +58,7 @@ dependencies {
     "conectadaImplementation"("androidx.room:room-runtime:2.7.2")
     "conectadaAnnotationProcessor"("androidx.room:room-compiler:2.7.2")
     "conectadaImplementation"("androidx.work:work-runtime:2.10.1")
+    "testConectadaImplementation"("androidx.work:work-testing:2.10.1")
     "conectadaImplementation"("androidx.credentials:credentials:1.5.0")
     "conectadaImplementation"("androidx.credentials:credentials-play-services-auth:1.5.0")
     "conectadaImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
