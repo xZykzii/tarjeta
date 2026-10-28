@@ -700,6 +700,16 @@
 
     /* ── RESPONSIVE ── */
 
+    /* Mantener las acciones a la vista aunque el contenido ensanche la tabla. */
+    @media (min-width: 901px) {
+      .cell-item { max-width: 240px; white-space: normal; overflow-wrap: anywhere; }
+      thead th:last-child, .cell-acciones { position: sticky; right: 0; }
+      thead th:last-child { z-index: 3; }
+      .cell-acciones { z-index: 1; background: var(--surface); box-shadow: -8px 0 12px #00000012; }
+      .row-actions { display: grid; grid-template-columns: repeat(3, max-content); width: max-content; margin-left: auto; }
+      .row-actions .btn:first-child { grid-column: 1 / -1; justify-content: center; }
+    }
+
     /* Notebook: la tabla no entra entera. "Total" es la columna más prescindible
        (Pagado y Pendiente ya cuentan la historia), así que se oculta antes de
        obligar a arrastrar en horizontal. */
