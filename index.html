@@ -18,7 +18,7 @@
   <meta name="color-scheme" content="dark light" />
   <link rel="manifest" href="./manifest.json" />
   <link rel="stylesheet" href="./compras.css" />
-  <meta name="theme-color" content="#0a0a0b" />
+  <meta name="theme-color" content="#080f36" />
   <script>
     if ("serviceWorker" in navigator) {
       // Si ya había un service worker mandando, al entrar uno nuevo se recarga
@@ -1095,6 +1095,86 @@
     .sync-panel { margin: 0 0 24px; padding: 20px; border: 1px solid var(--accent, #b5ef73); border-radius: 14px; background: var(--surface, #16202a); }
     .sync-panel p { margin: 8px 0 14px; }
     .sync-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    /* Estética de arena: contraste alto y acciones financieras reconocibles. */
+    :root { --radius-sm: 4px; --radius-md: 8px; --radius-lg: 10px; --radius-xl: 14px; }
+    [data-theme="dark"] {
+      --bg: #080f36; --surface: #111e50; --surface-2: #16265e; --surface-3: #203574;
+      --border: #30477b; --border-2: #5978b0; --text: #f5f8ff;
+      --text-2: #c4d5f4; --text-3: #a4bce6; --brand: #f8ee42;
+      --brand-soft: #f8ee421a; --accent: #f8ee42;
+      --header-bg: #080e2b; --header-text: #fff; --header-muted: #b6cafa;
+    }
+    [data-theme="light"] {
+      --bg: #e8eeff; --surface: #fff; --surface-2: #edf3ff; --surface-3: #dce6ff;
+      --border: #bbcceb; --border-2: #7d99cc; --text: #101e4e;
+      --text-2: #384f7b; --text-3: #4b628b; --brand: #4b34bd;
+      --brand-soft: #643be914; --accent: #4b34bd;
+    }
+    body { background: radial-gradient(ellipse at 90% 0%, #5834d83b, transparent 48%), var(--bg); }
+    .app-header { background: #080e2bf5; border-bottom: 3px solid #48c9ff; }
+    .logo-icon { background: #f8ee42; color: #11183d; border-radius: 4px; transform: rotate(-7deg); font-weight: 950; }
+    .logo-text { font-weight: 900; text-transform: uppercase; font-style: italic; }
+    .main { max-width: 1320px; }
+    h1, .login-copy h1, .page-intro h1 { font-family: Impact, 'Arial Black', sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: -.025em; font-style: italic; }
+    .page-eyebrow { color: var(--brand); font-weight: 850; letter-spacing: .15em; }
+    .page-eyebrow::before { background: var(--brand); height: 3px; width: 26px; }
+    .page-intro { border-left: 5px solid #48c9ff; padding: 22px; background: linear-gradient(110deg, #295bf32b, transparent); }
+    .btn { border-radius: 5px; font-weight: 750; min-height: 42px; }
+    .btn-primary, .login-google { background: #f8ee42; color: #11183d; border-color: #f8ee42; box-shadow: 0 4px 0 #b7a91c; }
+    .btn-primary:hover:not(:disabled), .login-google:hover { background: #fff785; color: #11183d; border-color: #fff785; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #39c8ff; outline-offset: 3px; }
+    .card-tabs-section, .kpi-card, .cycle-card, .agenda-card, .summary-card, .panel { border-radius: 8px; box-shadow: 0 7px 0 #040a2226; }
+    .card-tab.active { background: #f8ee42; color: #11183d; border-color: #f8ee42; }
+    .kpi-card { border-top: 4px solid #48c9ff; }
+    .kpi-monthly { border-top-color: #f8ee42; background: linear-gradient(125deg, #5357df24, transparent), var(--surface); }
+    .kpi-monthly, .kpi-monthly .kpi-value { color: var(--text); }
+    .kpi-monthly .kpi-label, .kpi-monthly .kpi-sub, .kpi-monthly .currency { color: var(--text-2); }
+    .kpi-monthly .kpi-bar { background: var(--surface-3); }
+    .kpi-pending { border-top-color: #bd89ff; }
+    .kpi-overdue { border-top-color: #ff718e; }
+    .kpi-value { font-weight: 850; letter-spacing: -.04em; }
+    .kpi-bar-fill, .preview-progress span { background: linear-gradient(90deg, #40d4ff, #8c6bff); }
+    .cycle-card { background: linear-gradient(135deg, #3d43a936, transparent), var(--surface); }
+    .milestone-day { border-radius: 5px; }
+    .panel-header, thead { background: var(--surface-2); }
+    .login-layout { gap: 64px; }
+    .login-copy h1 { font-size: clamp(48px, 5.7vw, 78px); line-height: .99; }
+    .login-description { font-size: 16px; }
+    .login-visual { border: 2px solid #6f8fff; border-radius: 12px; padding: 44px 32px; background: radial-gradient(circle at 80% 15%, #9455e9, #2251c5 50%, #10265e); box-shadow: 12px 12px 0 #02082230; }
+    .preview-label { color: #fff; font-weight: 850; letter-spacing: .12em; }
+    .preview-dot { background: #f8ee42; box-shadow: 0 0 14px #f8ee42; }
+    .preview-card { background: linear-gradient(120deg, #fff77c, #f6dc37); color: #151d43; border: 2px solid #fff68c; border-radius: 8px; transform: rotate(-6deg); }
+    .preview-amount { font-weight: 850; }
+    .preview-payment { border: 2px solid #88aaff; background: #102359; color: #fff; border-radius: 6px; }
+    .preview-payment div > span, .preview-fraction span { color: #c7d9ff; }
+    .preview-check { background: #41d8b52b; color: #78ffd2; }
+    .feature-number { color: var(--brand); font-weight: 900; font-size: 14px; }
+    .login-features strong { font-size: 14px; text-transform: uppercase; }
+    .login-footer { letter-spacing: .03em; }
+    @media (max-width: 700px) {
+      .main { padding: 24px 14px 48px; }
+      .login-layout { gap: 32px; padding: 14px 2px 30px; }
+      .login-copy h1 { font-size: clamp(42px, 11vw, 66px); }
+      .login-copy .page-eyebrow { margin-bottom: 20px; }
+      .login-description { margin-top: 18px; font-size: 14px; }
+      .login-google { max-width: none; min-height: 54px; margin-top: 24px; }
+      .login-features { gap: 12px; margin-top: 28px; padding-top: 20px; }
+      .login-features strong { font-size: 11px; }
+      .login-visual { padding: 30px 22px; box-shadow: 6px 6px 0 #02082230; }
+      .preview-label { font-size: 8px; margin-bottom: 28px; }
+      .page-intro { padding: 18px 14px; gap: 16px; }
+      .page-intro h1 { font-size: 34px; }
+      .page-actions { display: grid; grid-template-columns: 1fr; }
+      .page-actions .btn { min-height: 48px; width: 100%; }
+      .kpi-grid { gap: 12px; }
+      .kpi-card { min-width: 0; }
+      .card-tabs-layout { align-items: stretch; }
+      .table-wrap { background: transparent; padding: 12px; }
+      tbody tr { border-left: 4px solid #48c9ff; box-shadow: 0 5px 0 #040a2226; border-radius: 8px; }
+      .row-actions { gap: 8px; }
+      .row-actions .btn { min-height: 46px; }
+      .header-inner { padding: 0 14px; }
+    }
   </style>
 </head>
 <body>
@@ -1134,8 +1214,8 @@
   <div id="login-box">
     <div class="login-layout">
       <section class="login-copy" aria-labelledby="welcomeTitle">
-        <div class="page-eyebrow">Tu espacio financiero</div>
-        <h1 id="welcomeTitle">Cada cuota.<br>Todo <span>bajo control.</span></h1>
+        <div class="page-eyebrow">Tu próxima victoria: el control</div>
+        <h1 id="welcomeTitle">Domina<br>tus <span>cuotas.</span></h1>
         <p class="login-description">Tus compras, tus fechas, tu tranquilidad. Organiza lo que debes y lo que viene, en un solo lugar.</p>
         <button class="btn login-google" id="loginBtn">
           <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2.1H12v4h5.4a4.6 4.6 0 0 1-2 3v2.5h3.3c1.9-1.7 2.9-4.2 2.9-7.4Z"/><path fill="#34A853" d="M12 22c2.7 0 5-1 6.7-2.4l-3.3-2.5c-.9.6-2 .9-3.4.9-2.6 0-4.8-1.8-5.6-4.1H3v2.6A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.4 13.9a6 6 0 0 1 0-3.8V7.5H3a10 10 0 0 0 0 9l3.4-2.6Z"/><path fill="#EA4335" d="M12 6c1.5 0 2.8.5 3.8 1.5l2.9-2.8A9.6 9.6 0 0 0 12 2a10 10 0 0 0-9 5.5l3.4 2.6A6 6 0 0 1 12 6Z"/></svg>
@@ -1150,7 +1230,7 @@
         </div>
       </section>
       <figure class="login-visual" aria-label="Ejemplo ilustrativo del seguimiento de cuotas">
-        <div class="preview-label"><span class="preview-dot"></span> MENOS PENDIENTES. MÁS CLARIDAD.</div>
+        <div class="preview-label"><span class="preview-dot"></span> TU MES. TU PLAN. TU VICTORIA.</div>
         <div class="preview-card">
           <div class="preview-card-top"><span>Cuotas / Control</span><span class="preview-mark">C²</span></div>
           <span class="preview-caption">Tu mes, en orden</span>
