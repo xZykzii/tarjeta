@@ -1115,7 +1115,7 @@
     .logo-icon { background: #f8ee42; color: #11183d; border-radius: 4px; transform: rotate(-7deg); font-weight: 950; }
     .logo-text { font-weight: 900; text-transform: uppercase; font-style: italic; }
     .main { max-width: 1320px; }
-    h1, .login-copy h1, .page-intro h1 { font-family: Impact, 'Arial Black', sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: -.025em; font-style: italic; }
+    h1, .login-copy h1, .page-intro h1 { font-family: 'Burbank Big Condensed', 'Burbank Big Cd Bk', Impact, 'Arial Black', sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: -.025em; font-style: italic; }
     .page-eyebrow { color: var(--brand); font-weight: 850; letter-spacing: .15em; }
     .page-eyebrow::before { background: var(--brand); height: 3px; width: 26px; }
     .page-intro { border-left: 5px solid #48c9ff; padding: 22px; background: linear-gradient(110deg, #295bf32b, transparent); }
@@ -1175,6 +1175,19 @@
       .row-actions .btn { min-height: 46px; }
       .header-inner { padding: 0 14px; }
     }
+    /* Los tres indicadores comparten superficie; el color identifica su estado. */
+    .kpi-card.kpi-pending { background: linear-gradient(135deg, #8354ef24, transparent), var(--surface); }
+    .kpi-card.kpi-overdue { background: linear-gradient(135deg, #e64d8220, transparent), var(--surface); }
+    .kpi-card.kpi-monthly { border-color: var(--border); border-top-color: #f8ee42; }
+    .kpi-card.kpi-pending { border-color: var(--border); border-top-color: #bd89ff; }
+    .kpi-card.kpi-overdue { border-color: var(--border); border-top-color: #ff718e; }
+    .kpi-monthly:hover { border-color: var(--border); border-top-color: #f8ee42; }
+    .kpi-label { font-weight: 700; }
+    .kpi-value { font-family: var(--font); font-variant-numeric: tabular-nums; font-weight: 800; letter-spacing: -.035em; }
+    .kpi-tag { border-color: var(--border-2); color: var(--text-2); }
+    .kpi-monthly .kpi-bar-fill { background: #f8ee42; }
+    .kpi-pending .kpi-bar-fill { background: #bd89ff; }
+    .kpi-overdue .kpi-bar-fill { background: #ff718e; }
   </style>
 </head>
 <body>
